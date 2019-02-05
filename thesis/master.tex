@@ -1,0 +1,65 @@
+\RequirePackage[l2tabu,orthodox]{nag}
+
+\documentclass[oneside,a4paper,oldfontcommands]{memoir}
+
+%\newsubfloat{figure}
+
+\input{settings}
+\input{misc/acronyms.tex}
+\makeglossaries
+
+%\headstyles{ell}
+\chapterstyle{ell}
+
+% Use sans-serif font
+\renewcommand{\kufrontfont}{\sffamily}
+
+\project{\mdseries\LARGE Master's Thesis}
+\author{Mark Jan Jacobi --- {\ttfamily MARK@MAIL.DK} \\
+        Jan Mezník --- {\ttfamily jan@meznik.dk}}
+
+%\title{A Common Intermediate Representation of Synchronous Message ExchangeNetworks}
+%\title{This is a title}
+\title{TCP/IP in hardware using SME}
+%\subtitle{ }
+\date{\today}
+\supervisor{Supervisors: TODO}
+
+\begin{document}
+
+%\figureversion{lining}
+
+\frontmatter
+
+\begin{titlingpage}
+\maketitle
+\end{titlingpage}
+
+\newpage
+%\pagestyle{plain}
+\begin{abstract}
+
+\end{abstract}
+\newpage
+
+
+\chapter{Acknowledgments}
+syn ack asa
+\newpage
+\tableofcontents
+
+\printglossary[type=\acronymtype,title=Abbrevations]
+
+% \chapter{Preface}
+
+\mainmatter
+
+\input{chapters/introduction}
+
+%\microtypesetup{protrusion=true}
+\printbibliography{}
+
+\appendix
+\input{chapters/appendix}
+
+\end{document}

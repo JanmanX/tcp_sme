@@ -1,0 +1,182 @@
+\PassOptionsToPackage{table,svgnames,dvipsnames}{xcolor}
+
+%\usepackage{MyriadPro}
+%\usepackage{MinionPro}
+\usepackage[scaled]{beramono}
+%\usepackage{lmodern}
+\usepackage[utf8]{inputenc}
+% \usepackage[sc]{mathpazo}
+\usepackage[T1]{fontenc}
+%\usepackage{tgpagella}
+%\linespread{1.05}
+\usepackage[english]{babel}
+\usepackage{syntax}
+\usepackage{subcaption}
+\usepackage[lang=en,grid]{kufront}
+% \usepackage[american]{babel}
+\usepackage[autostyle]{csquotes}
+\usepackage[acronym]{glossaries}
+\usepackage{todonotes}
+\usepackage{fancyvrb}
+%\usepackage{adjustbox}
+
+% \newminted{c}{fontsize=\small}
+
+
+\usepackage[super]{nth}
+\usepackage{xcolor}
+
+% \nth{1}, \nth{2}, \nth{3}, \nth{4}
+
+\usepackage{multicol}
+
+% \newenvironment{blocklisting}[1]
+% {\begingroup\lstset{#1}\VerbatimOut{blocklisting-tmp.txt}}
+% {\endVerbatimOut\begin{block}{Code}\lstinputlisting{blocklisting-tmp.txt}\end{block}\endgroup}
+\newenvironment{smeilcode2}
+{\begingroup\lstset{language=smeil}\VerbatimOut{blocklisting-tmp.txt}}
+{\endVerbatimOut\begin{multicols}{2}\lstinputlisting{blocklisting-tmp.txt}\end{multicols}\endgroup}
+
+%\renewcommand{\ttdefault}{cmtt}
+\newcommand{\libsme}[0]{\textsc{libsme}}
+
+\newcommand{\codemargins}[0]{\paperwidth-2cm}
+
+\newenvironment{widefigure}[1][]{
+  \begin{figure}[#1]
+  \centerfloat
+  \begin{minipage}[t]{\codemargins}
+  }{\end{minipage}
+   \end{figure}
+}
+
+% Define some colors
+\definecolor{mblue}{RGB}{0,0,200}
+\definecolor{mred}{RGB}{200,40,0}
+\definecolor{mgreen}{RGB}{0,180,0}
+\definecolor{mdarkgreen}{RGB}{0,100,0}
+\definecolor{morange}{RGB}{200,100,0}
+
+\definecolor{lightblue}{RGB}{197,227,240}
+\definecolor{lightgreen}{RGB}{197,240,184}
+
+\definecolor{scopebg}{RGB}{250,250,250}
+\definecolor{scopeborder}{RGB}{200,200,200}
+
+\usetikzlibrary{calc}
+\usetikzlibrary{positioning}
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{shapes}
+\usetikzlibrary{matrix}
+\usetikzlibrary{fit}
+\usetikzlibrary{patterns}
+\usetikzlibrary{backgrounds}
+\usetikzlibrary{decorations.pathreplacing}
+
+
+% \usepackage[utf8]{inputenc}
+% \usepackage[T1]{fontenc}
+%\usepackage[danish,english]{babel}
+%\usepackage{urw-garamond}
+
+
+  %url=false,
+  %style=alphabetic,
+  %citestyle=authoryear-icomp,
+\usepackage[%
+  backend=biber,
+  style=numeric,
+  maxnames=2,
+  minnames=1,
+  maxbibnames=99,
+  firstinits,
+  uniquename=init,
+  backref=true]{biblatex} % TODO: adapt citation style
+  %maxcitenames=2,
+
+\AtEveryBibitem{%
+  \ifentrytype{onlinex}{%
+  }{%
+    \clearfield{url}%
+    \clearfield{urldate}%
+  }%
+}
+
+% \usepackage{graphicx}
+% % \usepackage{listings}
+
+% \usepackage{minted}
+\usepackage{diagbox}
+\usepackage{lstautogobble}
+\usepackage{tikz}
+%\usepackage{pgfplots}
+%\usepackage{pgfplotstable}
+\usepackage[margin=1cm,font=small,labelfont=bf]{caption}
+%\captionnamefont{\bfseries}
+
+
+\usepackage{booktabs}
+%\usepackage[final]{microtype}
+\usepackage[draft]{fixme}
+\usepackage{wrapfig}
+%\usepackage{caption}
+%\usepackage[inline]{enumitem}
+%\setlist[enumerate,1]{label=\textit{\alph*)}}
+\usepackage{paralist}
+\usepackage[hidelinks]{hyperref} % hidelinks removes colored boxes around references and links
+\usepackage[euler]{textgreek}
+\usepackage[nameinlink]{cleveref}
+%\usepackage{refcheck}
+%\usepackage{scrhack} % necessary for listings package
+
+%%% Infrastructure    
+% \makeatletter
+% \newcommand{\refcheckize}[1]{%
+%   \expandafter\let\csname @@\string#1\endcsname#1%
+%   \expandafter\DeclareRobustCommand\csname relax\string#1\endcsname[1]{%
+%     \csname @@\string#1\endcsname{##1}\wrtusdrf{##1}}%
+%   \expandafter\let\expandafter#1\csname relax\string#1\endcsname
+% }
+% \makeatother
+%%%
+
+%%% Now we add the reference commands we want refcheck to be aware of
+% \refcheckize{\cref}
+% \refcheckize{\Cref}
+
+%\addtokomafont{caption}{\small}
+%\setkomafont{captionlabel}{\sffamily\bfseries}
+
+\bibliography{bibliography}
+
+%\setkomafont{disposition}{\normalfont\bfseries} % use serif font for headings
+%\setkomafont{disposition}{\sffamily} % use serif font for headings
+%\linespread{1.05} % adjust line spread for mathpazo font
+
+% Add table of contents to PDF bookmarks
+%\BeforeTOCHead[toc]{{\cleardoublepage\pdfbookmark[0]{\contentsname}{toc}}}
+
+% Settings for pgfplots
+% \pgfplotsset{compat=newest}
+% \pgfplotsset{
+%   % For available color names, see http://www.latextemplates.com/svgnames-colors
+%   cycle list={CornflowerBlue\\Dandelion\\ForestGreen\\BrickRed\\},
+% }
+
+% Settings for lstlistings
+% \lstset{%
+%   basicstyle=\ttfamily,
+%   columns=fullflexible,
+%   autogobble,
+%   keywordstyle=\bfseries\color{MediumBlue},
+%   stringstyle=\color{DarkGreen}
+% }
+
+
+\lstnewenvironment{pythoncode}{\lstset{language=python}}{}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "master"
+%%% TeX-command-extra-options: "-enable-write18"
+%%% End:
