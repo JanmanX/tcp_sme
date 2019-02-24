@@ -37,6 +37,7 @@ namespace TCPIP
             {
                 Console.WriteLine($"File not found: {file}");
                 await ClockAsync();
+                return;
             }
 
 
