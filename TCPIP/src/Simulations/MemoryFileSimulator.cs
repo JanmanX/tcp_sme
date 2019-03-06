@@ -6,7 +6,7 @@ using SME;
 
 namespace TCPIP
 {
-	public class NetworkMemory: Process
+	public class NetworkMemory: SimulationProcess
 	{
 		// Consts
 		public const int SIZE = 8196; 
