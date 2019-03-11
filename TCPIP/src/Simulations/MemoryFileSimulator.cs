@@ -21,10 +21,10 @@ namespace TCPIP
         [InputBus]
         private readonly SME.Components.TrueDualPortMemory<byte>.IReadResultA m_rda;
 
-        [OutputBus]
+        [InputBus]
         private readonly SME.Components.TrueDualPortMemory<byte>.IControlB m_controlb;
 
-        [InputBus]
+        [OutputBus]
         private readonly SME.Components.TrueDualPortMemory<byte>.IReadResultB m_rdb;
 
 
@@ -39,9 +39,9 @@ namespace TCPIP
         // {
         //     return m_controla;
         // }
-        public SME.Components.TrueDualPortMemory<byte>.IControlB GetControlB()
+        public SME.Components.TrueDualPortMemory<byte>.IReadResultB getIReadResultB()
         {
-            return m_controlb;
+            return m_rdb;
         }
 
 
