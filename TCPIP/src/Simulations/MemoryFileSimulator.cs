@@ -3,58 +3,97 @@ using System.IO;
 using System.Threading.Tasks;
 
 using SME;
+using SME.VHDL;
 
 namespace TCPIP
 {
-	public class NetworkMemory: SimulationProcess
-	{
-		// Consts
-		public const int SIZE = 8196; 
+    public class MemoryFileSimulatior : SimulationProcess
+    {
+        // ram
+        private readonly SME.Components.TrueDualPortMemory<byte> m_ram;
 
-		[InputBus, OutputBus]
-        public IMemoryInterface Interface = Scope.CreateBus<IMemoryInterface>();
+		[OutputBus]
+		private readonly IPacketAddrAnnouncer m_packetAnnouncer;
 
-		private byte[] data;
-		private int cycle = 0;
+        [OutputBus]
+        private readonly SME.Components.TrueDualPortMemory<byte>.IControlA m_controla;
 
-		public NetworkMemory(String memoryFile)
-			: base()
+        [InputBus]
+        private readonly SME.Components.TrueDualPortMemory<byte>.IReadResultA m_rda;
+
+        [OutputBus]
+        private readonly SME.Components.TrueDualPortMemory<byte>.IControlB m_controlb;
+
+        [InputBus]
+        private readonly SME.Components.TrueDualPortMemory<byte>.IReadResultB m_rdb;
+
+
+        // Getters
+		public IPacketAddrAnnouncer getIPacketAddrAnnouncer()
 		{
-			data = new byte[SIZE];
-
-			try 
-			{
-				using(var fileStream = File.OpenRead(memoryFile)) 
-				{
-					int bytesRead = fileStream.Read(data, 0, NetworkMemory.SIZE);
-					Console.WriteLine($"Initialized NetworkMemory with {bytesRead} bytes");
-				}
-			} 
-			catch(Exception ex) {
-				Console.WriteLine($"Could not read input memoryFile {memoryFile}");
-				return;				
-			}
+			return m_packetAnnouncer;
 		}
 
-		public async override Task Run()
-		{
-			while (true)
-			{
+		// Reserved!
+        // public SME.Components.TrueDualPortMemory<byte>.IControlA GetControlA()
+        // {
+        //     return m_controla;
+        // }
+        public SME.Components.TrueDualPortMemory<byte>.IControlB GetControlB()
+        {
+            return m_controlb;
+        }
+
+
+        public MemoryFileSimulatior(String memoryFile)
+            : base()
+        {
+            byte[] initial_bytes;
+
+            try
+            {
+                using (var fileStream = File.OpenRead(memoryFile))
+                {
+                    FileInfo fileInfo = new System.IO.FileInfo(memoryFile);
+                    initial_bytes = new byte[fileInfo.Length];
+
+                    for (var i = 0; i < initial_bytes.Length; i++)
+                    {
+                        initial_bytes[i] = VHDLHelper.CreateIntType<byte>((ulong)fileStream.ReadByte());
+                    }
+                }
+            }
+            catch
+            {
+                Console.WriteLine($"Could not read input memoryFile {memoryFile}");
+                return;
+            }
+
+            m_ram = new SME.Components.TrueDualPortMemory<byte>(initial_bytes.Length, initial_bytes);
+            m_controla = m_ram.ControlA;
+            m_rda = m_ram.ReadResultA;
+            m_controlb = m_ram.ControlB;
+            m_rdb = m_ram.ReadResultB;
+
+            Console.WriteLine($"Initialized dual-port ram with ${initial_bytes.Length} bytes.");
+        }
+
+        public override async Task Run()
+        {
+			await ClockAsync();
+
+			// Announce new packet
+			m_packetAnnouncer.Addr = (uint)0x00;
+			m_controlb.Enabled = true;
+			m_controlb.IsWriting = false;
+			await ClockAsync();
+
+			//
+			for(uint i = 0; i < 100; i++) {
+				Console.WriteLine("Memory says tick");
 				await ClockAsync();
-
-                PrintDebug("Phase: {0}", ++cycle);
-
-				if (Interface.ReadEnabled)
-				{
-					PrintDebug("Setting readvalue to {0}", data[Interface.ReadAddr]);
-					Interface.ReadValue = data[Interface.ReadAddr];
-				}
-
-				if (Interface.WriteEnabled)
-				{
-					data[Interface.WriteAddr] = Interface.WriteValue;
-				}
 			}
-		}
-	}
+        }
+
+    }
 }
