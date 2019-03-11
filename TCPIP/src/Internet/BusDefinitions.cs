@@ -4,10 +4,12 @@ namespace TCPIP
 {
     public partial class Internet
     {
-        public interface SegmentBus : IBus
+        public interface DatagramBus : IBus
         {
-            byte data { get; set; }
+            [InitialValue]
+            uint Addr { get; set; }
         }
+
 
     }
 }

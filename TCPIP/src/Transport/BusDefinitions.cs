@@ -6,13 +6,13 @@ namespace TCPIP
     {
         public interface SegmentBus : IBus
         {
-            byte data { get; set; }
+            uint Addr { get; set; }
         }
 
         public interface OutputBus : IBus
         {
             [InitialValue]
-            byte data { get; set; }
+            uint Addr { get; set; }
         }
 
     }

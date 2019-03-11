@@ -6,13 +6,7 @@ namespace TCPIP
     {
         public interface FrameBus : IBus
         {
-            byte data { get; set; }
-        }
-
-        public interface DatagramBus : IBus
-        {
-            [InitialValue]
-            byte data { get; set; }
+            uint Addr { get; set; }
         }
 
     }

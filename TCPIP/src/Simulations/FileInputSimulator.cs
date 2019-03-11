@@ -44,7 +44,7 @@ namespace TCPIP
             byte[] bytes = File.ReadAllBytes(this.file);
             foreach (byte b in bytes)
             {
-                frameBus.data = b;
+                frameBus.Addr = b;
                 // Write progress after each line
                 Console.WriteLine($"Written: {b}.");
 

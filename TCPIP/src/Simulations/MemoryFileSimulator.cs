@@ -13,7 +13,7 @@ namespace TCPIP
         private readonly SME.Components.TrueDualPortMemory<byte> m_ram;
 
 		[OutputBus]
-		private readonly IPacketAddrAnnouncer m_packetAnnouncer;
+		public readonly Network.FrameBus frameBus = Scope.CreateBus<Network.FrameBus>();
 
         [OutputBus]
         private readonly SME.Components.TrueDualPortMemory<byte>.IControlA m_controla;
@@ -29,11 +29,6 @@ namespace TCPIP
 
 
         // Getters
-		public IPacketAddrAnnouncer getIPacketAddrAnnouncer()
-		{
-			return m_packetAnnouncer;
-		}
-
 		// Reserved!
         // public SME.Components.TrueDualPortMemory<byte>.IControlA GetControlA()
         // {
@@ -83,12 +78,11 @@ namespace TCPIP
 			await ClockAsync();
 
 			// Announce new packet
-			m_packetAnnouncer.Addr = (uint)0x00;
+			frameBus.Addr = (uint)0x00;
 			m_controlb.Enabled = true;
 			m_controlb.IsWriting = false;
 			await ClockAsync();
 
-			//
 			for(uint i = 0; i < 100; i++) {
 				Console.WriteLine("Memory says tick");
 				await ClockAsync();

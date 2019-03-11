@@ -2,7 +2,7 @@ using SME;
 
 namespace TCPIP
 {
-    public interface IPacketAddrAnnouncer: IBus
+    public interface IAddrBus: IBus
     {
         uint Addr { get; set; }
     }

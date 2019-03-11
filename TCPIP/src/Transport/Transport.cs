@@ -7,13 +7,13 @@ namespace TCPIP
     public partial class TTransport : SimpleProcess
     {
         [InputBus]
-        private readonly Internet.SegmentBus segmentBus;
+        private readonly Transport.SegmentBus segmentBus;
 
         [OutputBus]
         public readonly Transport.OutputBus outputBus = Scope.CreateBus<Transport.OutputBus>();
 
 
-        public TTransport(Internet.SegmentBus segmentBus)
+        public TTransport(Transport.SegmentBus segmentBus)
         {
             this.segmentBus = segmentBus ?? throw new ArgumentNullException(nameof(segmentBus));
         }
@@ -21,7 +21,7 @@ namespace TCPIP
 
         protected override void OnTick()
         {
-            outputBus.data = segmentBus.data;
+            outputBus.Addr = segmentBus.Addr;
         }
     }
 

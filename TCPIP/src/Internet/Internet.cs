@@ -7,20 +7,20 @@ namespace TCPIP
     public partial class Internet : SimpleProcess
     {
         [InputBus]
-        private readonly Network.DatagramBus datagramBus;
+        private readonly Internet.DatagramBus datagramBus;
 
         [OutputBus]
-        public readonly SegmentBus segmentBus = Scope.CreateBus<SegmentBus>();
+        public readonly Transport.SegmentBus segmentBus = Scope.CreateBus<Transport.SegmentBus>();
 
 
-        public Internet(Network.DatagramBus datagramBus)
+        public Internet(Internet.DatagramBus datagramBus)
         {
             this.datagramBus = datagramBus ?? throw new ArgumentNullException(nameof(datagramBus));
         }
 
         protected override void OnTick()
         {
-            segmentBus.data = datagramBus.data;
+            segmentBus.Addr = datagramBus.Addr;
         }
     }
 

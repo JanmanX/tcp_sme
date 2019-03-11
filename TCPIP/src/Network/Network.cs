@@ -1,25 +1,26 @@
 using System;
-
+using System.Threading.Tasks;
 using SME;
 
 namespace TCPIP
 {
-    public partial class Network : SimpleProcess
+    public partial class Network : Process
     {
         [InputBus]
         private readonly FrameBus frameBus;
 
         [OutputBus]
-        public readonly DatagramBus datagramBus = Scope.CreateBus<DatagramBus>();
+        public readonly Internet.DatagramBus datagramBus = Scope.CreateBus<Internet.DatagramBus>();
 
         public Network(FrameBus frameBus)
         {
             this.frameBus = frameBus ?? throw new ArgumentNullException(nameof(frameBus));
         }
 
-        protected override void OnTick()
+        public override async Task Run()
         {
-            datagramBus.data = frameBus.data;
+            await ClockAsync();
+            datagramBus.Addr = frameBus.Addr;
         }
     }
 
