@@ -11,7 +11,11 @@ namespace TCPIP
             using (var sim = new Simulation())
             {
                 var simulator = new MemoryFileSimulatior("data/data0.bin");
-                var network = new Network(simulator.frameBus);
+                var network = new Network(simulator.frameBus, 
+                                        simulator.m_rdb, 
+                                        simulator.m_controlb,
+                                        simulator.networkStatusBus);
+
                 var internet = new Internet(network.datagramBus);
                 var transport = new TTransport(internet.segmentBus);
 

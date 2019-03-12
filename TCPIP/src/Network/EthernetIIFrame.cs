@@ -13,7 +13,7 @@ namespace TCPIP
 
     class EthernetIIFrame
     {
-
+        public const uint ETHERTYPE_OFFSET = 0x0C; 
     }
 
 

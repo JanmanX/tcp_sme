@@ -10,31 +10,33 @@ namespace TCPIP
     public class MemoryFileSimulatior : SimulationProcess
     {
         // ram
-        private readonly SME.Components.TrueDualPortMemory<byte> m_ram;
+        private readonly SME.Components.TrueDualPortMemory<uint> m_ram;
 
 		[OutputBus]
 		public readonly Network.FrameBus frameBus = Scope.CreateBus<Network.FrameBus>();
 
         [OutputBus]
-        private readonly SME.Components.TrueDualPortMemory<byte>.IControlA m_controla;
+        private readonly SME.Components.TrueDualPortMemory<uint>.IControlA m_controla;
 
         [InputBus]
-        private readonly SME.Components.TrueDualPortMemory<byte>.IReadResultA m_rda;
+        private readonly SME.Components.TrueDualPortMemory<uint>.IReadResultA m_rda;
 
         [InputBus]
-        private readonly SME.Components.TrueDualPortMemory<byte>.IControlB m_controlb;
+        public readonly SME.Components.TrueDualPortMemory<uint>.IControlB m_controlb;
 
         [OutputBus]
-        private readonly SME.Components.TrueDualPortMemory<byte>.IReadResultB m_rdb;
+        public readonly SME.Components.TrueDualPortMemory<uint>.IReadResultB m_rdb;
 
+        [InputBus]
+        public readonly Network.NetworkStatusBus networkStatusBus = Scope.CreateBus<Network.NetworkStatusBus>();
 
         // Getters
 		// Reserved!
-        // public SME.Components.TrueDualPortMemory<byte>.IControlA GetControlA()
+        // public SME.Components.TrueDualPortMemory<uint>.IControlA GetControlA()
         // {
         //     return m_controla;
         // }
-        public SME.Components.TrueDualPortMemory<byte>.IReadResultB getIReadResultB()
+        public SME.Components.TrueDualPortMemory<uint>.IReadResultB getIReadResultB()
         {
             return m_rdb;
         }
@@ -43,18 +45,18 @@ namespace TCPIP
         public MemoryFileSimulatior(String memoryFile)
             : base()
         {
-            byte[] initial_bytes;
+            uint[] initial_uints;
 
             try
             {
                 using (var fileStream = File.OpenRead(memoryFile))
                 {
                     FileInfo fileInfo = new System.IO.FileInfo(memoryFile);
-                    initial_bytes = new byte[fileInfo.Length];
+                    initial_uints = new uint[fileInfo.Length];
 
-                    for (var i = 0; i < initial_bytes.Length; i++)
+                    for (var i = 0; i < initial_uints.Length; i++)
                     {
-                        initial_bytes[i] = VHDLHelper.CreateIntType<byte>((ulong)fileStream.ReadByte());
+                        initial_uints[i] = VHDLHelper.CreateIntType<uint>((ulong)fileStream.ReadByte());
                     }
                 }
             }
@@ -64,13 +66,13 @@ namespace TCPIP
                 return;
             }
 
-            m_ram = new SME.Components.TrueDualPortMemory<byte>(initial_bytes.Length, initial_bytes);
+            m_ram = new SME.Components.TrueDualPortMemory<uint>(initial_uints.Length, initial_uints);
             m_controla = m_ram.ControlA;
             m_rda = m_ram.ReadResultA;
             m_controlb = m_ram.ControlB;
             m_rdb = m_ram.ReadResultB;
 
-            Console.WriteLine($"Initialized dual-port ram with ${initial_bytes.Length} bytes.");
+            Console.WriteLine($"Initialized dual-port ram with {initial_uints.Length} uints.");
         }
 
         public override async Task Run()

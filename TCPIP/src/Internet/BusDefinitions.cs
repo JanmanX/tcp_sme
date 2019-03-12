@@ -8,6 +8,9 @@ namespace TCPIP
         {
             [InitialValue]
             uint Addr { get; set; }
+
+            [InitialValue(0x00)]
+            uint Type { get; set; }
         }
 
 
