@@ -9,37 +9,59 @@ namespace TCPIP
 {
     public class MemoryFileSimulatior : SimulationProcess
     {
-        // ram
-        private readonly SME.Components.TrueDualPortMemory<uint> m_ram;
+        private readonly EightPortMemory<uint> ram;
 
 		[OutputBus]
 		public readonly Network.FrameBus frameBus = Scope.CreateBus<Network.FrameBus>();
 
+#region PRIVATE BECAUSE RESERVED
         [OutputBus]
-        private readonly SME.Components.TrueDualPortMemory<uint>.IControlA m_controla;
+        private readonly EightPortMemory<uint>.IControlA controlA;
 
         [InputBus]
-        private readonly SME.Components.TrueDualPortMemory<uint>.IReadResultA m_rda;
+        private readonly EightPortMemory<uint>.IReadResultA readResultA;
+#endregion
+
 
         [InputBus]
-        public readonly SME.Components.TrueDualPortMemory<uint>.IControlB m_controlb;
+        public readonly EightPortMemory<uint>.IControlB controlB;
 
         [OutputBus]
-        public readonly SME.Components.TrueDualPortMemory<uint>.IReadResultB m_rdb;
+        public readonly EightPortMemory<uint>.IReadResultB readResultB;
+
+        [InputBus]
+        public readonly EightPortMemory<uint>.IControlC controlC;
+
+        [OutputBus]
+        public readonly EightPortMemory<uint>.IReadResultC readResultC;
+
+        [InputBus]
+        public readonly EightPortMemory<uint>.IControlD controlD;
+
+        [OutputBus]
+        public readonly EightPortMemory<uint>.IReadResultD readResultD;
+
+        [InputBus]
+        public readonly EightPortMemory<uint>.IControlE controlE;
+
+        [OutputBus]
+        public readonly EightPortMemory<uint>.IReadResultE readResultE;
+
+        [InputBus]
+        public readonly EightPortMemory<uint>.IControlF controlF;
+
+        [OutputBus]
+        public readonly EightPortMemory<uint>.IReadResultF readResultF;
+
+        [InputBus]
+        public readonly EightPortMemory<uint>.IControlH controlH;
+
+        [OutputBus]
+        public readonly EightPortMemory<uint>.IReadResultH readResultH;
+
 
         [InputBus]
         public readonly Network.NetworkStatusBus networkStatusBus = Scope.CreateBus<Network.NetworkStatusBus>();
-
-        // Getters
-		// Reserved!
-        // public SME.Components.TrueDualPortMemory<uint>.IControlA GetControlA()
-        // {
-        //     return m_controla;
-        // }
-        public SME.Components.TrueDualPortMemory<uint>.IReadResultB getIReadResultB()
-        {
-            return m_rdb;
-        }
 
 
         public MemoryFileSimulatior(String memoryFile)
@@ -66,11 +88,21 @@ namespace TCPIP
                 return;
             }
 
-            m_ram = new SME.Components.TrueDualPortMemory<uint>(initial_uints.Length, initial_uints);
-            m_controla = m_ram.ControlA;
-            m_rda = m_ram.ReadResultA;
-            m_controlb = m_ram.ControlB;
-            m_rdb = m_ram.ReadResultB;
+            ram = new EightPortMemory<uint>(initial_uints.Length, initial_uints);
+            controlA = ram.ControlA;
+            readResultA = ram.ReadResultA;
+            controlB = ram.ControlB;
+            readResultB = ram.ReadResultB;
+            controlC = ram.ControlC;
+            readResultC = ram.ReadResultC;
+            controlD = ram.ControlD;
+            readResultD = ram.ReadResultD;
+            controlE = ram.ControlE;
+            readResultE = ram.ReadResultE;
+            controlF = ram.ControlF;
+            readResultF = ram.ReadResultF;
+            controlH = ram.ControlH;
+            readResultH = ram.ReadResultH;
 
             Console.WriteLine($"Initialized dual-port ram with {initial_uints.Length} uints.");
         }
@@ -81,8 +113,8 @@ namespace TCPIP
 
 			// Announce new packet
 			frameBus.Addr = (uint)0x00;
-			m_controlb.Enabled = true;
-			m_controlb.IsWriting = false;
+			controlB.Enabled = true;
+			controlB.IsWriting = false;
 			await ClockAsync();
 
 			for(uint i = 0; i < 100; i++) {
