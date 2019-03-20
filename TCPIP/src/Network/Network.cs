@@ -13,10 +13,10 @@ namespace TCPIP
         private readonly Network.FrameBus frameBus;
 
         [InputBus]
-        private readonly SME.Components.TrueDualPortMemory<uint>.IReadResultB readResultB;
+        private readonly EightPortMemory<uint>.IReadResultB readResultB;
 
         [OutputBus]
-        public readonly SME.Components.TrueDualPortMemory<uint>.IControlB controlB;
+        public readonly EightPortMemory<uint>.IControlB controlB;
 
         [OutputBus]
         public readonly Network.NetworkStatusBus networkStatusBus;
@@ -25,8 +25,8 @@ namespace TCPIP
         public readonly Internet.DatagramBus datagramBus = Scope.CreateBus<Internet.DatagramBus>();
 
         public Network(Network.FrameBus frameBus, 
-                SME.Components.TrueDualPortMemory<uint>.IReadResultB readResultB,
-                SME.Components.TrueDualPortMemory<uint>.IControlB controlB,
+                EightPortMemory<uint>.IReadResultB readResultB,
+                EightPortMemory<uint>.IControlB controlB,
                 NetworkStatusBus networkStatusBus)
         {
             this.frameBus = frameBus ?? throw new System.ArgumentNullException(nameof(frameBus));
