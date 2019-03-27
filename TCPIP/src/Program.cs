@@ -12,8 +12,8 @@ namespace TCPIP
             {
                 var simulator = new MemoryFileSimulatior<byte>("data/dump25/00000packet.bin");
                 var network = new Network(simulator.frameBus, 
-                                        simulator.readResultB, 
-                                        simulator.controlB,
+                                        simulator.GetReadResultB(), 
+                                        simulator.GetControlB(),
                                         simulator.networkStatusBus);
 
                 var internet = new Internet(network.datagramBus);

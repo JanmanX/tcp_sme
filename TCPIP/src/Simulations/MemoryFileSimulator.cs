@@ -22,12 +22,24 @@ namespace TCPIP
         private readonly EightPortMemory<T>.IReadResultA readResultA;
 #endregion
 
+
+        public EightPortMemory<T>.IControlB GetControlB() {
+            return ram.ControlB;
+        }
+
+        public EightPortMemory<T>.IReadResultB GetReadResultB() {
+            return ram.ReadResultB;
+        }
+
+   
         /* Used by Network layer */
-        [InputBus]
+        /* 
+        [OutputBus]
         public readonly EightPortMemory<T>.IControlB controlB;
 
         [OutputBus]
         public readonly EightPortMemory<T>.IReadResultB readResultB;
+        */
 
         /* Used by Internet Layer */
         [InputBus]
@@ -90,10 +102,12 @@ namespace TCPIP
             }
 
             ram = new EightPortMemory<T>(5000, initial_Ts);
+          /*
             controlA = ram.ControlA;
             readResultA = ram.ReadResultA;
             controlB = ram.ControlB;
             readResultB = ram.ReadResultB;
+
             controlC = ram.ControlC;
             readResultC = ram.ReadResultC;
             controlD = ram.ControlD;
@@ -104,7 +118,7 @@ namespace TCPIP
             readResultF = ram.ReadResultF;
             controlH = ram.ControlH;
             readResultH = ram.ReadResultH;
-
+*/
             Console.WriteLine($"Initialized dual-port ram with {initial_Ts.Length} Ts.");
 
 
@@ -125,7 +139,6 @@ namespace TCPIP
             {
                 await ClockAsync();
 
-
                 // Announce new packet
                 frameBus.Addr = 0x00;
                 frameBus.Ready = true;
@@ -133,9 +146,10 @@ namespace TCPIP
 
                 for (uint i = 0; i < 10; i++)
                 {
-                    Console.WriteLine("Memory says tick");
                     await ClockAsync();
                 }
+
+                return;
             }
 
         }

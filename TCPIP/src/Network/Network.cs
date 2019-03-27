@@ -51,7 +51,7 @@ namespace TCPIP
                 controlB.IsWriting = false;
                 controlB.Address = (int)(addr + EthernetIIFrame.ETHERTYPE_OFFSET);
                 await ClockAsync();
-                await ClockAsync();
+//                await ClockAsync();
                 ushort type = (ushort)readResultB.Data;
 
                 // Propagate
