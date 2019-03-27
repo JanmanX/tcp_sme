@@ -21,7 +21,9 @@ namespace TCPIP
 
         protected override void OnTick()
         {
-            outputBus.Addr = segmentBus.Addr;
+
+            outputBus.Addr = 0x1337;
+           // outputBus.Addr = segmentBus.Addr;
         }
     }
 

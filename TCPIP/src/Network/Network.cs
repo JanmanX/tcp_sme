@@ -13,10 +13,10 @@ namespace TCPIP
         private readonly Network.FrameBus frameBus;
 
         [InputBus]
-        private readonly EightPortMemory<uint>.IReadResultB readResultB;
+        private readonly EightPortMemory<byte>.IReadResultB readResultB;
 
         [OutputBus]
-        public readonly EightPortMemory<uint>.IControlB controlB;
+        public readonly EightPortMemory<byte>.IControlB controlB;
 
         [OutputBus]
         public readonly Network.NetworkStatusBus networkStatusBus;
@@ -25,34 +25,46 @@ namespace TCPIP
         public readonly Internet.DatagramBus datagramBus = Scope.CreateBus<Internet.DatagramBus>();
 
         public Network(Network.FrameBus frameBus, 
-                EightPortMemory<uint>.IReadResultB readResultB,
-                EightPortMemory<uint>.IControlB controlB,
+                EightPortMemory<byte>.IReadResultB readResultB,
+                EightPortMemory<byte>.IControlB controlB,
                 NetworkStatusBus networkStatusBus)
         {
             this.frameBus = frameBus ?? throw new System.ArgumentNullException(nameof(frameBus));
             this.readResultB = readResultB ?? throw new System.ArgumentNullException(nameof(readResultB));
+            this.controlB = controlB ?? throw new System.ArgumentNullException(nameof(controlB));
             this.networkStatusBus = networkStatusBus ?? throw new System.ArgumentNullException(nameof(networkStatusBus));
         }
 
         
         public override async Task Run()
         {
-            if( frameBus.IsValid == false ) {
+            while (true)
+            {
+                while (frameBus.Ready == false)
+                {
+                    await ClockAsync();
+                }
+
+                // Read type
+                uint addr = frameBus.Addr;
+                controlB.Enabled = true;
+                controlB.IsWriting = false;
+                controlB.Address = (int)(addr + EthernetIIFrame.ETHERTYPE_OFFSET);
                 await ClockAsync();
-                return;
+                await ClockAsync();
+                ushort type = (ushort)readResultB.Data;
+
+                // Propagate
+                datagramBus.Addr = addr;
+                datagramBus.Type = type;
+
+                SimulationOnly(() => {
+                    Console.WriteLine("datagramBus.Type = " + type);
+                });
+
+                datagramBus.Ready = true;
+                await ClockAsync();
             }
-
-            // Read type
-            uint addr = frameBus.Addr;
-            controlB.Address = (int)addr;
-            await ClockAsync();
-            ushort type = (ushort)readResultB.Data;
-
-            // Propagate
-            datagramBus.Addr = addr;
-            datagramBus.Type = type;
-            await ClockAsync();
-
         }
     }
 

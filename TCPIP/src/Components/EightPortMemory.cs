@@ -187,8 +187,6 @@ namespace TCPIP
                 Console.WriteLine("Partial implementation of EightPortMemory!\nRead/Write on same addresses not checked!");
 	
             });
-
-
         }
 
         /// <summary>

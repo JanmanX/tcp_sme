@@ -10,7 +10,7 @@ namespace TCPIP
             uint Addr { get; set; }
 
             [InitialValue(false)]
-            bool IsValid { get; set; }
+            bool Ready { get; set; }
         }
 
         public interface NetworkStatusBus : IBus 

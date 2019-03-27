@@ -10,7 +10,7 @@ namespace TCPIP
 
             using (var sim = new Simulation())
             {
-                var simulator = new MemoryFileSimulatior("data/data0.bin");
+                var simulator = new MemoryFileSimulatior<byte>("data/dump25/00000packet.bin");
                 var network = new Network(simulator.frameBus, 
                                         simulator.readResultB, 
                                         simulator.controlB,

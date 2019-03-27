@@ -7,58 +7,59 @@ using SME.VHDL;
 
 namespace TCPIP
 {
-    public class MemoryFileSimulatior : SimulationProcess
+    public class MemoryFileSimulatior<T> : SimulationProcess
     {
-        private readonly EightPortMemory<uint> ram;
+        private readonly EightPortMemory<T> ram;
 
 		[OutputBus]
 		public readonly Network.FrameBus frameBus = Scope.CreateBus<Network.FrameBus>();
 
 #region PRIVATE BECAUSE RESERVED
         [OutputBus]
-        private readonly EightPortMemory<uint>.IControlA controlA;
+        private readonly EightPortMemory<T>.IControlA controlA;
 
         [InputBus]
-        private readonly EightPortMemory<uint>.IReadResultA readResultA;
+        private readonly EightPortMemory<T>.IReadResultA readResultA;
 #endregion
 
-
+        /* Used by Network layer */
         [InputBus]
-        public readonly EightPortMemory<uint>.IControlB controlB;
+        public readonly EightPortMemory<T>.IControlB controlB;
 
         [OutputBus]
-        public readonly EightPortMemory<uint>.IReadResultB readResultB;
+        public readonly EightPortMemory<T>.IReadResultB readResultB;
 
+        /* Used by Internet Layer */
         [InputBus]
-        public readonly EightPortMemory<uint>.IControlC controlC;
+        public readonly EightPortMemory<T>.IControlC controlC;
 
         [OutputBus]
-        public readonly EightPortMemory<uint>.IReadResultC readResultC;
+        public readonly EightPortMemory<T>.IReadResultC readResultC;
 
+        /* Used by Transport layer (?) */
         [InputBus]
-        public readonly EightPortMemory<uint>.IControlD controlD;
+        public readonly EightPortMemory<T>.IControlD controlD;
 
         [OutputBus]
-        public readonly EightPortMemory<uint>.IReadResultD readResultD;
+        public readonly EightPortMemory<T>.IReadResultD readResultD;
 
         [InputBus]
-        public readonly EightPortMemory<uint>.IControlE controlE;
+        public readonly EightPortMemory<T>.IControlE controlE;
 
         [OutputBus]
-        public readonly EightPortMemory<uint>.IReadResultE readResultE;
+        public readonly EightPortMemory<T>.IReadResultE readResultE;
 
         [InputBus]
-        public readonly EightPortMemory<uint>.IControlF controlF;
+        public readonly EightPortMemory<T>.IControlF controlF;
 
         [OutputBus]
-        public readonly EightPortMemory<uint>.IReadResultF readResultF;
+        public readonly EightPortMemory<T>.IReadResultF readResultF;
 
         [InputBus]
-        public readonly EightPortMemory<uint>.IControlH controlH;
+        public readonly EightPortMemory<T>.IControlH controlH;
 
         [OutputBus]
-        public readonly EightPortMemory<uint>.IReadResultH readResultH;
-
+        public readonly EightPortMemory<T>.IReadResultH readResultH;
 
         [InputBus]
         public readonly Network.NetworkStatusBus networkStatusBus = Scope.CreateBus<Network.NetworkStatusBus>();
@@ -67,18 +68,18 @@ namespace TCPIP
         public MemoryFileSimulatior(String memoryFile)
             : base()
         {
-            uint[] initial_uints;
+            T[] initial_Ts;
 
             try
             {
                 using (var fileStream = File.OpenRead(memoryFile))
                 {
                     FileInfo fileInfo = new System.IO.FileInfo(memoryFile);
-                    initial_uints = new uint[fileInfo.Length];
+                    initial_Ts = new T[fileInfo.Length];
 
-                    for (var i = 0; i < initial_uints.Length; i++)
+                    for (var i = 0; i < initial_Ts.Length; i++)
                     {
-                        initial_uints[i] = VHDLHelper.CreateIntType<uint>((ulong)fileStream.ReadByte());
+                        initial_Ts[i] = VHDLHelper.CreateIntType<T>((ulong)fileStream.ReadByte());
                     }
                 }
             }
@@ -88,7 +89,7 @@ namespace TCPIP
                 return;
             }
 
-            ram = new EightPortMemory<uint>(initial_uints.Length, initial_uints);
+            ram = new EightPortMemory<T>(5000, initial_Ts);
             controlA = ram.ControlA;
             readResultA = ram.ReadResultA;
             controlB = ram.ControlB;
@@ -104,24 +105,39 @@ namespace TCPIP
             controlH = ram.ControlH;
             readResultH = ram.ReadResultH;
 
-            Console.WriteLine($"Initialized dual-port ram with {initial_uints.Length} uints.");
+            Console.WriteLine($"Initialized dual-port ram with {initial_Ts.Length} Ts.");
+
+
+            for(uint i = 0; i < initial_Ts.Length; i++) {
+                if (i % 8 == 0)  {
+                    Console.WriteLine();
+                }
+ 
+                Console.Write(String.Format("0x{0:X} ", initial_Ts[i]));
+           }
+           Console.WriteLine();
+
         }
 
         public override async Task Run()
         {
-			await ClockAsync();
+            while (true)
+            {
+                await ClockAsync();
 
-			// Announce new packet
-			frameBus.Addr = (uint)0x00;
-			controlB.Enabled = true;
-			controlB.IsWriting = false;
-			await ClockAsync();
 
-			for(uint i = 0; i < 100; i++) {
-				Console.WriteLine("Memory says tick");
-				await ClockAsync();
-			}
+                // Announce new packet
+                frameBus.Addr = 0x00;
+                frameBus.Ready = true;
+                await ClockAsync();
+
+                for (uint i = 0; i < 10; i++)
+                {
+                    Console.WriteLine("Memory says tick");
+                    await ClockAsync();
+                }
+            }
+
         }
-
     }
 }
