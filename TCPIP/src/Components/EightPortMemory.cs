@@ -4,7 +4,7 @@ using SME;
 // XXX: Why does it throw an error when namespacing SME.Components???
 namespace TCPIP
 {
-    [ClockedProcess]
+//    [ClockedProcess]
     public class EightPortMemory<T> : SimpleProcess
     {
         /// <summary>
@@ -127,22 +127,22 @@ namespace TCPIP
         }
 
 
-        [InputBus]
-        public readonly IControlA ControlA = Scope.CreateBus<IControlA>();
+ //       [InputBus]
+ //       public readonly IControlA ControlA = Scope.CreateBus<IControlA>();
         [InputBus]
         public readonly IControlB ControlB = Scope.CreateBus<IControlB>();
-        [InputBus]
-        public readonly IControlC ControlC = Scope.CreateBus<IControlC>();
-        [InputBus]
-        public readonly IControlD ControlD = Scope.CreateBus<IControlD>();
-        [InputBus]
-        public readonly IControlE ControlE = Scope.CreateBus<IControlE>();
-        [InputBus]
-        public readonly IControlF ControlF = Scope.CreateBus<IControlF>();
-        [InputBus]
-        public readonly IControlG ControlG = Scope.CreateBus<IControlG>();
-        [InputBus]
-        public readonly IControlH ControlH = Scope.CreateBus<IControlH>();
+//        [InputBus]
+//        public readonly IControlC ControlC = Scope.CreateBus<IControlC>();
+//        [InputBus]
+//        public readonly IControlD ControlD = Scope.CreateBus<IControlD>();
+//        [InputBus]
+//        public readonly IControlE ControlE = Scope.CreateBus<IControlE>();
+//        [InputBus]
+//        public readonly IControlF ControlF = Scope.CreateBus<IControlF>();
+//        [InputBus]
+//        public readonly IControlG ControlG = Scope.CreateBus<IControlG>();
+//        [InputBus]
+//        public readonly IControlH ControlH = Scope.CreateBus<IControlH>();
 
 
         [OutputBus]
@@ -194,6 +194,7 @@ namespace TCPIP
         /// </summary>
         protected override void OnTick()
         {
+ /* 
             SimulationOnly(() =>
             {
                 if (ControlA.Enabled && ControlB.Enabled && ControlA.Address == ControlB.Address)
@@ -212,13 +213,15 @@ namespace TCPIP
                 if (ControlA.IsWriting)
                     m_memory[ControlA.Address] = ControlA.Data;
             }
-
+*/
             if (ControlB.Enabled)
             {
                 ReadResultB.Data = m_memory[ControlB.Address];
                 if (ControlB.IsWriting)
                     m_memory[ControlB.Address] = ControlB.Data;
             }
+
+            /* 
             if (ControlC.Enabled)
             {
                 ReadResultC.Data = m_memory[ControlC.Address];
@@ -258,6 +261,7 @@ namespace TCPIP
                 if (ControlH.IsWriting)
                     m_memory[ControlH.Address] = ControlH.Data;
             }
+            */
         }
     }
 }
