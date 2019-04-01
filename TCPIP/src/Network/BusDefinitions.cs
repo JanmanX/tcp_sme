@@ -7,7 +7,7 @@ namespace TCPIP
     {
         public interface FrameBus : IBus
         {
-            uint number { get; set; }
-       }
+            uint frame_number { get; set; }
+        }
     }
 }

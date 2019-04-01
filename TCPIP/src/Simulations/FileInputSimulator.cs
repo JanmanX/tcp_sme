@@ -44,23 +44,24 @@ namespace TCPIP
             {
                 byte[] bytes = File.ReadAllBytes(file);
 
-                // Announce new packet
-                frameBus.number = frame_number;
-
                 foreach (byte b in bytes)
                 {
+                    // Send to memory 
                     controlA.Address = addr;
                     controlA.Data = b;
-                    await ClockAsync();
 
+                    // Send to Network
+                    frameBus.frame_number = frame_number;
+
+                    await ClockAsync();
                     addr++;
-                }        
+                }
 
                 // Next packet
                 frame_number++;
             }
 
             Console.WriteLine($"{frame_number} packets sent.");
-       }
+        }
     }
 }

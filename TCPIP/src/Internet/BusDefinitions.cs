@@ -6,14 +6,12 @@ namespace TCPIP
     {
         public interface DatagramBus : IBus
         {
-            [InitialValue(false)]
-            bool Ready { get; set; }
-
-            [InitialValue]
-            uint Addr { get; set; }
+            [InitialValue(0x00)]
+            long frame_number { get; set; }
 
             [InitialValue(0x00)]
-            ushort Type { get; set; }
+            ushort type { get; set; }
+
         }
 
 
