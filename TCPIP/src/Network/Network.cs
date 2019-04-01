@@ -19,7 +19,7 @@ namespace TCPIP
 
         // Local storage
         private uint cur_frame_number = UInt32.MaxValue;
-        private uint bytes_read = 0x00; // Keeps track of number of bytes read in current frame
+        private uint byte_idx = 0x00; // Keeps track of number of bytes read in current frame
         private ushort type = 0x00;
 
 
@@ -37,7 +37,7 @@ namespace TCPIP
             if (frameBus.frame_number != cur_frame_number)
             {
                 // Reset values
-                bytes_read = 0x00;
+                byte_idx = 0x00;
                 type = 0x00;
 
                 // Update frame number 
@@ -45,24 +45,28 @@ namespace TCPIP
             }
 
             // Unrolled for sake for FPGA space
-            if (bytes_read == 0x0C) // upper type byte
+            if (byte_idx == 0x0C) // upper type byte
             {
                 type = (ushort)(controlA.Data << 0x08);
             }
-            else if (bytes_read == 0x0D) // lower type byte
+            else if (byte_idx == 0x0D) // lower type byte
             {
                 type |= (ushort)(controlA.Data);
             }
-            else if (bytes_read >= 0x0E) // End of ethernet_frame
+            else if (byte_idx == 0x0E) // End of ethernet_frame
             {
                 datagramBus.frame_number = cur_frame_number;
                 datagramBus.type = type;
+
+                SimulationOnly(() =>
+                {
+                    Logger.log.Debug($"Propagating control to Internet with type: '0x{type:X}'");
+                });
             }
 
 
             // Increment
-            bytes_read++;
-
+            byte_idx++;
         }
     }
 
