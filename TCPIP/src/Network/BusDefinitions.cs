@@ -7,15 +7,7 @@ namespace TCPIP
     {
         public interface FrameBus : IBus
         {
-            uint Addr { get; set; }
-
-            [InitialValue(false)]
-            bool Ready { get; set; }
-        }
-
-        public interface NetworkStatusBus : IBus 
-        {
-            UInt1 Busy { get; set; } 
-        }
+            uint number { get; set; }
+       }
     }
 }

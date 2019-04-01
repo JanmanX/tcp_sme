@@ -1,5 +1,7 @@
 using System;
+
 using SME;
+using SME.Components;
 
 namespace TCPIP
 {
@@ -10,6 +12,11 @@ namespace TCPIP
 
             using (var sim = new Simulation())
             {
+                var mem = new TrueDualPortMemory<byte>(8192);
+                var simulator = new FileInputSimulator("data/dump25/", mem.ControlA);
+                var network = new Network(simulator.frameBus, mem.ControlA);
+
+                /* 
                 var simulator = new MemoryFileSimulatior<byte>("data/dump25/00000packet.bin");
                 var network = new Network(simulator.frameBus, 
                                         simulator.GetReadResultB(), 
@@ -18,6 +25,7 @@ namespace TCPIP
 
                 var internet = new Internet(network.datagramBus);
                 var transport = new TTransport(internet.segmentBus);
+                */
 
                 // Use fluent syntax to configure the simulator.
                 // The order does not matter, but `Run()` must be 
@@ -27,7 +35,7 @@ namespace TCPIP
                 // for interfacing with other VHDL code or board pins
 
                 sim
-                    .AddTopLevelOutputs(transport.outputBus)
+                    .AddTopLevelOutputs(network.datagramBus)
                     .AddTopLevelInputs(simulator.frameBus)
                     .BuildCSVFile()
                     .BuildVHDL()

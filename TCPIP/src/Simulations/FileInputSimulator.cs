@@ -1,55 +1,66 @@
-using SME;
 using System;
 using System.IO;
 using System.Threading.Tasks;
 
+using SME;
+using SME.Components;
+
 namespace TCPIP
 {
-    /// <summary>
-    /// Helper process that loads images and writes them into the simulation.
-    /// Since this is a simulation process, it will not be rendered as hardware
-    /// and we can use any code and dynamic properties we want
-    /// </summary>
     public class FileInputSimulator : SimulationProcess
     {
-        /// <summary>
-        /// The camera connection bus
-        /// </summary>
         [OutputBus]
         public readonly Network.FrameBus frameBus = Scope.CreateBus<Network.FrameBus>();
 
-        private readonly String file;
+        [OutputBus]
+        public readonly TrueDualPortMemory<byte>.IControlA controlA;
 
-        public FileInputSimulator(String file)
+
+        // Simulation fields
+        private readonly String dir;
+
+
+        public FileInputSimulator(String dir, TrueDualPortMemory<byte>.IControlA controlA)
         {
-            this.file = file;
+            this.dir = dir;
+            this.controlA = controlA;
         }
 
-        /// <summary>
-        /// Run this instance.
-        /// </summary>
         public override async Task Run()
         {
             // Wait for the initial reset to propagate
             await ClockAsync();
 
-            if (!System.IO.File.Exists(file))
+            // Initial setup 
+            controlA.Enabled = true;
+            controlA.IsWriting = true;
+
+            // Initial values
+            int addr = 0x00;
+            uint frame_number = 0x00;
+
+            string[] files = Directory.GetFiles(dir);
+            foreach (var file in files)
             {
-                Console.WriteLine($"File not found: {file}");
-                await ClockAsync();
-                return;
+                byte[] bytes = File.ReadAllBytes(file);
+
+                // Announce new packet
+                frameBus.number = frame_number;
+
+                foreach (byte b in bytes)
+                {
+                    controlA.Address = addr;
+                    controlA.Data = b;
+                    await ClockAsync();
+
+                    addr++;
+                }        
+
+                // Next packet
+                frame_number++;
             }
 
-
-            byte[] bytes = File.ReadAllBytes(this.file);
-            foreach (byte b in bytes)
-            {
-                frameBus.Addr = b;
-                // Write progress after each line
-                Console.WriteLine($"Written: {b}.");
-
-                await ClockAsync();
-            }
-        }
+            Console.WriteLine($"{frame_number} packets sent.");
+       }
     }
 }
