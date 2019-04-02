@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-from scapy.all import *
-import argparse
+from scapy.all import rdpcap
+import argparse, os, tqdm
 
 # Get the arguments
 parser = argparse.ArgumentParser("pcapToRaw")
@@ -14,9 +14,9 @@ args = parser.parse_args()
 packets = rdpcap(args.inputfile)
 
 # Let's iterate through every packet
-for counter, packet in enumerate(packets):
+for counter, packet in tqdm.tqdm(enumerate(packets)):
     data = bytes(packet)
     filename = args.outputfolder + "/" + f"{counter:05d}" +"packet.bin"
-    os.makedirs(os.path.dirname(filename), exist_ok=True) 
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename,"wb") as f:
         f.write(data)
