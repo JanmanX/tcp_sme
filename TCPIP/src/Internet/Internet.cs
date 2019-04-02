@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using SME;
+using SME.VHDL;
 using SME.Components;
 
 namespace TCPIP
@@ -23,7 +24,7 @@ namespace TCPIP
         private uint byte_idx = 0x00;
         private ushort type = 0x00;
         private long cur_frame_number = long.MaxValue;
-
+        private UInt4 ihl; 
         public Internet(Internet.DatagramBus datagramBus,
                         TrueDualPortMemory<byte>.IControlA controlA)
         {
@@ -70,10 +71,67 @@ namespace TCPIP
         {
             SimulationOnly(() =>
             {
-                Logger.log.Warn($"Parsing IPv4 packet because {type:X}");
+                Logger.log.Debug($"Parsing IPv4 packet of type 0x{type:X}");
             });
 
+
+            // Checksum
+            ushort checksum = (ushort)((buffer[IPv4Header.CHECKSUM_OFFSET_0] << 0x08)
+                                    | (buffer[IPv4Header.CHECKSUM_OFFSET_1]));
+            ulong acc = 0x00;
+            for(uint i = 0; i < 0x14; i = i + 2) {
+                // CHECKSUM field is zero on calculation
+                if(i == IPv4Header.CHECKSUM_OFFSET_0) {
+                    continue;
+                }
+                acc += (ulong)((buffer[i] << 0x08
+                                | buffer[i+1]));
+
+           } 
+            // Add carry bits and do one-complement on 16 bits
+            // Overflow  can max happen twice
+            ushort calculated_checksum = (ushort)((acc & 0xFFFF) + (acc >> 0x10));
+            calculated_checksum = (ushort)~((calculated_checksum & 0xFFFF) + (calculated_checksum >> 0x10));
+            if(calculated_checksum != checksum) {
+                SimulationOnly(() =>
+                {
+                    Logger.log.Warn($"Checksum did not match! 0x{checksum:X} != 0x{calculated_checksum:X}");
+                });
+            }
+
+
+            // Check version
+            if ((buffer[IPv4Header.VERSION_OFFSET] >> 0x04) != IPv4Header.VERSION)
+            {
+                SimulationOnly(() =>
+               {
+                   Logger.log.Warn($"Uknown IPv4 version {(buffer[IPv4Header.VERSION_OFFSET] & 0x0F):X}");
+               });
+            }
+
+            // Get Internet Header Length
+            ihl = (UInt4)(buffer[IPv4Header.IHL_OFFSET] & 0x0F);
+            if (ihl != 0x05)
+            {
+                SimulationOnly(() =>
+                {
+                    Logger.log.Debug($"Odd size of IPv4 Packet: IHL: {(byte)ihl}");
+                });
+            }
+
+            // Get total length
+            ushort total_len = (ushort)((buffer[IPv4Header.TOTAL_LEN_OFFSET_0] << 0x08)
+                                       | buffer[IPv4Header.TOTAL_LEN_OFFSET_1]);
+
+            // Get protocol
+            byte protocol = buffer[IPv4Header.PROTOCOL_OFFSET];
+                SimulationOnly(() =>
+                {
+                    Logger.log.Debug($"Protocol: 0x{protocol:X}");
+                });
+
         }
+
     }
 
 }

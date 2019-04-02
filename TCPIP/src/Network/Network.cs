@@ -55,6 +55,7 @@ namespace TCPIP
             }
             else if (byte_idx == 0x0E) // End of ethernet_frame
             {
+                // Update the datagramBus so the next stage can start
                 datagramBus.frame_number = cur_frame_number;
                 datagramBus.type = type;
 
