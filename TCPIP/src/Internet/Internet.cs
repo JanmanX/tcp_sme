@@ -8,6 +8,13 @@ namespace TCPIP
 {
     public partial class Internet : SimpleProcess
     {
+        // CONFIG
+        // TODO: Find a better place to put this?
+        public const uint IP_ADDRESS = 0x00;
+
+
+
+
         [InputBus]
         private readonly Internet.DatagramBus datagramBus;
 
@@ -24,7 +31,7 @@ namespace TCPIP
         private uint byte_idx = 0x00;
         private ushort type = 0x00;
         private long cur_frame_number = long.MaxValue;
-        private UInt4 ihl; 
+        private UInt4 ihl;
         public Internet(Internet.DatagramBus datagramBus,
                         TrueDualPortMemory<byte>.IControlA controlA)
         {
@@ -76,26 +83,22 @@ namespace TCPIP
 
 
             // Checksum
-            ushort checksum = (ushort)((buffer[IPv4Header.CHECKSUM_OFFSET_0] << 0x08)
-                                    | (buffer[IPv4Header.CHECKSUM_OFFSET_1]));
             ulong acc = 0x00;
-            for(uint i = 0; i < 0x14; i = i + 2) {
-                // CHECKSUM field is zero on calculation
-                if(i == IPv4Header.CHECKSUM_OFFSET_0) {
-                    continue;
-                }
+            for (uint i = 0; i < 0x14; i = i + 2)
+            {
                 acc += (ulong)((buffer[i] << 0x08
-                                | buffer[i+1]));
+                                 | buffer[i + 1]));
 
-           } 
+            }
             // Add carry bits and do one-complement on 16 bits
             // Overflow  can max happen twice
             ushort calculated_checksum = (ushort)((acc & 0xFFFF) + (acc >> 0x10));
             calculated_checksum = (ushort)~((calculated_checksum & 0xFFFF) + (calculated_checksum >> 0x10));
-            if(calculated_checksum != checksum) {
+            if (calculated_checksum != 0x00)
+            {
                 SimulationOnly(() =>
                 {
-                    Logger.log.Warn($"Checksum did not match! 0x{checksum:X} != 0x{calculated_checksum:X}");
+                    Logger.log.Warn($"Invalid checksum: 0x{calculated_checksum:X}");
                 });
             }
 
@@ -125,10 +128,10 @@ namespace TCPIP
 
             // Get protocol
             byte protocol = buffer[IPv4Header.PROTOCOL_OFFSET];
-                SimulationOnly(() =>
-                {
-                    Logger.log.Debug($"Protocol: 0x{protocol:X}");
-                });
+            SimulationOnly(() =>
+            {
+                Logger.log.Debug($"Protocol: 0x{protocol:X}");
+            });
 
         }
 
