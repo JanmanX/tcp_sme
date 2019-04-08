@@ -128,10 +128,26 @@ namespace TCPIP
 
             // Get protocol
             byte protocol = buffer[IPv4Header.PROTOCOL_OFFSET];
-            SimulationOnly(() =>
-            {
-                Logger.log.Debug($"Protocol: 0x{protocol:X}");
-            });
+
+            // Flags
+            byte flags = (byte)((buffer[IPv4Header.FLAGS_OFFSET]>>0x05) & 0x0E);
+            ushort fragment_offset = (ushort)((buffer[IPv4Header.FRAGMENT_OFFSET_OFFSET_0] << 0x08
+                                        | buffer[IPv4Header.FRAGMENT_OFFSET_OFFSET_1])
+                                        & IPv4Header.FRAGMENT_OFFSET_MASK);
+            if((flags & (byte)IPv4Header.Flags.MF) != 0x00) {
+                 SimulationOnly(() =>
+                {
+                    Logger.log.Error($"IP packet fragmentation not supported!");
+                });
+            }
+
+
+            // 
+
+        }
+
+        private void forwardControl() 
+        {
 
         }
 
