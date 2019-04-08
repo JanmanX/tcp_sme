@@ -1,7 +1,9 @@
 using System;
-
 using SME;
 using SME.Components;
+
+#define PRINT(x) Console.WriteLine(x)
+
 
 namespace TCPIP
 {
@@ -9,7 +11,7 @@ namespace TCPIP
     {
         public static void Main(string[] args)
         {
-
+            PRINT("Preprocessor running");
             using (var sim = new Simulation())
             {
                 var mem = new TrueDualPortMemory<byte>(8192);
@@ -17,10 +19,10 @@ namespace TCPIP
                 var network = new Network(simulator.frameBus, mem.ControlA);
                 var internet = new Internet(network.datagramBus,
                                             mem.ControlA);
-                /* 
+                /*
                 var simulator = new MemoryFileSimulatior<byte>("data/dump25/00000packet.bin");
-                var network = new Network(simulator.frameBus, 
-                                        simulator.GetReadResultB(), 
+                var network = new Network(simulator.frameBus,
+                                        simulator.GetReadResultB(),
                                         simulator.GetControlB(),
                                         simulator.networkStatusBus);
 
@@ -29,7 +31,7 @@ namespace TCPIP
                 */
 
                 // Use fluent syntax to configure the simulator.
-                // The order does not matter, but `Run()` must be 
+                // The order does not matter, but `Run()` must be
                 // the last method called.
 
                 // The top-level input and outputs are exposed
@@ -48,5 +50,4 @@ namespace TCPIP
             }
         }
     }
-
 }
