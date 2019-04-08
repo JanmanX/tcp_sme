@@ -34,7 +34,7 @@
 
 <Target Name="TemplateTransform" BeforeTargets="BeforeBuild">
     <!-- Using gcc -->
-    <Exec WorkingDirectory="$(ProjectDir)" IgnoreExitCode="true" Command="gcc -E -x c -C -nostdinc %(GccTextTemplate.Identity) | sed '/^#/ d' > %(GccTextTemplate.Identity).Generated"/>
+    <Exec WorkingDirectory="$(ProjectDir)" IgnoreExitCode="true" Command="gcc --imacros ./src/Components/macros.h -E -x c -C -nostdinc %(GccTextTemplate.Identity) | sed '/^#/ d' > %(GccTextTemplate.Identity).Generated"/>
     <!-- Using t4 -->
     <Exec WorkingDirectory="$(ProjectDir)" IgnoreExitCode="true" Command="dotnet t4 %(T4TextTemplate.Identity) -o %(T4TextTemplate.Identity).Generated -v"/>
     <ItemGroup>
