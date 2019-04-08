@@ -17,9 +17,22 @@ namespace TCPIP
         public const uint CHECKSUM_OFFSET_0 = 0x0A;
         public const uint CHECKSUM_OFFSET_1 = 0x0B;
 
+        public const uint FLAGS_OFFSET = 0x06;
+
+        public enum Flags : byte
+        {
+            RESERVED = 0x04,
+            DF = 0x02,
+            MF = 0x01,
+        }
+
+       public const uint FRAGMENT_OFFSET_OFFSET_0 = 0x06;
+       public const uint FRAGMENT_OFFSET_OFFSET_1 = 0x06;
+       public const uint FRAGMENT_OFFSET_MASK = 0x1FFF;
 
 
-        enum Protocol : byte
+
+        public enum Protocol : byte
         {
             HOPOPT = 0,
             ICMP = 1,
