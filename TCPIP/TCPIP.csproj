@@ -29,14 +29,17 @@
   <ItemGroup>
     <T4TextTemplate Include="src/**\*.t4.cs"/>
     <GccTextTemplate Include="src/**\*.gcc.cs"/>
-    <Generated Include="src/**\*.Generated"/>
+    <Generated Include="./obj/Templates/**\*.Generated"/>
   </ItemGroup>
 
 <Target Name="TemplateTransform" BeforeTargets="BeforeBuild">
+    <!-- Crating folders for the generated files -->
+    <Exec WorkingDirectory="$(ProjectDir)" Command="mkdir -p './obj/Templates/%(GccTextTemplate.Identity).Generated'; rm -r './obj/Templates/%(GccTextTemplate.Identity).Generated';touch './obj/Templates/%(GccTextTemplate.Identity).Generated'"/>
+    <Exec WorkingDirectory="$(ProjectDir)" Command="mkdir -p './obj/Templates/%(T4TextTemplate.Identity).Generated'; rm -r './obj/Templates/%(T4TextTemplate.Identity).Generated';touch './obj/Templates/%(T4TextTemplate.Identity).Generated'"/>
     <!-- Using gcc -->
-    <Exec WorkingDirectory="$(ProjectDir)" IgnoreExitCode="true" Command="gcc --imacros ./src/Components/macros.h -E -x c -C -nostdinc %(GccTextTemplate.Identity) | sed '/^#/ d' > %(GccTextTemplate.Identity).Generated"/>
+    <Exec WorkingDirectory="$(ProjectDir)" IgnoreExitCode="true" Command="gcc --imacros ./src/Components/macros.h -E -x c -C -nostdinc %(GccTextTemplate.Identity) | sed '/^#/ d' | sed '1d' > ./obj/Templates/%(GccTextTemplate.Identity).Generated"/>
     <!-- Using t4 -->
-    <Exec WorkingDirectory="$(ProjectDir)" IgnoreExitCode="true" Command="dotnet t4 %(T4TextTemplate.Identity) -o %(T4TextTemplate.Identity).Generated -v"/>
+    <Exec WorkingDirectory="$(ProjectDir)" IgnoreExitCode="true" Command="dotnet t4 %(T4TextTemplate.Identity) -o ./obj/Templates/%(T4TextTemplate.Identity).Generated -v"/>
     <ItemGroup>
         <Compile Remove="%(GccTextTemplate.Identity)"/>
     </ItemGroup>
@@ -44,7 +47,7 @@
         <Compile Remove="%(T4TextTemplate.Identity)"/>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="**\*.Generated"/>
+        <Compile Include="./obj/Templates/**\*.Generated"/>
     </ItemGroup>
 </Target>
 
