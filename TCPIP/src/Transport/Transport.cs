@@ -4,7 +4,7 @@ using SME;
 
 namespace TCPIP
 {
-    public partial class TTransport : SimpleProcess
+    public partial class Transport : SimpleProcess
     {
         [InputBus]
         private readonly Transport.SegmentBus segmentBus;
@@ -13,7 +13,7 @@ namespace TCPIP
         public readonly Transport.OutputBus outputBus = Scope.CreateBus<Transport.OutputBus>();
 
 
-        public TTransport(Transport.SegmentBus segmentBus)
+        public Transport(Transport.SegmentBus segmentBus)
         {
             this.segmentBus = segmentBus ?? throw new ArgumentNullException(nameof(segmentBus));
         }
@@ -22,7 +22,7 @@ namespace TCPIP
         protected override void OnTick()
         {
 
-            outputBus.Addr = 0x1337;
+            outputBus.Addr = segmentBus.Addr;
            // outputBus.Addr = segmentBus.Addr;
         }
     }

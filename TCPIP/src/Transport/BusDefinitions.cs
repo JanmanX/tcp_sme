@@ -6,6 +6,7 @@ namespace TCPIP
     {
         public interface SegmentBus : IBus
         {
+            [InitialValue(uint.MaxValue)]
             uint Addr { get; set; }
         }
 
