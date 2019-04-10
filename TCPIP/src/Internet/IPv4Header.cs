@@ -4,6 +4,25 @@ namespace TCPIP
 {
     class IPv4Header
     {
+        /*
+         0                   1                   2                   3  
+         0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |Version|  IHL  |Type of Service|          Total Length         |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |         Identification        |Flags|     Fragment Offset     |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |  Time to Live |    Protocol   |        Header Checksum        |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |                         Source Address                        |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |                      Destination Address                      |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |                    Options                    |    Padding    |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+         */
+
+
         public const uint VERSION = 0x04;
 
         public const uint VERSION_OFFSET = 0x00;
@@ -12,12 +31,15 @@ namespace TCPIP
         public const uint TOTAL_LENGTH_OFFSET_0 = 0x02;
         public const uint TOTAL_LENGTH_OFFSET_1 = 0x03;
 
+        public const uint ID_OFFSET_0 = 0x04;
+        public const uint ID_OFFSET_1 = 0x05;
+
+        public const uint FLAGS_OFFSET = 0x06;
+
         public const uint PROTOCOL_OFFSET = 0x09;
 
         public const uint CHECKSUM_OFFSET_0 = 0x0A;
         public const uint CHECKSUM_OFFSET_1 = 0x0B;
-
-        public const uint FLAGS_OFFSET = 0x06;
 
         public enum Flags : byte
         {
@@ -26,9 +48,9 @@ namespace TCPIP
             MF = 0x01,
         }
 
-       public const uint FRAGMENT_OFFSET_OFFSET_0 = 0x06;
-       public const uint FRAGMENT_OFFSET_OFFSET_1 = 0x06;
-       public const uint FRAGMENT_OFFSET_MASK = 0x1FFF;
+        public const uint FRAGMENT_OFFSET_OFFSET_0 = 0x06;
+        public const uint FRAGMENT_OFFSET_OFFSET_1 = 0x06;
+        public const uint FRAGMENT_OFFSET_MASK = 0x1FFF;
 
 
 

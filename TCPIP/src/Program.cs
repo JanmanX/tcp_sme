@@ -13,21 +13,11 @@ namespace TCPIP
             using (var sim = new Simulation())
             {
                 var mem = new TrueDualPortMemory<byte>(8192);
-                var simulator = new FileInputSimulator("data/dump1/", mem.ControlA);
+                var simulator = new FileInputSimulator("data/dump25/", mem.ControlA);
                 var network = new Network(simulator.frameBus, mem.ControlA);
                 var internet = new Internet(network.datagramBus,
                                             mem.ControlA);
                 var transport = new Transport(internet.segmentBus);
-                /* 
-                var simulator = new MemoryFileSimulatior<byte>("data/dump25/00000packet.bin");
-                var network = new Network(simulator.frameBus, 
-                                        simulator.GetReadResultB(), 
-                                        simulator.GetControlB(),
-                                        simulator.networkStatusBus);
-
-                var internet = new Internet(network.datagramBus);
-                var transport = new TTransport(internet.segmentBus);
-                */
 
                 // Use fluent syntax to configure the simulator.
                 // The order does not matter, but `Run()` must be 
