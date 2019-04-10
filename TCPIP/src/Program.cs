@@ -13,7 +13,7 @@ namespace TCPIP
             using (var sim = new Simulation())
             {
                 var mem = new TrueDualPortMemory<byte>(8192);
-                var simulator = new FileInputSimulator("data/dump25/", mem.ControlA);
+                var simulator = new FileInputSimulator("data/dump1/", mem.ControlA);
                 var network = new Network(simulator.frameBus, mem.ControlA);
                 var internet = new Internet(network.datagramBus,
                                             mem.ControlA);

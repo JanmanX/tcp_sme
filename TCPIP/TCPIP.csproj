@@ -5,6 +5,10 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <TransformOnBuild>true</TransformOnBuild>
+</PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="1.1.0" />
     <PackageReference Include="NLog" Version="4.6.0" />
@@ -12,6 +16,7 @@
     <PackageReference Include="SME.GraphViz" Version="0.4.0-beta" />
     <PackageReference Include="SME.Tracer" Version="0.4.0-beta" />
     <PackageReference Include="SME.VHDL" Version="0.4.0-beta" />
+    <DotNetCliToolReference Include="dotnet-t4-project-tool" Version="2.0.4" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,4 +24,37 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <!-- Define the elements needed from the preprocessor -->
+  <ItemGroup>
+    <T4TextTemplate Include="src/**\*.t4.cs"/>
+    <GccTextTemplate Include="src/**\*.gcc.cs"/>
+    <Generated Include="./obj/Templates/**\*.Generated"/>
+  </ItemGroup>
+
+<Target Name="TemplateTransform" BeforeTargets="BeforeBuild">
+    <!-- Crating folders for the generated files -->
+    <Exec WorkingDirectory="$(ProjectDir)" Command="mkdir -p './obj/Templates/%(GccTextTemplate.Identity).Generated'; rm -r './obj/Templates/%(GccTextTemplate.Identity).Generated';touch './obj/Templates/%(GccTextTemplate.Identity).Generated'"/>
+    <Exec WorkingDirectory="$(ProjectDir)" Command="mkdir -p './obj/Templates/%(T4TextTemplate.Identity).Generated'; rm -r './obj/Templates/%(T4TextTemplate.Identity).Generated';touch './obj/Templates/%(T4TextTemplate.Identity).Generated'"/>
+    <!-- Using gcc -->
+    <Exec WorkingDirectory="$(ProjectDir)" IgnoreExitCode="true" Command="gcc --imacros ./src/Components/macros.h -E -x c -C -nostdinc %(GccTextTemplate.Identity) | sed '/^#/ d' | sed '1d' > ./obj/Templates/%(GccTextTemplate.Identity).Generated"/>
+    <!-- Using t4 -->
+    <Exec WorkingDirectory="$(ProjectDir)" IgnoreExitCode="true" Command="dotnet t4 %(T4TextTemplate.Identity) -o ./obj/Templates/%(T4TextTemplate.Identity).Generated -v"/>
+    <ItemGroup>
+        <Compile Remove="%(GccTextTemplate.Identity)"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Remove="%(T4TextTemplate.Identity)"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="./obj/Templates/**\*.Generated"/>
+    </ItemGroup>
+</Target>
+
+<Target Name="TemplateClean" AfterTargets="Clean">
+    <Delete Files="@(Generated)" />
+</Target>
+
+
+
 </Project>
