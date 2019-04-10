@@ -23,7 +23,7 @@ namespace TCPIP
 
 
         // Local storage
-        private byte[] buffer = new byte[36]; // XXX: Set fixed size to longest header. Currently IPv4 without opt..
+        private byte[] buffer = new byte[50]; // XXX: Set fixed size to longest header. Currently IPv4 without opt..
         private bool read = false; // Indicates whether process should read into buffer
         private uint byte_idx = 0x00;
         private ushort type = 0x00;
@@ -58,7 +58,7 @@ namespace TCPIP
                 {
                     case (ushort)EtherType.IPv4:
                         // End of header, start parsing
-                        if (byte_idx == 0x14)
+                        if (byte_idx == IPv4Header.SIZE)
                         {
                             read = false;
                             parseIPv4();
@@ -102,8 +102,6 @@ namespace TCPIP
             ushort id = (ushort)((buffer[IPv4Header.ID_OFFSET_0] << 0x08)
                                        | buffer[IPv4Header.ID_OFFSET_1]);
 
-            Console.WriteLine($"IPv4 ID: 0x{id:X}");
-
             // Check version
             if ((buffer[IPv4Header.VERSION_OFFSET] >> 0x04) != IPv4Header.VERSION)
             {
@@ -143,16 +141,16 @@ namespace TCPIP
                });
             }
 
-            // Propagate
-            propagatePacket(id, fragment_offset);
+            // Propagate parsed packet
+            propagatePacket(id, IPv4Header.VERSION, fragment_offset);
         }
 
-        private void propagatePacket(uint id, uint fragment_offset = 0)
+        private void propagatePacket(uint id, byte version, uint fragment_offset = 0)
         {
             segmentBus.ip_id = id;
             segmentBus.fragment_offset = fragment_offset;
+            segmentBus.version = version;
         }
 
     }
-
 }

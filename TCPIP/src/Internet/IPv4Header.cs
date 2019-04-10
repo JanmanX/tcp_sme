@@ -22,8 +22,10 @@ namespace TCPIP
         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
          */
 
+        public const uint SIZE = 0x14; // Not counting the optionals
 
-        public const uint VERSION = 0x04;
+
+        public const byte VERSION = 0x04;
 
         public const uint VERSION_OFFSET = 0x00;
         public const uint IHL_OFFSET = 0x00;
