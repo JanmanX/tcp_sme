@@ -2,7 +2,7 @@ using System;
 
 namespace TCPIP
 {
-    class IPv4Header
+    class IPv4
     {
         /*
          0                   1                   2                   3  

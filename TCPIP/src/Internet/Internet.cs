@@ -22,6 +22,7 @@ namespace TCPIP
         public readonly Transport.SegmentBus segmentBus = Scope.CreateBus<Transport.SegmentBus>();
 
 
+
         // Local storage
         private byte[] buffer = new byte[50]; // XXX: Set fixed size to longest header. Currently IPv4 without opt..
         private bool read = false; // Indicates whether process should read into buffer
@@ -58,7 +59,7 @@ namespace TCPIP
                 {
                     case (ushort)EtherType.IPv4:
                         // End of header, start parsing
-                        if (byte_idx == IPv4Header.SIZE)
+                        if (byte_idx == IPv4.SIZE)
                         {
                             read = false;
                             parseIPv4();
@@ -99,20 +100,20 @@ namespace TCPIP
 
 
             // Get ID
-            ushort id = (ushort)((buffer[IPv4Header.ID_OFFSET_0] << 0x08)
-                                       | buffer[IPv4Header.ID_OFFSET_1]);
+            ushort id = (ushort)((buffer[IPv4.ID_OFFSET_0] << 0x08)
+                                       | buffer[IPv4.ID_OFFSET_1]);
 
             // Check version
-            if ((buffer[IPv4Header.VERSION_OFFSET] >> 0x04) != IPv4Header.VERSION)
+            if ((buffer[IPv4.VERSION_OFFSET] >> 0x04) != IPv4.VERSION)
             {
                 SimulationOnly(() =>
                {
-                   Logger.log.Warn($"Uknown IPv4 version {(buffer[IPv4Header.VERSION_OFFSET] & 0x0F):X}");
+                   Logger.log.Warn($"Uknown IPv4 version {(buffer[IPv4.VERSION_OFFSET] & 0x0F):X}");
                });
             }
 
             // Get Internet Header Length
-            ihl = (UInt4)(buffer[IPv4Header.IHL_OFFSET] & 0x0F);
+            ihl = (UInt4)(buffer[IPv4.IHL_OFFSET] & 0x0F);
             if (ihl != 0x05)
             {
                 SimulationOnly(() =>
@@ -122,18 +123,18 @@ namespace TCPIP
             }
 
             // Get total length
-            ushort total_len = (ushort)((buffer[IPv4Header.TOTAL_LENGTH_OFFSET_0] << 0x08)
-                                       | buffer[IPv4Header.TOTAL_LENGTH_OFFSET_1]);
+            ushort total_len = (ushort)((buffer[IPv4.TOTAL_LENGTH_OFFSET_0] << 0x08)
+                                       | buffer[IPv4.TOTAL_LENGTH_OFFSET_1]);
 
             // Get protocol
-            byte protocol = buffer[IPv4Header.PROTOCOL_OFFSET];
+            byte protocol = buffer[IPv4.PROTOCOL_OFFSET];
 
             // Flags
-            byte flags = (byte)((buffer[IPv4Header.FLAGS_OFFSET] >> 0x05) & 0x0E);
-            ushort fragment_offset = (ushort)((buffer[IPv4Header.FRAGMENT_OFFSET_OFFSET_0] << 0x08
-                                        | buffer[IPv4Header.FRAGMENT_OFFSET_OFFSET_1])
-                                        & IPv4Header.FRAGMENT_OFFSET_MASK);
-            if ((flags & (byte)IPv4Header.Flags.MF) != 0x00)
+            byte flags = (byte)((buffer[IPv4.FLAGS_OFFSET] >> 0x05) & 0x0E);
+            ushort fragment_offset = (ushort)((buffer[IPv4.FRAGMENT_OFFSET_OFFSET_0] << 0x08
+                                        | buffer[IPv4.FRAGMENT_OFFSET_OFFSET_1])
+                                        & IPv4.FRAGMENT_OFFSET_MASK);
+            if ((flags & (byte)IPv4.Flags.MF) != 0x00)
             {
                 SimulationOnly(() =>
                {
@@ -142,8 +143,10 @@ namespace TCPIP
             }
 
             // Propagate parsed packet
-            propagatePacket(id, IPv4Header.VERSION, fragment_offset);
+            propagatePacket(id, IPv4.VERSION, fragment_offset);
         }
+
+
 
         private void propagatePacket(uint id, byte version, uint fragment_offset = 0)
         {
