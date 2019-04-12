@@ -72,11 +72,7 @@ namespace TCPIP
 
         protected void parseIPv4()
         {
-            SimulationOnly(() =>
-            {
-                Logger.log.Debug($"Parsing IPv4 packet of type 0x{type:X}");
-            });
-
+            LOGGER.TRACE($"Parsing IPv4 packet of type 0x{type:X}");
 
             // Checksum
             ulong acc = 0x00;
@@ -92,10 +88,7 @@ namespace TCPIP
             calculated_checksum = (ushort)~((calculated_checksum & 0xFFFF) + (calculated_checksum >> 0x10));
             if (calculated_checksum != 0x00)
             {
-                SimulationOnly(() =>
-                {
-                    Logger.log.Warn($"Invalid checksum: 0x{calculated_checksum:X}");
-                });
+                LOGGER.WARN($"Invalid checksum: 0x{calculated_checksum:X}");
             }
 
 
@@ -106,20 +99,14 @@ namespace TCPIP
             // Check version
             if ((buffer[IPv4.VERSION_OFFSET] >> 0x04) != IPv4.VERSION)
             {
-                SimulationOnly(() =>
-               {
-                   Logger.log.Warn($"Uknown IPv4 version {(buffer[IPv4.VERSION_OFFSET] & 0x0F):X}");
-               });
+                LOGGER.WARN($"Uknown IPv4 version {(buffer[IPv4.VERSION_OFFSET] & 0x0F):X}");
             }
 
             // Get Internet Header Length
             ihl = (UInt4)(buffer[IPv4.IHL_OFFSET] & 0x0F);
             if (ihl != 0x05)
             {
-                SimulationOnly(() =>
-                {
-                    Logger.log.Debug($"Odd size of IPv4 Packet: IHL: {(byte)ihl}");
-                });
+                LOGGER.DEBUG($"Odd size of IPv4 Packet: IHL: {(byte)ihl}");
             }
 
             // Get total length
@@ -136,10 +123,7 @@ namespace TCPIP
                                         & IPv4.FRAGMENT_OFFSET_MASK);
             if ((flags & (byte)IPv4.Flags.MF) != 0x00)
             {
-                SimulationOnly(() =>
-               {
-                   Logger.log.Error($"IP packet fragmentation not supported!");
-               });
+                LOGGER.ERROR($"IP packet fragmentation not supported!");
             }
 
             // Propagate parsed packet

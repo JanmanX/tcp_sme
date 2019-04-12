@@ -40,7 +40,7 @@ namespace TCPIP
                 byte_idx = 0x00;
                 type = 0x00;
 
-                // Update frame number 
+                // Update frame number
                 cur_frame_number = frameBus.frame_number;
             }
 
@@ -59,10 +59,8 @@ namespace TCPIP
                 datagramBus.frame_number = cur_frame_number;
                 datagramBus.type = type;
 
-                SimulationOnly(() =>
-                {
-                    Logger.log.Debug($"Propagating control to Internet with type: '0x{type:X}'");
-                });
+                LOGGER.DEBUG($"Propagating control to Internet with type: '0x{type:X}'");
+
             }
 
 

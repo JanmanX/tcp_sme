@@ -5,7 +5,7 @@ using SME;
 
 namespace TCPIP
 {
-    class Logger{
+    class LOGGER{
         public static NLog.Logger log = NLog.LogManager.GetCurrentClassLogger();
         // Template void functions, changed with the preprocessor
         public static void TRACE(string x){log.Trace(x);}
