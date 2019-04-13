@@ -13,7 +13,9 @@ namespace TCPIP
         private readonly TrueDualPortMemory<byte>.IControlA controlA;
 
         [OutputBus]
-        public readonly Transport.OutputBus outputBus = Scope.CreateBus<Transport.OutputBus>();
+        //        public readonly Transport.OutputBus outputBus = Scope.CreateBus<Transport.OutputBus>();
+
+        //       [OutputBus]
 
 
         public Transport(Transport.SegmentBus segmentBus)
@@ -25,7 +27,7 @@ namespace TCPIP
         protected override void OnTick()
         {
 
-            outputBus.Addr = segmentBus.ip_id;
+            //          outputBus.Addr = segmentBus.ip_id;
             // outputBus.Addr = segmentBus.Addr;
         }
     }

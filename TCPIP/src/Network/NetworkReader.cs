@@ -61,7 +61,7 @@ namespace TCPIP
 
                 SimulationOnly(() =>
                 {
-                    Logger.log.Debug($"Propagating control to Internet with type: '0x{type:X}'");
+                    LOGGER.log.Debug($"Propagating control to Internet with type: '0x{type:X}'");
                 });
             }
 

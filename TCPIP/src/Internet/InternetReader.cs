@@ -86,7 +86,7 @@ namespace TCPIP
             {
                 SimulationOnly(() =>
                 {
-                    Logger.log.Warn($"Invalid checksum: 0x{calculated_checksum:X}");
+                    LOGGER.log.Warn($"Invalid checksum: 0x{calculated_checksum:X}");
                 });
             }
 
@@ -100,7 +100,7 @@ namespace TCPIP
             {
                 SimulationOnly(() =>
                {
-                   Logger.log.Warn($"Uknown IPv4 version {(buffer[IPv4.VERSION_OFFSET] & 0x0F):X}");
+                   LOGGER.log.Warn($"Uknown IPv4 version {(buffer[IPv4.VERSION_OFFSET] & 0x0F):X}");
                });
             }
 
@@ -110,7 +110,7 @@ namespace TCPIP
             {
                 SimulationOnly(() =>
                 {
-                    Logger.log.Debug($"Odd size of IPv4 Packet: IHL: {(byte)ihl}");
+                    LOGGER.log.Debug($"Odd size of IPv4 Packet: IHL: {(byte)ihl}");
                 });
             }
 
@@ -130,7 +130,7 @@ namespace TCPIP
             {
                 SimulationOnly(() =>
                {
-                   Logger.log.Error($"IP packet fragmentation not supported!");
+                   LOGGER.log.Error($"IP packet fragmentation not supported!");
                });
             }
 

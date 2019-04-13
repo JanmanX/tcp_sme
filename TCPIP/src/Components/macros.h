@@ -1,5 +1,5 @@
 // Defines the macros for the logging library
-#define Logger this
+#define LOGGER this
 #define TRACE(x) SimulationOnly(() =>{Logging.log.Trace(x);})
 #define DEBUG(x) SimulationOnly(() =>{Logging.log.Debug(x);})
 #define INFO(x) SimulationOnly(() =>{Logging.log.Info(x);})

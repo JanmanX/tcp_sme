@@ -14,8 +14,8 @@ namespace TCPIP
             {
                 var mem = new TrueDualPortMemory<byte>(8192);
                 var simulator = new FileInputSimulator("data/dump25/", mem.ControlA);
-                var network = new Network(simulator.frameBus, mem.ControlA);
-                var internet = new Internet(network.datagramBus,
+                var network = new NetworkReader(simulator.frameBus, mem.ControlA);
+                var internet = new InternetReader(network.datagramBus,
                                             mem.ControlA);
                 var transport = new Transport(internet.segmentBus);
 
@@ -27,7 +27,7 @@ namespace TCPIP
                 // for interfacing with other VHDL code or board pins
 
                 sim
-                    .AddTopLevelOutputs(transport.outputBus)
+                    //                    .AddTopLevelOutputs(transport)
                     .AddTopLevelInputs(simulator.frameBus)
                     .BuildCSVFile()
                     .BuildVHDL()
