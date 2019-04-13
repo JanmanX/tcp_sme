@@ -44,6 +44,17 @@ namespace TCPIP
         public const uint CHECKSUM_OFFSET_0 = 0x0A;
         public const uint CHECKSUM_OFFSET_1 = 0x0B;
 
+        public const uint SRC_ADDRESS_OFFSET_0 = 0x0C;
+        public const uint SRC_ADDRESS_OFFSET_1 = 0x0D;
+        public const uint SRC_ADDRESS_OFFSET_2 = 0x0E;
+        public const uint SRC_ADDRESS_OFFSET_3 = 0x0F;
+
+        public const uint DST_ADDRESS_OFFSET_0 = 0x10;
+        public const uint DST_ADDRESS_OFFSET_1 = 0x11;
+        public const uint DST_ADDRESS_OFFSET_2 = 0x12;
+        public const uint DST_ADDRESS_OFFSET_3 = 0x13;
+
+
         public enum Flags : byte
         {
             RESERVED = 0x04,

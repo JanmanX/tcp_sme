@@ -80,8 +80,8 @@ namespace TCPIP
             }
             // Add carry bits and do one-complement on 16 bits
             // Overflow  can max happen twice
-            ushort calculated_checksum = (ushort)((acc & 0xFFFF) + (acc >> 0x10));
-            calculated_checksum = (ushort)~((calculated_checksum & 0xFFFF) + (calculated_checksum >> 0x10));
+            acc = ((acc & 0xFFFF) + (acc >> 0x10));
+            ushort calculated_checksum = (ushort)~((acc & 0xFFFF) + (acc >> 0x10));
             if (calculated_checksum != 0x00)
             {
                 SimulationOnly(() =>
@@ -134,18 +134,50 @@ namespace TCPIP
                });
             }
 
+            // Destionation address
+            uint dst_address = (uint)(buffer[IPv4.SRC_ADDRESS_OFFSET_0] << 0x18)
+                            | (uint)(buffer[IPv4.SRC_ADDRESS_OFFSET_1] << 0x10)
+                            | (uint)(buffer[IPv4.SRC_ADDRESS_OFFSET_2] << 0x08)
+                            | (uint)(buffer[IPv4.SRC_ADDRESS_OFFSET_3]);
+
+            // TODO: implement check if packet for us
+
+            // Source Address
+            uint src_address = (uint)(buffer[IPv4.SRC_ADDRESS_OFFSET_0] << 0x18)
+                            | (uint)(buffer[IPv4.SRC_ADDRESS_OFFSET_1] << 0x10)
+                            | (uint)(buffer[IPv4.SRC_ADDRESS_OFFSET_2] << 0x08)
+                            | (uint)(buffer[IPv4.SRC_ADDRESS_OFFSET_3]);
+            // TODO: Check(?)
+
+
+
+
+            // Calculate pseudoheader checksum
+            // TODO: Can we reuse variables? (acc would be handly here, saving us
+            // a whole 8 bytes!)
+            ulong acc2 = (ulong)(total_len
+                                + protocol
+                                + src_address
+                                + (dst_address >> 0x10)
+                                + (dst_address & 0xFFFF)
+                                + (src_address >> 0x10)
+                                + (src_address & 0xFFFF));
+            acc2 = (acc2 & 0xFFFF) + (acc2 >> 0x10);
+            ushort pseudoheader_checksum = (ushort)~((acc2 & 0xFFFF) + (acc2 >> 0x10));
+
+
             // Propagate parsed packet
-            propagatePacket(id, protocol, fragment_offset);
+            propagatePacket(id, protocol, fragment_offset, pseudoheader_checksum);
         }
 
 
-
-        private void propagatePacket(uint id, byte protocol, uint fragment_offset = 0)
+        private void propagatePacket(uint id, byte protocol, uint fragment_offset = 0,
+                                        ushort pseudoheader_checksum = 0x00)
         {
             segmentBus.ip_id = id;
             segmentBus.fragment_offset = fragment_offset;
             segmentBus.protocol = protocol;
+            segmentBus.pseudoheader_checksum = pseudoheader_checksum;
         }
-
     }
 }

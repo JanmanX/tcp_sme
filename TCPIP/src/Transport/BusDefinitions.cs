@@ -14,9 +14,12 @@ namespace TCPIP
 
             [InitialValue(0x00)]
             byte protocol { get; set; }
+
+            [InitialValue(0x00)]
+            ushort pseudoheader_checksum { get; set; }
         }
 
-        public interface OutputBus : IBus
+        public interface InterfaceWriter : IBus
         {
             [InitialValue]
             uint Addr { get; set; }

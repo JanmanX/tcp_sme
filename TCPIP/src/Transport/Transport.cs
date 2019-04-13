@@ -1,6 +1,6 @@
 using System;
 using SME;
-
+using SME.Components;
 
 namespace TCPIP
 {
@@ -8,6 +8,9 @@ namespace TCPIP
     {
         [InputBus]
         private readonly Transport.SegmentBus segmentBus;
+
+        [InputBus]
+        private readonly TrueDualPortMemory<byte>.IControlA controlA;
 
         [OutputBus]
         public readonly Transport.OutputBus outputBus = Scope.CreateBus<Transport.OutputBus>();
