@@ -21,8 +21,6 @@ namespace TCPIP
         [OutputBus]
         public readonly Transport.SegmentBus segmentBus = Scope.CreateBus<Transport.SegmentBus>();
 
-
-
         // Local storage
         private byte[] buffer = new byte[50]; // XXX: Set fixed size to longest header. Currently IPv4 without opt..
         private bool read = false; // Indicates whether process should read into buffer
@@ -137,16 +135,16 @@ namespace TCPIP
             }
 
             // Propagate parsed packet
-            propagatePacket(id, IPv4.VERSION, fragment_offset);
+            propagatePacket(id, protocol, fragment_offset);
         }
 
 
 
-        private void propagatePacket(uint id, byte version, uint fragment_offset = 0)
+        private void propagatePacket(uint id, byte protocol, uint fragment_offset = 0)
         {
             segmentBus.ip_id = id;
             segmentBus.fragment_offset = fragment_offset;
-            segmentBus.version = version;
+            segmentBus.protocol = protocol;
         }
 
     }

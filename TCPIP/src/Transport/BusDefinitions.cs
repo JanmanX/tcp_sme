@@ -13,7 +13,7 @@ namespace TCPIP
             uint fragment_offset { get; set; } // offset in bytes for protocols supporting this (IPv4)
 
             [InitialValue(0x00)]
-            byte version { get; set; } // XXX: Only works on IPv4 and IPv6. Might need to combine this with 'type'
+            byte protocol { get; set; }
         }
 
         public interface OutputBus : IBus
