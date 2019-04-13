@@ -6,7 +6,7 @@ using SME.Components;
 
 namespace TCPIP
 {
-    public partial class Internet : SimpleProcess
+    public partial class InternetReader : SimpleProcess
     {
         // CONFIG
         // TODO: Find a better place to put this?
@@ -30,7 +30,7 @@ namespace TCPIP
         private ushort type = 0x00;
         private long cur_frame_number = long.MaxValue;
         private UInt4 ihl;
-        public Internet(Internet.DatagramBus datagramBus,
+        public InternetReader(Internet.DatagramBus datagramBus,
                         TrueDualPortMemory<byte>.IControlA controlA)
         {
             this.datagramBus = datagramBus ?? throw new ArgumentNullException(nameof(datagramBus));
@@ -72,12 +72,6 @@ namespace TCPIP
 
         protected void parseIPv4()
         {
-            SimulationOnly(() =>
-            {
-                Logger.log.Debug($"Parsing IPv4 packet of type 0x{type:X}");
-            });
-
-
             // Checksum
             ulong acc = 0x00;
             for (uint i = 0; i < 0x14; i = i + 2)

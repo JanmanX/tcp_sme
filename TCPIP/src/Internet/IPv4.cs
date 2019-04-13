@@ -20,6 +20,7 @@ namespace TCPIP
         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         |                    Options                    |    Padding    |
         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
          */
 
         public const uint SIZE = 0x14; // Not counting the optionals

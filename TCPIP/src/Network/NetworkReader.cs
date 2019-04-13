@@ -6,7 +6,7 @@ using SME.Components;
 
 namespace TCPIP
 {
-    public partial class Network : SimpleProcess
+    public partial class NetworkReader : SimpleProcess
     {
         [InputBus]
         private readonly Network.FrameBus frameBus;
@@ -23,7 +23,7 @@ namespace TCPIP
         private ushort type = 0x00;
 
 
-        public Network(Network.FrameBus frameBus,
+        public NetworkReader(Network.FrameBus frameBus,
                         TrueDualPortMemory<byte>.IControlA controlA)
         {
             this.frameBus = frameBus ?? throw new System.ArgumentNullException(nameof(frameBus));
