@@ -57,7 +57,7 @@ namespace TCPIP
                 {
                     case (ushort)EtherType.IPv4:
                         // End of header, start parsing
-                        if (byte_idx == IPv4.SIZE)
+                        if (byte_idx == IPv4.HEADER_SIZE)
                         {
                             read = false;
                             parseIPv4();
@@ -72,7 +72,7 @@ namespace TCPIP
         {
             // Checksum
             ulong acc = 0x00;
-            for (uint i = 0; i < 0x14; i = i + 2)
+            for (uint i = 0; i < IPv4.HEADER_SIZE; i = i + 2)
             {
                 acc += (ulong)((buffer[i] << 0x08
                                  | buffer[i + 1]));

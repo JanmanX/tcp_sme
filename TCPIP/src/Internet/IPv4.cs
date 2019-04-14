@@ -23,7 +23,7 @@ namespace TCPIP
 
          */
 
-        public const uint SIZE = 0x14; // Not counting the optionals
+        public const uint HEADER_SIZE = 0x14; // Not counting the optionals
 
 
         public const byte VERSION = 0x04;
