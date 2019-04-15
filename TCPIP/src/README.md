@@ -24,3 +24,15 @@ If you want non macro logging in a macro file, call this instead:
 ```csharp
 Logging.log.Warn("Some warning");
 ```
+
+### Change printed logging level
+In the file ```nlog.conf ``` the rules can be changed to limit the output to something manageable.
+
+The log levels are (from highest to lowest):
+
+* Fatal
+* Error
+* Warn
+* Info
+* Debug
+* Trace
