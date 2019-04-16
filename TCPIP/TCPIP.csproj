@@ -28,20 +28,20 @@
   <!-- Define the elements needed from the preprocessor -->
   <ItemGroup>
     <T4TextTemplate Include="src/**\*.t4.cs"/>
-    <GccTextTemplate Include="src/**\*.gcc.cs"/>
+    <CppTextTemplate Include="src/**\*.cpp.cs"/>
     <Generated Include="./obj/Templates/**\*.gen"/>
   </ItemGroup>
 
 <Target Name="TemplateTransform" BeforeTargets="BeforeBuild">
     <!-- Crating folders for the generated files -->
-    <Exec WorkingDirectory="$(ProjectDir)" Command="mkdir -p './obj/Templates/%(GccTextTemplate.Identity).gen'; rm -r './obj/Templates/%(GccTextTemplate.Identity).gen';touch './obj/Templates/%(GccTextTemplate.Identity).gen'"/>
+    <Exec WorkingDirectory="$(ProjectDir)" Command="mkdir -p './obj/Templates/%(CppTextTemplate.Identity).gen'; rm -r './obj/Templates/%(CppTextTemplate.Identity).gen';touch './obj/Templates/%(CppTextTemplate.Identity).gen'"/>
     <Exec WorkingDirectory="$(ProjectDir)" Command="mkdir -p './obj/Templates/%(T4TextTemplate.Identity).gen'; rm -r './obj/Templates/%(T4TextTemplate.Identity).gen';touch './obj/Templates/%(T4TextTemplate.Identity).gen'"/>
     <!-- Using gcc -->
-    <Exec WorkingDirectory="$(ProjectDir)" IgnoreExitCode="true" Command="gcc --imacros ./src/Components/macros.h -E -x c -C -nostdinc %(GccTextTemplate.Identity) | sed '/^#/ d' | sed '1d' > ./obj/Templates/%(GccTextTemplate.Identity).gen"/>
+    <Exec WorkingDirectory="$(ProjectDir)" IgnoreExitCode="true" Command="gcc --imacros ./src/Components/macros.h -E -x c -C -nostdinc %(CppTextTemplate.Identity) | sed '/^#/ d' | sed '1d' > ./obj/Templates/%(CppTextTemplate.Identity).gen"/>
     <!-- Using t4 -->
     <Exec WorkingDirectory="$(ProjectDir)" IgnoreExitCode="true" Command="dotnet t4 %(T4TextTemplate.Identity) -o ./obj/Templates/%(T4TextTemplate.Identity).gen -v"/>
     <ItemGroup>
-        <Compile Remove="%(GccTextTemplate.Identity)"/>
+        <Compile Remove="%(CppTextTemplate.Identity)"/>
     </ItemGroup>
     <ItemGroup>
         <Compile Remove="%(T4TextTemplate.Identity)"/>
