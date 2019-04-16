@@ -15,9 +15,6 @@ namespace TCPIP
         [InputBus]
         private readonly Internet.DatagramBus datagramBus;
 
-        [InputBus]
-        private readonly TrueDualPortMemory<byte>.IControlA controlA;
-
         [OutputBus]
         public readonly Transport.SegmentBus segmentBus = Scope.CreateBus<Transport.SegmentBus>();
 
@@ -28,11 +25,9 @@ namespace TCPIP
         private ushort type = 0x00;
         private long cur_frame_number = long.MaxValue;
         private UInt4 ihl;
-        public InternetReader(Internet.DatagramBus datagramBus,
-                        TrueDualPortMemory<byte>.IControlA controlA)
+        public InternetReader(Internet.DatagramBus datagramBus)
         {
             this.datagramBus = datagramBus ?? throw new ArgumentNullException(nameof(datagramBus));
-            this.controlA = controlA ?? throw new ArgumentNullException(nameof(controlA));
         }
 
         protected override void OnTick()
@@ -50,7 +45,7 @@ namespace TCPIP
             // Save data and process
             if (read && byte_idx < buffer.Length)
             {
-                buffer[byte_idx++] = controlA.Data;
+                buffer[byte_idx++] = datagramBus.data;
 
                 // Processing
                 switch (type)

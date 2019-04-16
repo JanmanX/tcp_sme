@@ -10,6 +10,9 @@ namespace TCPIP
             long frame_number { get; set; }
 
             [InitialValue(0x00)]
+            byte data { get; set; }
+
+            [InitialValue(0x00)]
             ushort type { get; set; }
 
         }

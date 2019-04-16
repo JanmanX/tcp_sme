@@ -11,9 +11,6 @@ namespace TCPIP
         [InputBus]
         private readonly Network.FrameBus frameBus;
 
-        [InputBus]
-        public readonly TrueDualPortMemory<byte>.IControlA controlA;
-
         [OutputBus]
         public readonly Internet.DatagramBus datagramBus = Scope.CreateBus<Internet.DatagramBus>();
 
@@ -23,12 +20,9 @@ namespace TCPIP
         private ushort type = 0x00;
 
 
-        public NetworkReader(Network.FrameBus frameBus,
-                        TrueDualPortMemory<byte>.IControlA controlA)
+        public NetworkReader(Network.FrameBus frameBus)
         {
             this.frameBus = frameBus ?? throw new System.ArgumentNullException(nameof(frameBus));
-            this.controlA = controlA ?? throw new System.ArgumentNullException(nameof(controlA));
-
         }
 
         protected override void OnTick()
@@ -47,11 +41,11 @@ namespace TCPIP
             // Unrolled for sake for FPGA space
             if (byte_idx == 0x0C) // upper type byte
             {
-                type = (ushort)(controlA.Data << 0x08);
+                type = (ushort)(frameBus.data << 0x08);
             }
             else if (byte_idx == 0x0D) // lower type byte
             {
-                type |= (ushort)(controlA.Data);
+                type |= (ushort)(frameBus.data);
             }
             else if (byte_idx == 0x0E) // End of ethernet_frame
             {

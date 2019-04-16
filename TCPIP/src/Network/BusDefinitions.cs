@@ -8,6 +8,8 @@ namespace TCPIP
         public interface FrameBus : IBus
         {
             uint frame_number { get; set; }
+
+            byte data { get; set; }
         }
     }
 }
