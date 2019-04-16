@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Create new TAP device
-ip tuntap add mode tap tapsme
+tunctl -u jan -t tapsme
 
-# Bring the new TAP device up
-ip link tapsme up
+ifconfig tapsme 10.0.0.1 up
 
-# Assign IP address (can be CIDR notation)
-ip addr add 10.0.0.10 dev tapsme
+route add -host 10.0.0.1 dev tapsme
 
 
+
+### REMOVE
+# tunctl -d tapsme
