@@ -156,5 +156,10 @@ int main(int argc, char **argv) {
         {
             write(fd, buffer, bytes_read);
         }
+
+        if ((bytes_read = read(fd, buffer, BUFFER_SIZE - 1)) > 0)
+        {
+            write(tun_fd, buffer, bytes_read);
+        }
     }
 }
