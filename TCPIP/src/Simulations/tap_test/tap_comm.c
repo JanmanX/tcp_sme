@@ -4,10 +4,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <linux/if.h>                                                         
-#include <linux/if_tun.h> 
-#include <stdarg.h>                                                                
-#include <errno.h> 
+#include <linux/if.h>
+#include <linux/if_tun.h>
+#include <stdarg.h>
+#include <errno.h>
+
+#define PIPE_NAME "/tmp/tap_sme_pipe"
 
 static int tun_fd;
 static char* dev;
@@ -15,20 +17,20 @@ static char* dev;
 char *tapaddr = "10.0.0.5";
 char *taproute = "10.0.0.0/24";
 
-int run_cmd(char *cmd, ...)                                                        
-{                                                                                  
-    va_list ap;                                                                    
+int run_cmd(char *cmd, ...)
+{
+    va_list ap;
 
     #define CMDBUFLEN 100
-    char buf[CMDBUFLEN];                                                           
-    va_start(ap, cmd);                                                             
-    vsnprintf(buf, CMDBUFLEN, cmd, ap);                                            
-                                                                                   
-    va_end(ap);                                                                    
-                                                                                  
-    return system(buf);                                                            
-}                                                                                  
-  
+    char buf[CMDBUFLEN];
+    va_start(ap, cmd);
+    vsnprintf(buf, CMDBUFLEN, cmd, ap);
+
+    va_end(ap);
+
+    return system(buf);
+}
+
 
 static int set_if_route(char *dev, char *cidr)
 {
@@ -55,7 +57,7 @@ static int tun_alloc(char *dev)
 
     if( (fd = open("/dev/net/tap", O_RDWR)) < 0 ) {
         perror("Cannot open TUN/TAP dev\n"
-                    "Make sure one exists with " 
+                    "Make sure one exists with "
                     "'$ mknod /dev/net/tap c 10 200'");
         exit(1);
     }
@@ -117,16 +119,30 @@ void free_tun()
 }
 
 int main(int argc, char **argv) {
-    tun_init();    
+    tun_init();
+
+    if( setuid(1000) != 0) {
+        printf("Could not change UID");
+    }
+
+    if( mkfifo(PIPE_NAME, 0666) != 0) {
+        printf("Could not create FIFO %s\n", PIPE_NAME);
+        return -1;
+    }
+
+    int fd;
+    if( (fd = open(PIPE_NAME, O_RDWR)) == -1) {
+        printf("Could not open FIFO\n");
+        return -1;
+    }
 
 #define BUFSZ 256
     char buf[BUFSZ] = {0};
     while(1) {
-        if(read(tun_fd, buf, BUFSZ-1) > 0) {
-            for (int i = 0; i < BUFSZ; i++)
-            {
-                printf("%02X", buf[i]);
-            }
-        }
+        ssize_t bytes_read;
+        if((bytes_read = read(tun_fd, buf, BUFSZ-1)) > 0) {
+            write(fd, buf, bytes_read);
+            printf("%s", buf);
+       }
     }
 }

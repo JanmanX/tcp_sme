@@ -1,10 +1,10 @@
 #!/bin/bash
 
-tunctl -u jan -t tapsme
+tunctl -t tap1
+ip link set dev tap1 up
+ip route add dev tap1 192.168.100.0/24
+ip address add dev tap1 local 192.168.100.1
 
-ifconfig tapsme 10.0.0.1 up
-
-route add -host 10.0.0.1 dev tapsme
 
 
 
