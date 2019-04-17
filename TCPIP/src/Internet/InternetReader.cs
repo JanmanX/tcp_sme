@@ -24,7 +24,8 @@ namespace TCPIP
         private uint byte_idx = 0x00;
         private ushort type = 0x00;
         private long cur_frame_number = long.MaxValue;
-        private UInt4 ihl;
+
+
         public InternetReader(Internet.DatagramBus datagramBus)
         {
             this.datagramBus = datagramBus ?? throw new ArgumentNullException(nameof(datagramBus));
@@ -55,7 +56,7 @@ namespace TCPIP
                         if (byte_idx == IPv4.HEADER_SIZE)
                         {
                             read = false;
-                            parseIPv4();
+                            ParseIPv4();
                         }
                         break;
                 }
