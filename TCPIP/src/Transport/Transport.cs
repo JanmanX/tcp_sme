@@ -19,7 +19,8 @@ namespace TCPIP
         private const uint NUM_PCB = 10;
         private PCB[] pcbs = new PCB[NUM_PCB];
 
-        private byte[] buffer = new byte[100];
+        private const int BUFFER_SIZE = 100;
+        private byte[] buffer = new byte[BUFFER_SIZE];
         private bool read = false; // Indicates whether process should read into buffer
         private uint byte_idx = 0x00;
         private byte protocol = 0x00;
@@ -42,7 +43,7 @@ namespace TCPIP
                 read = true;
             }
 
-            if (read)
+            if (read && byte_idx < BUFFER_SIZE)
             {
                 buffer[byte_idx++] = segmentBus.data;
             }

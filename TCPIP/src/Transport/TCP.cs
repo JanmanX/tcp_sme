@@ -26,8 +26,6 @@ namespace TCPIP
                                  | buffer[TCP.DST_PORT_OFFSET_1]));
 
 
-
-
             // Find PCB
             int pcb_idx = -1;
             for (int i = 0; i < NUM_PCB; i++)

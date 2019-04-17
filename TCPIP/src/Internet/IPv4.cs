@@ -6,7 +6,7 @@ namespace TCPIP
 {
     partial class InternetReader
     {
-        protected void parseIPv4()
+        protected void ParseIPv4()
         {
             // Checksum
             ulong acc = 0x00;
@@ -38,12 +38,12 @@ namespace TCPIP
             {
                 SimulationOnly(() =>
                {
-                   LOGGER.log.Warn($"Uknown IPv4 version {(buffer[IPv4.VERSION_OFFSET] & 0x0F):X}");
+                   LOGGER.log.Warn($"Unknown IPv4 version {(buffer[IPv4.VERSION_OFFSET] & 0x0F):X}");
                });
             }
 
             // Get Internet Header Length
-            byte ihl = (buffer[IPv4.IHL_OFFSET] & 0x0F);
+            byte ihl = (byte)(buffer[IPv4.IHL_OFFSET] & 0x0F);
             if (ihl != 0x05)
             {
                 SimulationOnly(() =>
