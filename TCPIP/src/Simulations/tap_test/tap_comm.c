@@ -10,11 +10,12 @@
 #include <errno.h>
 
 #define PIPE_NAME "/tmp/tap_sme_pipe"
+#define BUFFER_SIZE 512
 
 static int tun_fd;
 static char* dev;
 
-char *tapaddr = "10.0.0.5";
+char *tapaddr = "10.0.0.1";
 char *taproute = "10.0.0.0/24";
 
 int run_cmd(char *cmd, ...)
@@ -119,30 +120,41 @@ void free_tun()
 }
 
 int main(int argc, char **argv) {
+    int fd;
+    char buffer[BUFFER_SIZE] = {0};
+
+    // Initialize tunnel 
     tun_init();
 
+    // Change to user so that FIFO gets created with user permissions
     if( setuid(1000) != 0) {
-        printf("Could not change UID");
-    }
-
-    if( mkfifo(PIPE_NAME, 0666) != 0) {
-        printf("Could not create FIFO %s\n", PIPE_NAME);
+        printf("Could not change UID\n");
         return -1;
     }
 
-    int fd;
-    if( (fd = open(PIPE_NAME, O_RDWR)) == -1) {
+    if (access(PIPE_NAME, F_OK) != 0)
+    {
+        printf("FIFO not found. Trying to create one");
+
+        if (mkfifo(PIPE_NAME, 0666) != 0)
+        {
+            printf("Could not create FIFO %s\n", PIPE_NAME);
+            return -1;
+        }
+    }
+
+    if ((fd = open(PIPE_NAME, O_RDWR)) == -1)
+    {
         printf("Could not open FIFO\n");
         return -1;
     }
 
-#define BUFSZ 256
-    char buf[BUFSZ] = {0};
-    while(1) {
+    while (1)
+    {
         ssize_t bytes_read;
-        if((bytes_read = read(tun_fd, buf, BUFSZ-1)) > 0) {
-            write(fd, buf, bytes_read);
-            printf("%s", buf);
-       }
+        if ((bytes_read = read(tun_fd, buffer, BUFFER_SIZE - 1)) > 0)
+        {
+            write(fd, buffer, bytes_read);
+        }
     }
 }
