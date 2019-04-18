@@ -9,15 +9,15 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <stdint.h>
-#include<arpa/inet.h>
-#include<sys/socket.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
 #include <string.h>
 
 #define PIPE_NAME "/tmp/tun_sme_pipe"
 #define BUFFER_SIZE 2048
 
 static int tun_fd;
-static char* dev;
+static char *dev;
 
 char *tapaddr = "10.0.0.1";
 char *taproute = "10.0.0.0/24";
@@ -26,7 +26,7 @@ int run_cmd(char *cmd, ...)
 {
     va_list ap;
 
-    #define CMDBUFLEN 100
+#define CMDBUFLEN 100
     char buf[CMDBUFLEN];
     va_start(ap, cmd);
     vsnprintf(buf, CMDBUFLEN, cmd, ap);
@@ -35,7 +35,6 @@ int run_cmd(char *cmd, ...)
 
     return system(buf);
 }
-
 
 static int set_if_route(char *dev, char *cidr)
 {
@@ -60,10 +59,11 @@ static int tun_alloc(char *dev)
     struct ifreq ifr;
     int fd, err;
 
-    if( (fd = open("/dev/net/tap", O_RDWR)) < 0 ) {
+    if ((fd = open("/dev/net/tun", O_RDWR)) < 0)
+    {
         perror("Cannot open TUN/TAP dev\n"
-                    "Make sure one exists with "
-                    "'$ mknod /dev/net/tap c 10 200'");
+               "Make sure one exists with "
+               "'$ mknod /dev/net/tap c 10 200'");
         exit(1);
     }
 
@@ -77,11 +77,13 @@ static int tun_alloc(char *dev)
      */
     ifr.ifr_flags = IFF_TUN; // | IFF_NO_PI;
 
-    if( *dev ) {
+    if (*dev)
+    {
         strncpy(ifr.ifr_name, dev, IFNAMSIZ);
     }
 
-    if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ){
+    if ((err = ioctl(fd, TUNSETIFF, (void *)&ifr)) < 0)
+    {
         perror("ERR: Could not ioctl tun");
         close(fd);
         return err;
@@ -106,15 +108,18 @@ void tun_init()
     dev = calloc(10, 1);
     tun_fd = tun_alloc(dev);
 
-    if (set_if_up(dev) != 0) {
+    if (set_if_up(dev) != 0)
+    {
         printf("ERROR when setting up if\n");
     }
 
-    if (set_if_route(dev, taproute) != 0) {
+    if (set_if_route(dev, taproute) != 0)
+    {
         printf("ERROR when setting route for if\n");
     }
 
-    if (set_if_address(dev, tapaddr) != 0) {
+    if (set_if_address(dev, tapaddr) != 0)
+    {
         printf("ERROR when setting addr for if\n");
     }
 }
@@ -124,15 +129,17 @@ void free_tun()
     free(dev);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     int fd;
     char buffer[BUFFER_SIZE];
 
-    // Initialize tunnel 
+    // Initialize tunnel
     tun_init();
 
     // Change to user so that FIFO gets created with user permissions
-    if( setuid(1000) != 0) {
+    if (setuid(1000) != 0)
+    {
         printf("Could not change UID\n");
         return -1;
     }
@@ -154,32 +161,31 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-
     /* Sockets... Dont ask why ... */
 #define SERVER "127.0.0.1"
-#define BUFLEN 512	//Max length of buffer
-#define PORT 8888	//The port on which to send data
+#define BUFLEN 512 //Max length of buffer
+#define PORT 8888  //The port on which to send data
 
-	struct sockaddr_in si_other;
-	int s, i, slen=sizeof(si_other);
-	char buf[BUFLEN];
-	char message[BUFLEN];
+    struct sockaddr_in si_other;
+    int s, i, slen = sizeof(si_other);
+    char buf[BUFLEN];
+    char message[BUFLEN];
 
-	if ( (s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
-	{
-		printf("socket is no\n");
+    if ((s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
+    {
+        printf("socket is no\n");
         return -1;
-	}
+    }
 
-    memset((char *) &si_other, 0, sizeof(si_other));
-	si_other.sin_family = AF_INET;
-	si_other.sin_port = htons(PORT);
-	
-	if (inet_aton(SERVER , &si_other.sin_addr) == 0) 
-	{
-		fprintf(stderr, "inet_aton() failed\n");
-		exit(1);
-	}
+    memset((char *)&si_other, 0, sizeof(si_other));
+    si_other.sin_family = AF_INET;
+    si_other.sin_port = htons(PORT);
+
+    if (inet_aton(SERVER, &si_other.sin_addr) == 0)
+    {
+        fprintf(stderr, "inet_aton() failed\n");
+        exit(1);
+    }
 
     memcpy(message, "what is this even?!", 20);
 
@@ -201,14 +207,13 @@ int main(int argc, char **argv) {
                 printf("Flags: 0x%X\n", ((uint32_t)buffer[0]) << 8 | buffer[1]);
                 printf("Proto: 0x%X\n", ((uint32_t)buffer[2]) << 8 | buffer[3]);
             }
-            printf("sending\n");
-            sendto(s, buffer, bytes_read,0, (struct sockaddr *)&si_other, slen);
-//            write(fd, buffer, bytes_read);
+            sendto(s, buffer, bytes_read, 0, (struct sockaddr *)&si_other, slen);
+            //            write(fd, buffer, bytes_read);
         }
 
-//        if ((bytes_read = read(fd, buffer, BUFFER_SIZE - 1)) > 0)
-//        {
-//            write(tun_fd, buffer, bytes_read);
-//        }
+        //        if ((bytes_read = read(fd, buffer, BUFFER_SIZE - 1)) > 0)
+        //        {
+        //            write(tun_fd, buffer, bytes_read);
+        //        }
     }
 }

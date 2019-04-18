@@ -16,6 +16,7 @@ namespace TCPIP
         // static
         private const string PIPE_NAME = "/tmp/tun_sme_pipe";
         private const int PORT = 8888;
+        private const int RAW_PACKET_OFFSET = 0x04;
 
         [OutputBus]
         public readonly Internet.DatagramBus datagramBus = Scope.CreateBus<Internet.DatagramBus>();
@@ -52,7 +53,7 @@ namespace TCPIP
                 Console.WriteLine($"Proto: 0x{proto:X}");
 
 
-                for (int i = 2; i < buffer.Length; i++)
+                for (int i = RAW_PACKET_OFFSET; i < buffer.Length; i++)
                 {
                     datagramBus.frame_number = frame_number;
                     datagramBus.type = proto;
