@@ -13,7 +13,7 @@ namespace TCPIP
         public const uint IP_ADDRESS = 0x00;
 
         [InputBus]
-        private readonly Internet.DatagramBus datagramBus;
+        private readonly Internet.DatagramBusIn datagramBusIn;
 
         [OutputBus]
         public readonly Transport.SegmentBus segmentBus = Scope.CreateBus<Transport.SegmentBus>();
@@ -26,27 +26,27 @@ namespace TCPIP
         private long cur_frame_number = long.MaxValue;
 
 
-        public InternetReader(Internet.DatagramBus datagramBus)
+        public InternetReader(Internet.DatagramBusIn datagramBusIn)
         {
-            this.datagramBus = datagramBus ?? throw new ArgumentNullException(nameof(datagramBus));
+            this.datagramBusIn = datagramBusIn ?? throw new ArgumentNullException(nameof(datagramBusIn));
         }
 
         protected override void OnTick()
         {
             // If new frame
-            if (datagramBus.frame_number != cur_frame_number)
+            if (datagramBusIn.frame_number != cur_frame_number)
             {
                 // Reset values
                 read = true;
-                cur_frame_number = datagramBus.frame_number;
-                type = datagramBus.type;
+                cur_frame_number = datagramBusIn.frame_number;
+                type = datagramBusIn.type;
                 byte_idx = 0x00;
             }
 
             // Save data and process
             if (read && byte_idx < buffer.Length)
             {
-                buffer[byte_idx++] = datagramBus.data;
+                buffer[byte_idx++] = datagramBusIn.data;
 
                 // Processing
                 switch (type)

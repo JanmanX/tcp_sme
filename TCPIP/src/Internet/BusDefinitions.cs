@@ -4,7 +4,7 @@ namespace TCPIP
 {
     public partial class Internet
     {
-        public interface DatagramBus : IBus
+        public interface DatagramBusIn : IBus
         {
             [InitialValue(long.MaxValue)]
             long frame_number { get; set; }

@@ -10,7 +10,7 @@ namespace TCPIP
     public class FileInputSimulator : SimulationProcess
     {
         [OutputBus]
-        public readonly Network.FrameBus frameBus = Scope.CreateBus<Network.FrameBus>();
+        public readonly Network.FrameBusIn frameBus = Scope.CreateBus<Network.FrameBusIn>();
 
         [OutputBus]
         public readonly TrueDualPortMemory<byte>.IControlA controlA;

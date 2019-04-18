@@ -19,7 +19,7 @@ namespace TCPIP
         private const int RAW_PACKET_OFFSET = 0x04;
 
         [OutputBus]
-        public readonly Internet.DatagramBus datagramBus = Scope.CreateBus<Internet.DatagramBus>();
+        public readonly Internet.DatagramBusIn datagramBusIn = Scope.CreateBus<Internet.DatagramBusIn>();
 
         uint frame_number = 0;
 
@@ -55,9 +55,9 @@ namespace TCPIP
 
                 for (int i = RAW_PACKET_OFFSET; i < buffer.Length; i++)
                 {
-                    datagramBus.frame_number = frame_number;
-                    datagramBus.type = proto;
-                    datagramBus.data = buffer[i];
+                    datagramBusIn.frame_number = frame_number;
+                    datagramBusIn.type = proto;
+                    datagramBusIn.data = buffer[i];
 
                     await ClockAsync();
                 }

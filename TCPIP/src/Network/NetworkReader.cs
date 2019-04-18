@@ -9,10 +9,10 @@ namespace TCPIP
     public partial class NetworkReader : SimpleProcess
     {
         [InputBus]
-        private readonly Network.FrameBus frameBus;
+        private readonly Network.FrameBusIn frameBusIn;
 
         [OutputBus]
-        public readonly Internet.DatagramBus datagramBus = Scope.CreateBus<Internet.DatagramBus>();
+        public readonly Internet.DatagramBusIn datagramBusIn = Scope.CreateBus<Internet.DatagramBusIn>();
 
         // Local storage
         private uint cur_frame_number = UInt32.MaxValue;
@@ -20,38 +20,38 @@ namespace TCPIP
         private ushort type = 0x00;
 
 
-        public NetworkReader(Network.FrameBus frameBus)
+        public NetworkReader(Network.FrameBusIn frameBusIn)
         {
-            this.frameBus = frameBus ?? throw new System.ArgumentNullException(nameof(frameBus));
+            this.frameBusIn = frameBusIn ?? throw new System.ArgumentNullException(nameof(frameBusIn));
         }
 
         protected override void OnTick()
         {
             // If new frame
-            if (frameBus.frame_number != cur_frame_number)
+            if (frameBusIn.frame_number != cur_frame_number)
             {
                 // Reset values
                 byte_idx = 0x00;
                 type = 0x00;
 
                 // Update frame number 
-                cur_frame_number = frameBus.frame_number;
+                cur_frame_number = frameBusIn.frame_number;
             }
 
             // Unrolled for sake for FPGA space
             if (byte_idx == 0x0C) // upper type byte
             {
-                type = (ushort)(frameBus.data << 0x08);
+                type = (ushort)(frameBusIn.data << 0x08);
             }
             else if (byte_idx == 0x0D) // lower type byte
             {
-                type |= (ushort)(frameBus.data);
+                type |= (ushort)(frameBusIn.data);
             }
             else if (byte_idx == 0x0E) // End of ethernet_frame
             {
-                // Update the datagramBus so the next stage can start
-                datagramBus.frame_number = cur_frame_number;
-                datagramBus.type = type;
+                // Update the datagramBusIn so the next stage can start
+                datagramBusIn.frame_number = cur_frame_number;
+                datagramBusIn.type = type;
 
                 SimulationOnly(() =>
                 {

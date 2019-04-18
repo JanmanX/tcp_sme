@@ -85,6 +85,9 @@ namespace TCPIP
                             | (uint)(buffer[IPv4.SRC_ADDRESS_OFFSET_1] << 0x10)
                             | (uint)(buffer[IPv4.SRC_ADDRESS_OFFSET_2] << 0x08)
                             | (uint)(buffer[IPv4.SRC_ADDRESS_OFFSET_3]);
+
+            LOGGER.log.Debug($"Received packet for: {buffer[IPv4.SRC_ADDRESS_OFFSET_0]}.{buffer[IPv4.SRC_ADDRESS_OFFSET_1]}.{buffer[IPv4.SRC_ADDRESS_OFFSET_2]}.{buffer[IPv4.SRC_ADDRESS_OFFSET_3]}");
+
             // TODO: Check(?)
 
 

@@ -13,10 +13,10 @@ namespace TCPIP
             {
 
                 var mem = new TrueDualPortMemory<byte>(8192);
-//                var simulator = new FileInputSimulator("data/dump5_tcp/", mem.ControlA);
+                //                var simulator = new FileInputSimulator("data/dump5_tcp/", mem.ControlA);
                 var simulator = new TUNSimulator();
-//                var network = new NetworkReader(simulator.frameBus);
-                var internet = new InternetReader(simulator.datagramBus);
+                //                var network = new NetworkReader(simulator.frameBus);
+                var internet = new InternetReader(simulator.datagramBusIn);
                 var transport = new Transport(internet.segmentBus);
 
                 // Use fluent syntax to configure the simulator.
@@ -28,14 +28,14 @@ namespace TCPIP
 
                 sim
                     .AddTopLevelOutputs(transport.networkDataBufferBus)
-                    .AddTopLevelInputs(simulator.datagramBus)
+                    .AddTopLevelInputs(simulator.datagramBusIn)
                     .BuildCSVFile()
                     .BuildVHDL()
                     .Run();
 
                 // After `Run()` has been invoked the folder
                 // `output/vhdl` contains a Makefile that can
-              // be used for testing the generated design
+                // be used for testing the generated design
             }
         }
     }

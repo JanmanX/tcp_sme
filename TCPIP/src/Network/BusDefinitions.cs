@@ -5,7 +5,7 @@ namespace TCPIP
 {
     public partial class Network
     {
-        public interface FrameBus : IBus
+        public interface FrameBusIn : IBus
         {
             uint frame_number { get; set; }
 

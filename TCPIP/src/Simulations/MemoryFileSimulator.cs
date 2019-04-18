@@ -12,16 +12,16 @@ namespace TCPIP
     {
         private readonly TrueDualPortMemory<T> ram;
 
-		[OutputBus]
-		public readonly Network.FrameBus frameBus = Scope.CreateBus<Network.FrameBus>();
+        [OutputBus]
+        public readonly Network.FrameBusIn frameBus = Scope.CreateBus<Network.FrameBusIn>();
 
-#region PRIVATE BECAUSE RESERVED
+        #region PRIVATE BECAUSE RESERVED
         [OutputBus]
         private readonly TrueDualPortMemory<T>.IControlA controlA;
 
         [InputBus]
         private readonly TrueDualPortMemory<T>.IReadResultA readResultA;
-#endregion
+        #endregion
 
         [OutputBus]
         private readonly TrueDualPortMemory<T>.IControlB controlb;
@@ -38,7 +38,7 @@ namespace TCPIP
             return ram.ReadResultB;
         }
         */
-   
+
         public MemoryFileSimulatior(String memoryFile)
             : base()
         {
@@ -68,14 +68,16 @@ namespace TCPIP
             Console.WriteLine($"Initialized dual-port ram with {initial_Ts.Length} Ts.");
 
 
-            for(uint i = 0; i < initial_Ts.Length; i++) {
-                if (i % 8 == 0)  {
+            for (uint i = 0; i < initial_Ts.Length; i++)
+            {
+                if (i % 8 == 0)
+                {
                     Console.WriteLine();
                 }
- 
+
                 Console.Write(String.Format("0x{0:X} ", initial_Ts[i]));
-           }
-           Console.WriteLine();
+            }
+            Console.WriteLine();
 
         }
 
