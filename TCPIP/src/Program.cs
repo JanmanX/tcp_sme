@@ -17,7 +17,7 @@ namespace TCPIP
                 var simulator = new TUNSimulator();
                 //                var network = new NetworkReader(simulator.frameBus);
                 var internet = new InternetReader(simulator.datagramBusIn);
-                var transport = new Transport(internet.segmentBus);
+                var transport = new Transport(internet.segmentBusIn);
 
                 // Use fluent syntax to configure the simulator.
                 // The order does not matter, but `Run()` must be 

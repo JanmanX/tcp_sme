@@ -11,7 +11,7 @@ namespace TCPIP
 
         public void ParseTCP()
         {
-            LOGGER.log.Debug($"Parsing TCP with 0x{segmentBus.ip_id:X}");
+            LOGGER.log.Debug($"Parsing TCP with 0x{segmentBusIn.ip_id:X}");
 
             ///////////////////// PARSE TCP:
             // - Checksum
@@ -51,7 +51,7 @@ namespace TCPIP
                 acc += (ulong)((buffer[i] << 0x08
                                  | buffer[i + 1]));
             }
-            acc += segmentBus.pseudoheader_checksum;
+            acc += segmentBusIn.pseudoheader_checksum;
 
             // Add carry bits and do one-complement on 16 bits
             // Overflow  can max happen twice

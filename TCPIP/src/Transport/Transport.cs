@@ -9,11 +9,21 @@ namespace TCPIP
     public partial class Transport : SimpleProcess
     {
         [InputBus]
-        private readonly Transport.SegmentBus segmentBus;
+        private readonly Transport.SegmentBusIn segmentBusIn;
+
+        [OutputBus]
+        public readonly SegmentBusInControl segmentBusInControl 
+                    = Scope.CreateBus<SegmentBusInControl>();
+
+
+        [OutputBus]
+        public readonly SegmentBusOut segmentBusOut = Scope.CreateBus<SegmentBusOut>();
 
         [OutputBus]
         public readonly NetworkDataBuffer.NetworkDataBufferBus networkDataBufferBus
                     = Scope.CreateBus<NetworkDataBuffer.NetworkDataBufferBus>();
+
+        
 
         // Local variables
         private const uint NUM_PCB = 10;
@@ -26,26 +36,26 @@ namespace TCPIP
         private byte protocol = 0x00;
         private uint ip_id = 0x00;
 
-        public Transport(Transport.SegmentBus segmentBus)
+        public Transport(Transport.SegmentBusIn segmentBusIn)
         {
-            this.segmentBus = segmentBus ?? throw new ArgumentNullException(nameof(segmentBus));
+            this.segmentBusIn = segmentBusIn ?? throw new ArgumentNullException(nameof(segmentBusIn));
         }
 
 
         protected override void OnTick()
         {
             // If new segment received, reset
-            if (segmentBus.ip_id != ip_id)
+            if (segmentBusIn.ip_id != ip_id)
             {
-                ip_id = segmentBus.ip_id;
+                ip_id = segmentBusIn.ip_id;
                 byte_idx = 0x00;
-                protocol = segmentBus.protocol;
+                protocol = segmentBusIn.protocol;
                 read = true;
             }
 
             if (read && byte_idx < BUFFER_SIZE)
             {
-                buffer[byte_idx++] = segmentBus.data;
+                buffer[byte_idx++] = segmentBusIn.data;
             }
 
             // Processing

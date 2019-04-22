@@ -16,7 +16,10 @@ namespace TCPIP
         private readonly Internet.DatagramBusIn datagramBusIn;
 
         [OutputBus]
-        public readonly Transport.SegmentBus segmentBus = Scope.CreateBus<Transport.SegmentBus>();
+        public readonly Internet.DatagramBusInControl datagramBusInControl = Scope.CreateBus<Internet.DatagramBusInControl>();
+
+        [OutputBus]
+        public readonly Transport.SegmentBusIn segmentBusIn = Scope.CreateBus<Transport.SegmentBusIn>();
 
         // Local storage
         private byte[] buffer = new byte[50]; // XXX: Set fixed size to longest header. Currently IPv4 without opt..
@@ -41,6 +44,12 @@ namespace TCPIP
                 cur_frame_number = datagramBusIn.frame_number;
                 type = datagramBusIn.type;
                 byte_idx = 0x00;
+
+                // We are ready to receive data
+                datagramBusInControl.ready = true;
+
+                // Do not skip
+                datagramBusInControl.skip = false;
             }
 
             // Save data and process
@@ -62,15 +71,19 @@ namespace TCPIP
                 }
             }
 
+            // Writing
+
+
+            // Pass data
         }
 
         private void propagatePacket(uint id, byte protocol, uint fragment_offset = 0,
                                         ushort pseudoheader_checksum = 0x00)
         {
-            segmentBus.ip_id = id;
-            segmentBus.fragment_offset = fragment_offset;
-            segmentBus.protocol = protocol;
-            segmentBus.pseudoheader_checksum = pseudoheader_checksum;
+            segmentBusIn.ip_id = id;
+            segmentBusIn.fragment_offset = fragment_offset;
+            segmentBusIn.protocol = protocol;
+            segmentBusIn.pseudoheader_checksum = pseudoheader_checksum;
         }
     }
 }
