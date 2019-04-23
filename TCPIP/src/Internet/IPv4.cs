@@ -12,8 +12,8 @@ namespace TCPIP
             ulong acc = 0x00;
             for (uint i = 0; i < IPv4.HEADER_SIZE; i = i + 2)
             {
-                acc += (ulong)((buffer[i] << 0x08
-                                 | buffer[i + 1]));
+                acc += (ulong)((buffer_in[i] << 0x08
+                                 | buffer_in[i + 1]));
 
             }
             // Add carry bits and do one-complement on 16 bits
@@ -30,20 +30,20 @@ namespace TCPIP
 
 
             // Get ID
-            ushort id = (ushort)((buffer[IPv4.ID_OFFSET_0] << 0x08)
-                                       | buffer[IPv4.ID_OFFSET_1]);
+            ushort id = (ushort)((buffer_in[IPv4.ID_OFFSET_0] << 0x08)
+                                       | buffer_in[IPv4.ID_OFFSET_1]);
 
             // Check version
-            if ((buffer[IPv4.VERSION_OFFSET] >> 0x04) != IPv4.VERSION)
+            if ((buffer_in[IPv4.VERSION_OFFSET] >> 0x04) != IPv4.VERSION)
             {
                 SimulationOnly(() =>
                {
-                   LOGGER.log.Warn($"Unknown IPv4 version {(buffer[IPv4.VERSION_OFFSET] & 0x0F):X}");
+                   LOGGER.log.Warn($"Unknown IPv4 version {(buffer_in[IPv4.VERSION_OFFSET] & 0x0F):X}");
                });
             }
 
             // Get Internet Header Length
-            byte ihl = (byte)(buffer[IPv4.IHL_OFFSET] & 0x0F);
+            byte ihl = (byte)(buffer_in[IPv4.IHL_OFFSET] & 0x0F);
             if (ihl != 0x05)
             {
                 SimulationOnly(() =>
@@ -53,16 +53,16 @@ namespace TCPIP
             }
 
             // Get total length
-            ushort total_len = (ushort)((buffer[IPv4.TOTAL_LENGTH_OFFSET_0] << 0x08)
-                                       | buffer[IPv4.TOTAL_LENGTH_OFFSET_1]);
+            ushort total_len = (ushort)((buffer_in[IPv4.TOTAL_LENGTH_OFFSET_0] << 0x08)
+                                       | buffer_in[IPv4.TOTAL_LENGTH_OFFSET_1]);
 
             // Get protocol
-            byte protocol = buffer[IPv4.PROTOCOL_OFFSET];
+            byte protocol = buffer_in[IPv4.PROTOCOL_OFFSET];
 
             // Flags
-            byte flags = (byte)((buffer[IPv4.FLAGS_OFFSET] >> 0x05) & 0x0E);
-            ushort fragment_offset = (ushort)((buffer[IPv4.FRAGMENT_OFFSET_OFFSET_0] << 0x08
-                                        | buffer[IPv4.FRAGMENT_OFFSET_OFFSET_1])
+            byte flags = (byte)((buffer_in[IPv4.FLAGS_OFFSET] >> 0x05) & 0x0E);
+            ushort fragment_offset = (ushort)((buffer_in[IPv4.FRAGMENT_OFFSET_OFFSET_0] << 0x08
+                                        | buffer_in[IPv4.FRAGMENT_OFFSET_OFFSET_1])
                                         & IPv4.FRAGMENT_OFFSET_MASK);
             if ((flags & (byte)IPv4.Flags.MF) != 0x00)
             {
@@ -73,20 +73,20 @@ namespace TCPIP
             }
 
             // Destionation address
-            uint dst_address = (uint)(buffer[IPv4.SRC_ADDRESS_OFFSET_0] << 0x18)
-                            | (uint)(buffer[IPv4.SRC_ADDRESS_OFFSET_1] << 0x10)
-                            | (uint)(buffer[IPv4.SRC_ADDRESS_OFFSET_2] << 0x08)
-                            | (uint)(buffer[IPv4.SRC_ADDRESS_OFFSET_3]);
+            uint dst_address = (uint)(buffer_in[IPv4.SRC_ADDRESS_OFFSET_0] << 0x18)
+                            | (uint)(buffer_in[IPv4.SRC_ADDRESS_OFFSET_1] << 0x10)
+                            | (uint)(buffer_in[IPv4.SRC_ADDRESS_OFFSET_2] << 0x08)
+                            | (uint)(buffer_in[IPv4.SRC_ADDRESS_OFFSET_3]);
 
             // TODO: implement check if packet for us
 
             // Source Address
-            uint src_address = (uint)(buffer[IPv4.SRC_ADDRESS_OFFSET_0] << 0x18)
-                            | (uint)(buffer[IPv4.SRC_ADDRESS_OFFSET_1] << 0x10)
-                            | (uint)(buffer[IPv4.SRC_ADDRESS_OFFSET_2] << 0x08)
-                            | (uint)(buffer[IPv4.SRC_ADDRESS_OFFSET_3]);
+            uint src_address = (uint)(buffer_in[IPv4.SRC_ADDRESS_OFFSET_0] << 0x18)
+                            | (uint)(buffer_in[IPv4.SRC_ADDRESS_OFFSET_1] << 0x10)
+                            | (uint)(buffer_in[IPv4.SRC_ADDRESS_OFFSET_2] << 0x08)
+                            | (uint)(buffer_in[IPv4.SRC_ADDRESS_OFFSET_3]);
 
-            LOGGER.log.Debug($"Received packet for: {buffer[IPv4.SRC_ADDRESS_OFFSET_0]}.{buffer[IPv4.SRC_ADDRESS_OFFSET_1]}.{buffer[IPv4.SRC_ADDRESS_OFFSET_2]}.{buffer[IPv4.SRC_ADDRESS_OFFSET_3]}");
+            LOGGER.log.Debug($"Received packet for: {buffer_in[IPv4.SRC_ADDRESS_OFFSET_0]}.{buffer_in[IPv4.SRC_ADDRESS_OFFSET_1]}.{buffer_in[IPv4.SRC_ADDRESS_OFFSET_2]}.{buffer_in[IPv4.SRC_ADDRESS_OFFSET_3]}");
 
             // TODO: Check(?)
 
@@ -108,7 +108,7 @@ namespace TCPIP
 
 
             // Propagate parsed packet
-            propagatePacket(id, protocol, fragment_offset, pseudoheader_checksum);
+            PropagatePacket(id, protocol, fragment_offset, pseudoheader_checksum);
         }
 
 
