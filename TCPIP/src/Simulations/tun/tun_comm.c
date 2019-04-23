@@ -19,8 +19,8 @@
 static int tun_fd;
 static char *dev;
 
-char *tapaddr = "10.0.0.1";
-char *taproute = "10.0.0.0/24";
+char *tapaddr = "10.0.0.4";
+char *taproute = "10.0.0.4/24";
 
 int run_cmd(char *cmd, ...)
 {
@@ -195,6 +195,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
+    unsigned int foo = 0;
     while (1)
     {
         ssize_t bytes_read;
@@ -204,8 +205,11 @@ int main(int argc, char **argv)
             {
                 /* Flags: 0x0060, Proto: 0x0000 */
                 /* Flags: 0x0045, Proto: 0x3C00 */
-                printf("Flags: 0x%X\n", ((uint32_t)buffer[0]) << 8 | buffer[1]);
+                printf("%d: ", foo++);
+                printf("Flags: 0x%X\t", ((uint32_t)buffer[0]) << 8 | buffer[1]);
                 printf("Proto: 0x%X\n", ((uint32_t)buffer[2]) << 8 | buffer[3]);
+
+                
             }
             sendto(s, buffer, bytes_read, 0, (struct sockaddr *)&si_other, slen);
             //            write(fd, buffer, bytes_read);
