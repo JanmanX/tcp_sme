@@ -20,10 +20,10 @@ namespace TCPIP
             // - if ACK, connection completed
             // - if SYN:
 
-            ushort src_port = (ushort)((buffer[TCP.SRC_PORT_OFFSET_0] << 0x08
-                                 | buffer[TCP.SRC_PORT_OFFSET_1]));
-            ushort dst_port = (ushort)((buffer[TCP.DST_PORT_OFFSET_0] << 0x08
-                                 | buffer[TCP.DST_PORT_OFFSET_1]));
+            ushort src_port = (ushort)((buffer_in[TCP.SRC_PORT_OFFSET_0] << 0x08
+                                 | buffer_in[TCP.SRC_PORT_OFFSET_1]));
+            ushort dst_port = (ushort)((buffer_in[TCP.DST_PORT_OFFSET_0] << 0x08
+                                 | buffer_in[TCP.DST_PORT_OFFSET_1]));
 
 
             // Find PCB
@@ -48,8 +48,8 @@ namespace TCPIP
             ulong acc = 0x00;
             for (uint i = 0; i < TCP.HEADER_SIZE; i = i + 2)
             {
-                acc += (ulong)((buffer[i] << 0x08
-                                 | buffer[i + 1]));
+                acc += (ulong)((buffer_in[i] << 0x08
+                                 | buffer_in[i + 1]));
             }
             acc += segmentBusIn.pseudoheader_checksum;
 

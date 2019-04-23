@@ -22,6 +22,7 @@ namespace TCPIP
         public readonly Internet.DatagramBusIn datagramBusIn = Scope.CreateBus<Internet.DatagramBusIn>();
 
         uint frame_number = 0;
+        uint ip_id = 0;
 
         private const int BUFFER_SIZE = 1024;
         byte[] buffer = new byte[BUFFER_SIZE];
@@ -44,6 +45,7 @@ namespace TCPIP
 
             while (true)
             {
+                // Write
                 do
                 {
                     buffer = udpClient.Receive(ref localEndPoint);
@@ -61,8 +63,11 @@ namespace TCPIP
 
                     await ClockAsync();
                 }
-
                 frame_number++;
+            
+            
+                // Read
+                
             }
 
         }

@@ -26,13 +26,20 @@ namespace TCPIP
         
 
         // Local variables
+        private LayerProcessState state = LayerProcessState.Reading;
+
         private const uint NUM_PCB = 10;
         private PCB[] pcbs = new PCB[NUM_PCB];
 
         private const int BUFFER_SIZE = 100;
-        private byte[] buffer = new byte[BUFFER_SIZE];
+        private byte[] buffer_in = new byte[BUFFER_SIZE];
+        private uint idx_in = 0x00;
         private bool read = false; // Indicates whether process should read into buffer
-        private uint byte_idx = 0x00;
+
+        private byte[] buffer_out = new byte[BUFFER_SIZE];
+        private uint idx_out = 0x00;
+        private bool write = false; // Inidicates whetehr process is writing from local buffer
+
         private byte protocol = 0x00;
         private uint ip_id = 0x00;
 
@@ -42,34 +49,75 @@ namespace TCPIP
         }
 
 
-        protected override void OnTick()
+        void Read()
         {
             // If new segment received, reset
             if (segmentBusIn.ip_id != ip_id)
             {
                 ip_id = segmentBusIn.ip_id;
-                byte_idx = 0x00;
+                idx_in = 0x00;
                 protocol = segmentBusIn.protocol;
                 read = true;
             }
 
-            if (read && byte_idx < BUFFER_SIZE)
+            if (read && idx_in < BUFFER_SIZE)
             {
-                buffer[byte_idx++] = segmentBusIn.data;
-            }
+                buffer_in[idx_in++] = segmentBusIn.data;
 
-            // Processing
-            switch (protocol)
+                // Processing
+                switch (protocol)
+                {
+                    case (byte)IPv4.Protocol.TCP:
+                        // End of header, start parsing
+                        if (idx_in == TCP.HEADER_SIZE)
+                        {
+                            read = false;
+                            ParseTCP();
+                        }
+                        break;
+                }
+        }
+        }
+
+        void Pass()
+        {
+
+        }
+
+        void Write()
+        {
+
+        }
+
+
+        protected override void OnTick()
+        {
+            if(segmentBusIn.data_mode == (byte)DataMode.NO_SEND)
             {
-                case (byte)IPv4.Protocol.TCP:
-                    // End of header, start parsing
-                    if (byte_idx == TCP.HEADER_SIZE)
-                    {
-                        read = false;
-                        ParseTCP();
-                    }
-                    break;
+                // Parse
+            } else {
+                segmentBusOut.data = segmentBusIn.data;
+                segmentBusOut.data_mode = segmentBusIn.data_mode;
+                segmentBusOut.ip_addr = segmentBusIn.ip_addr;
+                segmentBusOut.protocol = segmentBusIn.protocol;
             }
         }
+
+        void StartReading()
+        {
+            state = LayerProcessState.Reading;
+        }
+
+
+        void StartSending(ushort len, byte protocol, DataMode data_mode)
+        {
+            state = LayerProcessState.Writing;
+        }
+
+        void StartPassing()
+        {
+            state = LayerProcessState.Passing;
+        }
+ 
     }
 }

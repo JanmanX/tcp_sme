@@ -15,6 +15,9 @@ namespace TCPIP
         public readonly Internet.DatagramBusOut datagramBusOut = Scope.CreateBus<Internet.DatagramBusOut>();
 
 
+        public const uint BUFFER_SIZE = 60;
+        private byte[] buffer = new byte[BUFFER_SIZE];
+
         public InternetWriter(Transport.SegmentBusOut segmentBusOut)
         {
             this.segmentBusOut = segmentBusOut ?? throw new ArgumentNullException(nameof(segmentBusOut));
@@ -22,7 +25,8 @@ namespace TCPIP
 
         protected override void OnTick()
         {
-
+            Console.Write($"0x{segmentBusOut.data:X}");
+            
         }
 
     }

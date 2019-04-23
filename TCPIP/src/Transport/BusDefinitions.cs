@@ -18,13 +18,16 @@ namespace TCPIP
 
             [InitialValue(0x00)]
             // Refer to Globals.DataMode
-            UInt2 data_mode { get; set; }
+            byte data_mode { get; set; }
 
             [InitialValue(0x00)]
             byte protocol { get; set; }
 
             [InitialValue(0x00)]
             ushort pseudoheader_checksum { get; set; }
+
+            [InitialValue(0x00)]
+            uint ip_addr { get; set; }
         }
 
         public interface SegmentBusInControl : IBus
@@ -51,7 +54,7 @@ namespace TCPIP
             byte ttl { get; set; } 
 
             [InitialValue(0x00)]
-            UInt2 data_mode { get; set; }
+            byte data_mode { get; set; }
        }
     }
 }
