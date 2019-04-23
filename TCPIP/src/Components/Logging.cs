@@ -8,7 +8,7 @@ namespace TCPIP
     // Is not actually used, but replaced by the preprocessor if used in *.cpp.cs files
     public class LOGGER
     {
-        public static NLog.Logger log = NLog.LogManager.GetCurrentClassLogger();
+        private static NLog.Logger log = NLog.LogManager.GetCurrentClassLogger();
         public static void TRACE(string x) { log.Trace(x); }
         public static void DEBUG(string x) { log.Debug(x); }
         public static void INFO(string x) { log.Info(x); }

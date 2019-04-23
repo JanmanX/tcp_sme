@@ -22,10 +22,7 @@ namespace TCPIP
             ushort calculated_checksum = (ushort)~((acc & 0xFFFF) + (acc >> 0x10));
             if (calculated_checksum != 0x00)
             {
-                SimulationOnly(() =>
-                {
-                    LOGGER.log.Warn($"Invalid checksum: 0x{calculated_checksum:X}");
-                });
+                LOGGER.WARN($"Invalid checksum: 0x{calculated_checksum:X}");
             }
 
 
@@ -36,20 +33,14 @@ namespace TCPIP
             // Check version
             if ((buffer_in[IPv4.VERSION_OFFSET] >> 0x04) != IPv4.VERSION)
             {
-                SimulationOnly(() =>
-               {
-                   LOGGER.log.Warn($"Unknown IPv4 version {(buffer_in[IPv4.VERSION_OFFSET] & 0x0F):X}");
-               });
+                LOGGER.WARN($"Unknown IPv4 version {(buffer_in[IPv4.VERSION_OFFSET] & 0x0F):X}");
             }
 
             // Get Internet Header Length
             byte ihl = (byte)(buffer_in[IPv4.IHL_OFFSET] & 0x0F);
             if (ihl != 0x05)
             {
-                SimulationOnly(() =>
-                {
-                    LOGGER.log.Debug($"Odd size of IPv4 Packet: IHL: {(byte)ihl}");
-                });
+                LOGGER.DEBUG($"Odd size of IPv4 Packet: IHL: {(byte)ihl}");
             }
 
             // Get total length
@@ -66,10 +57,7 @@ namespace TCPIP
                                         & IPv4.FRAGMENT_OFFSET_MASK);
             if ((flags & (byte)IPv4.Flags.MF) != 0x00)
             {
-                SimulationOnly(() =>
-               {
-                   LOGGER.log.Error($"IP packet fragmentation not supported!");
-               });
+                LOGGER.ERROR($"IP packet fragmentation not supported!");
             }
 
             // Destionation address
@@ -86,7 +74,7 @@ namespace TCPIP
                             | (uint)(buffer_in[IPv4.SRC_ADDRESS_OFFSET_2] << 0x08)
                             | (uint)(buffer_in[IPv4.SRC_ADDRESS_OFFSET_3]);
 
-            LOGGER.log.Debug($"Received packet for: {buffer_in[IPv4.SRC_ADDRESS_OFFSET_0]}.{buffer_in[IPv4.SRC_ADDRESS_OFFSET_1]}.{buffer_in[IPv4.SRC_ADDRESS_OFFSET_2]}.{buffer_in[IPv4.SRC_ADDRESS_OFFSET_3]}");
+            LOGGER.DEBUG($"Received packet for: {buffer_in[IPv4.SRC_ADDRESS_OFFSET_0]}.{buffer_in[IPv4.SRC_ADDRESS_OFFSET_1]}.{buffer_in[IPv4.SRC_ADDRESS_OFFSET_2]}.{buffer_in[IPv4.SRC_ADDRESS_OFFSET_3]}");
 
             // TODO: Check(?)
 
