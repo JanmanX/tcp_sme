@@ -25,8 +25,8 @@ namespace TCPIP
 
         protected override void OnTick()
         {
-            Console.Write($"0x{segmentBusOut.data:X}");
-            
+            LOGGER.DEBUG($"0x{segmentBusOut.data:X}");
+
         }
 
     }

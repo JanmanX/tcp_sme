@@ -11,7 +11,7 @@ namespace TCPIP
 
         public void ParseTCP()
         {
-            LOGGER.log.Debug($"Parsing TCP with 0x{segmentBusIn.ip_id:X}");
+            LOGGER.DEBUG($"Parsing TCP with 0x{segmentBusIn.ip_id:X}");
 
             ///////////////////// PARSE TCP:
             // - Checksum
@@ -59,10 +59,9 @@ namespace TCPIP
             ushort calculated_checksum = (ushort)~((acc & 0xFFFF) + (acc >> 0x10));
             if (calculated_checksum != 0x00)
             {
-                SimulationOnly(() =>
-                {
-                    LOGGER.log.Warn($"Invalid checksum: 0x{calculated_checksum:X}");
-                });
+
+                LOGGER.WARN($"Invalid checksum: 0x{calculated_checksum:X}");
+
             }
         }
 
