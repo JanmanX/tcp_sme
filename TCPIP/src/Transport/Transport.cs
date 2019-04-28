@@ -51,6 +51,17 @@ namespace TCPIP
 
         void Read()
         {
+            if(segmentBusIn.data_mode == (byte)DataMode.NO_SEND)
+            {
+                // Parse
+            } else {
+                segmentBusOut.data = segmentBusIn.data;
+                segmentBusOut.data_mode = segmentBusIn.data_mode;
+                segmentBusOut.ip_addr = segmentBusIn.ip_addr;
+                segmentBusOut.protocol = segmentBusIn.protocol;
+            }
+ 
+
             // If new segment received, reset
             if (segmentBusIn.ip_id != ip_id)
             {
@@ -76,12 +87,7 @@ namespace TCPIP
                         }
                         break;
                 }
-        }
-        }
-
-        void Pass()
-        {
-
+            }
         }
 
         void Write()
@@ -89,35 +95,13 @@ namespace TCPIP
 
         }
 
-
         protected override void OnTick()
         {
-            if(segmentBusIn.data_mode == (byte)DataMode.NO_SEND)
-            {
-                // Parse
-            } else {
-                segmentBusOut.data = segmentBusIn.data;
-                segmentBusOut.data_mode = segmentBusIn.data_mode;
-                segmentBusOut.ip_addr = segmentBusIn.ip_addr;
-                segmentBusOut.protocol = segmentBusIn.protocol;
-            }
-        }
+            Read();
 
-        void StartReading()
-        {
-            state = LayerProcessState.Reading;
-        }
+            Write(); 
+            
+       }
 
-
-        void StartSending(ushort len, byte protocol, DataMode data_mode)
-        {
-            state = LayerProcessState.Writing;
-        }
-
-        void StartPassing()
-        {
-            state = LayerProcessState.Passing;
-        }
- 
     }
 }

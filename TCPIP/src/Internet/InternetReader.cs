@@ -85,7 +85,7 @@ namespace TCPIP
                         if (idx_in == ICMP.PACKET_SIZE)
                         {
                             ParseICMP();
-                        }
+                        
                         break;
                 }
             }
@@ -93,6 +93,12 @@ namespace TCPIP
 
         private void Pass()
         {
+            segmentBusIn.ip_id = id;
+            segmentBusIn.fragment_offset = fragment_offset;
+            segmentBusIn.protocol = protocol;
+            segmentBusIn.pseudoheader_checksum = pseudoheader_checksum;
+ 
+
             // If new frame
             if (datagramBusIn.frame_number != cur_frame_number)
             {
@@ -124,11 +130,9 @@ namespace TCPIP
         private void PropagatePacket(uint id, byte protocol, uint fragment_offset = 0,
                                         ushort pseudoheader_checksum = 0x00)
         {
-            segmentBusIn.ip_id = id;
-            segmentBusIn.fragment_offset = fragment_offset;
-            segmentBusIn.protocol = protocol;
-            segmentBusIn.pseudoheader_checksum = pseudoheader_checksum;
-        }
+             state = LayerProcessState.Passing;
+
+       }
 
 
         private void ClearBufferOut()
