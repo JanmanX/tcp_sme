@@ -1,0 +1,64 @@
+\chapter{Background}
+
+In this chapter, we will introduce the basic concepts of the Internet Protocol
+Suite, briefly describe its origin, semantics, and its reference implementation
+in the early BSD systems.
+Furthermore, SME will be introduced as a basis for the implementation.
+
+
+\section{Internet Protocol Suite (TCP/IP)}
+Internet Protocol Suite, better known as TCP/IP, is a conceptual model providing
+end-to-end communication between computers. It consists of a collection of
+protocols specifying the communication between multiple Internet systems\cite{RFC1122}.
+The very early research and development on the Internet Protocol Suite began in 
+the late 1960s by the Defense Advanced Research Project Agency (DARPA),
+and was being adopted by DARPA, as well as the public, since 1983\cite{DARPA_internet}. 
+Although the Internet Protocol Suite predates the newer, arguably more refined
+Open Systems Interconnection model (OSI model), TCP/IP still remains the popular
+choice in modern systems.
+As opposed to OSI 7-layer model\cite{X.200}, the collection of protocols in TCP/IP are 
+organized into 4 abstraction layers, each related to their scope of networking 
+involved.
+
+\subsection{Link Layer}
+The link layer is the lowest, bottom-most layer in the Internet Protocol Suite.
+Link layer addresses methods and protocols operating on the link that the host
+is physically connected to\footnote{Wireless connections are also included 
+under this category.}. Contrary to the OSI model, this lowest layer in TCP/IP 
+does not regard the standards and protocols of the physical mediums used (the
+pin layout, voltages, cable specifications etc.), making TCP/IP hardware-independent.
+As a result, TCP/IP can in theory be implemented on virtually any hardware
+configuration, emphasizing the flexibility of the model.
+
+\subsection{Internet Layer}
+The internet layer mainly concerns itself with sending data from the source 
+network to the destination network. This seemingly simple task requires multiple
+functions from the layer:
+\begin{itemize}
+    \item Addressing and identification
+    \item Packet routing
+    \item \emph{Basic} transmit diagnostic information
+    \item Carrying data for various upper layer protocols
+\end{itemize}
+
+\subsection{Transport Layer}
+The transport layer establishes end-to-end data transfer between hosts.
+Protocols in the transport layer can provide additional services to the user,
+such as reliability, ordering, error- and flow-control, application addressing 
+(port numbers), error-checking, and so on. 
+
+\subsection{Application Layer}
+The application layer protocols are used by applications and services to 
+exchange information over the network. A few of the well-known application
+layer protocols are the Hypertext Transfer Protocol (HTTP)\cite{RFC1945},
+File Transfer Protocol (FTP)\cite{RFC0114}, and Simple Mail Transfer Protocol
+(SMTP)\cite{RFC0788}.\\
+This layer is usually implemented by the applications themselves, and therefore 
+are not strictly required to actually run a TCP/IP network.
+
+
+
+
+
+\section{Synchronous Message Exchange}
+

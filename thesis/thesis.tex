@@ -1,0 +1,141 @@
+\documentclass[11pt, twocolumn]{report}
+\usepackage[a4paper, hmargin={2.8cm, 2.8cm}, vmargin={2.5cm, 2.5cm}]{geometry}
+%\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{eso-pic} % \AddToShipoutPicture
+\usepackage{graphicx} % \includegraphics
+\usepackage[english]{babel}
+\usepackage{tcolorbox}
+\usepackage{multicol}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{fancyhdr}
+\usepackage{fancyvrb}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage[hyphens]{url}
+\usepackage{breakurl}
+\usepackage{cite}
+\usepackage{color}
+\usepackage{array}
+\usepackage{multicol}
+\usepackage[toc,page]{appendix}
+\usepackage[breaklinks=true]{hyperref}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{tablefootnote}
+\usepackage{footnote}
+\usepackage{lipsum}
+\usepackage{tocloft}
+
+
+
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\setlength{\columnsep}{1cm}
+
+
+\author{
+  Meznik, Jan\\
+  \texttt{pzj895@alumni.ku.dk}\\
+  \texttt{jan@meznik.dk}
+  \and
+  Jacobi, Mark Jan\\
+  \texttt{dcz738@alumni.ku.dk}
+}
+
+\title{
+	\vspace{3cm}
+	\huge{TCP/IP in hardware using SME}\\
+		\vspace{0.5cm}
+	\Large{Write something clever here}
+}
+
+
+
+% Header
+\pagestyle{fancy}
+
+
+\iffalse
+\fancyhf{}
+%\fancyhead[L]{}
+%\fancyhead[R]{}
+%\fancyhead[C]{}
+%\fancyfoot[C]{Center \leftmark}
+\fi
+
+\lhead{University of Copenhagen}
+%\chead{}
+\rhead{TCP/IP in SME}
+
+
+\begin{document}
+\onecolumn
+
+
+%%%%% KU HEADER %%%%%%%%%%%%%%%%%%%%%%%
+\AddToShipoutPicture*{\put(0,0){\includegraphics*[viewport=0 0 700 600]{include/natbio-farve}}}
+\AddToShipoutPicture*{\put(0,602){\includegraphics*[viewport=0 600 700 1600]{include/natbio-farve}}}
+\AddToShipoutPicture*{\put(0,0){\includegraphics*{include/nat-en}}}
+\clearpage
+\maketitle
+\pagenumbering{roman}
+\thispagestyle{empty}
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%\begin{abstract}
+\thispagestyle{empty}
+%\input{abstract/abstract.tex}
+\newpage
+%\end{abstract}
+
+
+%\section*{Overview}
+%\input{overview/overview.tex}
+
+\newpage
+
+% \section*{Preface}
+% \input{preface/preface.tex}
+\newpage
+\twocolumn
+
+\thispagestyle{empty}
+\tableofcontents
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}} 
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\onecolumn
+\newpage
+\twocolumn
+
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\markboth{Name}{Report}
+\noindent
+
+\input{introduction/introduction.tex}
+\input{background/background.tex}
+
+\chapter{}
+
+\newpage
+\clearpage % force new page(?)
+\newpage
+
+\onecolumn
+
+\appendix
+\begin{appendices}
+
+\end{appendices}
+
+\newpage
+\bibliography{bib}{}
+\bibliographystyle{plain}
+
+
+\end{document}
