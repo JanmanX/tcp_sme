@@ -7,31 +7,32 @@ Furthermore, SME will be introduced as a basis for the implementation.
 
 
 \section{Internet Protocol Suite (TCP/IP)}
-Internet Protocol Suite, better known as TCP/IP, is a conceptual model providing
-end-to-end communication between computers. It consists of a collection of
-protocols specifying the communication between multiple Internet systems\cite{RFC1122}.
-The very early research and development on the Internet Protocol Suite began in 
-the late 1960s by the Defense Advanced Research Project Agency (DARPA),
-and was being adopted by DARPA, as well as the public, since 1983\cite{DARPA_internet}. 
-Although the Internet Protocol Suite predates the newer, arguably more refined
-Open Systems Interconnection model (OSI model), TCP/IP still remains the popular
-choice in modern systems.
-As opposed to OSI 7-layer model\cite{X.200}, the collection of protocols in TCP/IP are 
-organized into 4 abstraction layers, each related to their scope of networking 
+Internet Protocol Suite, better known as simply TCP/IP, is a conceptual
+model providing end-to-end communication between computers. It consists of
+a collection of protocols specifying the communication between multiple
+Internet systems\cite{RFC1122}.  The very early research and development
+on what would later become the Internet Protocol Suite began in the late 1960s
+by the Defense Advanced Research Project Agency (DARPA), and was being
+adopted by DARPA, as well as the public, since 1983\cite{DARPA_internet}.
+Although the Internet Protocol Suite predates the newer, arguably more
+refined Open Systems Interconnection model (OSI model), TCP/IP still
+remains the popular choice in modern systems.  As opposed to OSI 7-layer
+model\cite{X.200}, the collection of protocols in TCP/IP are organized
+into 4 abstraction layers, each related to their scope of networking
 involved.
 
 \subsection{Link Layer}
 The link layer is the lowest, bottom-most layer in the Internet Protocol Suite.
 Link layer addresses methods and protocols operating on the link that the host
-is physically connected to\footnote{Wireless connections are also included 
-under this category.}. Contrary to the OSI model, this lowest layer in TCP/IP 
+is physically connected to\footnote{Wireless connections are also included
+under this category.}. Contrary to the OSI model, this lowest layer in TCP/IP
 does not regard the standards and protocols of the physical mediums used (the
 pin layout, voltages, cable specifications etc.), making TCP/IP hardware-independent.
 As a result, TCP/IP can in theory be implemented on virtually any hardware
 configuration, emphasizing the flexibility of the model.
 
 \subsection{Internet Layer}
-The internet layer mainly concerns itself with sending data from the source 
+The internet layer mainly concerns itself with sending data from the source
 network to the destination network. This seemingly simple task requires multiple
 functions from the layer:
 \begin{itemize}
@@ -44,16 +45,21 @@ functions from the layer:
 \subsection{Transport Layer}
 The transport layer establishes end-to-end data transfer between hosts.
 Protocols in the transport layer can provide additional services to the user,
-such as reliability, ordering, error- and flow-control, application addressing 
-(port numbers), error-checking, and so on. 
+such as reliability, ordering, error- and flow-control, application addressing
+(port numbers), error-checking, and so on.\\
+While it is possible to bypass the protocols in this layer on most modern 
+network stacks, the protocols in the transport layer provide such essential 
+and useful services that it hardly ever makes sense to implement in the 
+application layer. 
+
 
 \subsection{Application Layer}
-The application layer protocols are used by applications and services to 
+The application layer protocols are used by applications and services to
 exchange information over the network. A few of the well-known application
 layer protocols are the Hypertext Transfer Protocol (HTTP)\cite{RFC1945},
 File Transfer Protocol (FTP)\cite{RFC0114}, and Simple Mail Transfer Protocol
 (SMTP)\cite{RFC0788}.\\
-This layer is usually implemented by the applications themselves, and therefore 
+This layer is usually implemented by the applications themselves, and therefore
 are not strictly required to actually run a TCP/IP network.
 
 
@@ -61,4 +67,33 @@ are not strictly required to actually run a TCP/IP network.
 
 
 \section{Synchronous Message Exchange}
+The Synchronous Message Exchange model (SME) is a messaging framework created in 
+order to help model hardware descriptions\cite{sme_for_hardware_designs}.
+It was conceived once the flaws of using Communicating Sequential Processes (CSP)
+was identified during the modelling of a vector processor with CSP using PyCSP\cite{PyCSP}.
+It turned out that there is a major discrepancy between the way data is 
+propagated in hardware opposed to that of the CSP model. While CSP does not 
+pose any requirements on the communication between processes, in digital hardware,
+all communication has to be synchronized, driven by a clock. To combat this in 
+the CSP model, a global clock process needed to be implemented, which was 
+connected to all other processes. Additionally, latches had to be introduced in 
+order to not overwrite values during a cycle. This caused an explosion of both
+channels and latches in the final design, making CSP a much less viable framework
+for hardware modelling\cite{sme_for_hardware_designs}.
 
+\subsection{The model}
+The SME model consists of only a few fundamental concepts. Each SME model is 
+a \textit{network} consisting of one or more \textit{processes}. These processes
+do not share any memory or storage, but are interconnected with \textit{busses}.
+These busses are perhaps the most interesting units in SME model, as they not
+only propagate information between processes using the underlying \textit{channels},
+but also introduce an implicit clock between the processes.\\
+
+\subsection{Process execution flow}
+The execution flow of a process is fairly simple, and relates very closely to 
+that of the actual hardware. At the beginning of a clock-cycle, the input-ports 
+are read into the busses they are connected to. Then, the process executes its
+"compute" stage, and the results, if any, are written to the output-port, which
+will be read by the following bus. A visualization of the execution flow can be
+seen on figure \ref{fig:sme_clock}.
+\pic{0.5}{background/sme_clock.eps}{An illustration of a typical SME clock-cycle}{fig:sme_clock}
