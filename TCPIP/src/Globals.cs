@@ -11,6 +11,9 @@ namespace TCPIP
         Writing,
         Passing,
     };
+
+
+    // XXX: DEPRECATED??
     // Indicates whether the data in the bus is to be sent
     // 0 - not for sending
     // 1 - send to Internet layer

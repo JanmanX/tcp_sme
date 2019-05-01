@@ -67,12 +67,13 @@ namespace TCPIP
 
         private void Write()
         {
-            segmentBusIn.data = buffer_out[idx_out++];
-
-            // If all bytes have been written, start reading again
-            if (idx_out == write_len)
+            if (idx_out > write_len)
             {
                 StartReading();
+            }
+            else
+            {
+                segmentBusIn.data = buffer_out[idx_out++];
             }
         }
 
