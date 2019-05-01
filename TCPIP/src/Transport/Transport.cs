@@ -12,7 +12,7 @@ namespace TCPIP
         private readonly Transport.SegmentBusIn segmentBusIn;
 
         [OutputBus]
-        public readonly SegmentBusInControl segmentBusInControl 
+        public readonly SegmentBusInControl segmentBusInControl
                     = Scope.CreateBus<SegmentBusInControl>();
 
 
@@ -23,7 +23,7 @@ namespace TCPIP
         public readonly NetworkDataBuffer.NetworkDataBufferBus networkDataBufferBus
                     = Scope.CreateBus<NetworkDataBuffer.NetworkDataBufferBus>();
 
-        
+
 
         // Local variables
         private LayerProcessState state = LayerProcessState.Reading;
@@ -51,16 +51,18 @@ namespace TCPIP
 
         void Read()
         {
-            if(segmentBusIn.data_mode == (byte)DataMode.NO_SEND)
+            if (segmentBusIn.data_mode == (byte)DataMode.NO_SEND)
             {
                 // Parse
-            } else {
+            }
+            else
+            {
                 segmentBusOut.data = segmentBusIn.data;
                 segmentBusOut.data_mode = segmentBusIn.data_mode;
                 segmentBusOut.ip_addr = segmentBusIn.ip_addr;
                 segmentBusOut.protocol = segmentBusIn.protocol;
             }
- 
+
 
             // If new segment received, reset
             if (segmentBusIn.ip_id != ip_id)
@@ -99,9 +101,9 @@ namespace TCPIP
         {
             Read();
 
-            Write(); 
-            
-       }
+            Write();
+
+        }
 
     }
 }

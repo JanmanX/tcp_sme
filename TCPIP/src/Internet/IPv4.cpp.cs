@@ -74,16 +74,14 @@ namespace TCPIP
                             | (uint)(buffer_in[IPv4.SRC_ADDRESS_OFFSET_2] << 0x08)
                             | (uint)(buffer_in[IPv4.SRC_ADDRESS_OFFSET_3]);
 
-            LOGGER.DEBUG($"Received packet for: {buffer_in[IPv4.SRC_ADDRESS_OFFSET_0]}.{buffer_in[IPv4.SRC_ADDRESS_OFFSET_1]}.{buffer_in[IPv4.SRC_ADDRESS_OFFSET_2]}.{buffer_in[IPv4.SRC_ADDRESS_OFFSET_3]}");
-
-            // TODO: Check(?)
-
-
+            LOGGER.DEBUG($@"Received packet for:
+                                {buffer_in[IPv4.SRC_ADDRESS_OFFSET_0]}.
+                                {buffer_in[IPv4.SRC_ADDRESS_OFFSET_1]}.
+                                {buffer_in[IPv4.SRC_ADDRESS_OFFSET_2]}.
+                                {buffer_in[IPv4.SRC_ADDRESS_OFFSET_3]}");
 
 
             // Calculate pseudoheader checksum
-            // TODO: Can we reuse variables? (acc would be handly here, saving us
-            // a whole 8 bytes!)
             ulong acc2 = (ulong)(total_len
                                 + protocol
                                 + src_address
