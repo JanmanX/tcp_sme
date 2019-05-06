@@ -7,7 +7,7 @@ using SME.Components;
 
 namespace TCPIP
 {
-    public class FileInputSimulator : SimulationProcess
+    public class FrameInputSimulator : SimulationProcess
     {
         [OutputBus]
         public readonly Network.FrameBusIn frameBus = Scope.CreateBus<Network.FrameBusIn>();
@@ -20,7 +20,7 @@ namespace TCPIP
         private readonly String dir;
 
 
-        public FileInputSimulator(String dir, TrueDualPortMemory<byte>.IControlA controlA)
+        public FrameInputSimulator(String dir, TrueDualPortMemory<byte>.IControlA controlA)
         {
             this.dir = dir;
             this.controlA = controlA;

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from scapy.all import rdpcap
+from scapy.all import *
 import argparse, os, tqdm
 
 # Get the arguments
@@ -13,9 +13,11 @@ args = parser.parse_args()
 # rdpcap comes from scapy and loads in our pcap file
 packets = rdpcap(args.inputfile)
 
+print(packets.summary())
+
 # Let's iterate through every packet
 for counter, packet in tqdm.tqdm(enumerate(packets)):
-    data = bytes(packet)
+    data = bytes(packet[IP])
     filename = args.outputfolder + "/" + f"{counter:05d}" +"packet.bin"
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename,"wb") as f:
