@@ -1,0 +1,113 @@
+digraph System {
+    splines="ortho"
+
+    # Nodes definition
+    # Protocol nodes
+    node [shape=box,color=blue,style="dashed"];
+#    TCP;
+#    ICMP;
+#    IPv4;
+
+    #Class nodes
+    node [shape=box,color=black,style="solid"];
+	TunSimulator;
+    DatagramInputSimulator;
+    GraphFileInputSimulator;
+    Link;
+    InternetIn;
+    InternetOut;
+    BufferIn;
+    BufferOut;
+    Transport;
+    PacketBuffer;
+    Interface;
+
+    # Subgraph definitions
+    #node [shape=box];
+    subgraph cluster_TCPIP {
+        label = "TCP/IP project"
+        color=lightgrey;
+
+        subgraph cluster_Transport {
+            label = "Transport";
+#            labelloc = "t";
+            color=lightgrey;
+            {
+                rank=same
+                Transport;
+#                TCP;
+            }
+        }
+
+
+        subgraph cluster_Internet {
+            label = "Internet";
+            color=lightgrey;
+            {
+                rank=same
+                InternetOut;
+                InternetIn;
+                IPv4;
+                ICMP
+            }
+        }
+
+        subgraph cluster_Buffer {
+            label = "Buffers";
+            color=lightgrey;
+            {
+                rank=same
+                BufferIn;
+                BufferOut;
+                PacketBuffer;
+            }
+        }
+
+        subgraph cluster_Interface {
+        label = "Interface";
+        color=lightgrey;
+        {
+            rank=same
+            Interface;
+        }
+        }
+   }
+
+    subgraph cluster_External {
+        label = "External";
+        color=lightgrey;
+
+        subgraph cluster_Simulator {
+            label = "Simulator";
+            color=lightgrey;
+            TunSimulator;
+            GraphFileInputSimulator;
+            DatagramInputSimulator;
+        }
+        Link;
+    }
+
+    # Graph definition
+    GraphFileInputSimulator -> InternetIn[label="•frame_number\l•data\l•type\l"];
+    InternetIn -> Transport[label="•ip_id\l•fragment_offset\l•data\l•pseudoheader_checksum\l•total_length\l•protocol\l"];
+    Transport -> BufferIn[label="•x\l•x\l"];
+    Transport -> PacketBuffer[label="packet out"];
+    PacketBuffer -> InternetOut[label="packet out"];
+    InternetOut -> Link[label="raw bytes out"]
+    BufferIn -> Interface[label="some data"];
+    Interface -> BufferOut[label="some more data"];
+    BufferOut -> Transport[label="•x\l•x\l"];
+
+    #Protocol edges
+    edge [color=blue,style="dashed"];
+    #NetworkReader -> EthernetIIFrame;
+    #InternetReader -> IPv4;
+    #InternetReader -> ICMP;
+    #Transport -> TCP;
+
+
+    # To force nodes into correct position
+    #edge [style=invis]
+    edge [color=red,style="dashed"];
+
+}
