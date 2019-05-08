@@ -24,12 +24,15 @@ namespace TCPIP
         // Local storage
         private struct SegmentData
         {
+            public bool valid;  // Valid is needed to indicate valid byte *for the next clock*!
+                                // Please do not hate me for this ...
+
+            public ushort type;
             public uint id;
-            public ushort protocol;
+            public byte protocol;
             public uint fragment_offset;
             public long frame_number;
             public ushort pseudoheader_checksum;
-
             public ulong ip_addr_0; // Lower 8 bytes of IP addr (lower 4 bytes used in this field on IPv4)
             public ulong ip_addr_1; // Upper 8 bytes of IP addr
         };
@@ -38,8 +41,6 @@ namespace TCPIP
         private SegmentData cur_segment_data;
 
         private LayerProcessState state = LayerProcessState.Reading;
-
-        private ushort type = 0x00;
 
         private const uint BUFFER_SIZE = 100;
         private byte[] buffer_in = new byte[BUFFER_SIZE]; // XXX: Set fixed size to longest header. Currently IPv4 without opt..
@@ -55,14 +56,9 @@ namespace TCPIP
         {
             this.datagramBusIn = datagramBusIn ?? throw new ArgumentNullException(nameof(datagramBusIn));
 
-            cur_segment_data.id = 0;
-            cur_segment_data.protocol = 0;
-            cur_segment_data.fragment_offset = 0;
-            cur_segment_data.frame_number = 0;
-            cur_segment_data.pseudoheader_checksum = 0;
-            cur_segment_data.ip_addr_0 = 0;
-            cur_segment_data.ip_addr_1 = 0;
-        }
+            // Initialize 
+            StartReading();
+       }
 
 
         private void Write()
@@ -85,7 +81,7 @@ namespace TCPIP
                 StartReading(); // Resets values
 
                 cur_segment_data.frame_number = datagramBusIn.frame_number;
-                type = datagramBusIn.type;
+                cur_segment_data.type = datagramBusIn.type;
             }
 
             if (idx_in < buffer_in.Length)
@@ -93,8 +89,8 @@ namespace TCPIP
                 buffer_in[idx_in++] = datagramBusIn.data;
 
                 // Processing
-                switch (type)
-                {
+                switch (cur_segment_data.type)
+                    {
                     case (ushort)EtherType.IPv4:
                         // End of header, start parsing
                         if (idx_in == IPv4.HEADER_SIZE)
@@ -108,10 +104,11 @@ namespace TCPIP
 
         private void Pass()
         {
-            // If new frame
-            if (datagramBusIn.frame_number != cur_segment_data.id)
+            // If current segment is valid but we have a new frame
+            if (cur_segment_data.valid &&
+                datagramBusIn.frame_number != cur_segment_data.frame_number)
             {
-                StartReading(); // Resets values
+                Read(); // Resets values in the beginning
             }
             else
             {
@@ -124,6 +121,7 @@ namespace TCPIP
                 segmentBusIn.ip_addr_1 = cur_segment_data.ip_addr_1;
 
                 // go go go
+                cur_segment_data.valid = true;
                 segmentBusIn.valid = true;
                 segmentBusIn.data = datagramBusIn.data;
             }
@@ -140,6 +138,7 @@ namespace TCPIP
                 case LayerProcessState.Reading:
                     Read();
                     break;
+
                 case LayerProcessState.Passing:
                     Pass();
                     break;
@@ -183,13 +182,15 @@ namespace TCPIP
 
             cur_segment_data.id = 0;
             cur_segment_data.protocol = 0;
-            cur_segment_data.frame_number = 0;
+            cur_segment_data.frame_number = long.MinValue;
             cur_segment_data.fragment_offset = 0;
             cur_segment_data.pseudoheader_checksum = 0;
             cur_segment_data.ip_addr_0 = 0;
             cur_segment_data.ip_addr_1 = 0;
 
+
             // Data currently in segmentBusIn not valid
+            cur_segment_data.valid = false;
             segmentBusIn.valid = false;
 
             // We are ready to receive data
@@ -199,7 +200,7 @@ namespace TCPIP
             datagramBusInControl.skip = false;
         }
 
-
+        // TODO:
         void StartWriting(ushort len, byte protocol, DataMode data_mode)
         {
             state = LayerProcessState.Writing;

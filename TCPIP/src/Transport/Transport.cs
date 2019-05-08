@@ -49,21 +49,8 @@ namespace TCPIP
         }
 
 
-        void Read()
+        void Receive()
         {
-            if (segmentBusIn.data_mode == (byte)DataMode.NO_SEND)
-            {
-                // Parse
-            }
-            else
-            {
-                segmentBusOut.data = segmentBusIn.data;
-                segmentBusOut.data_mode = segmentBusIn.data_mode;
-                segmentBusOut.ip_addr = segmentBusIn.ip_addr;
-                segmentBusOut.protocol = segmentBusIn.protocol;
-            }
-
-
             // If new segment received, reset
             if (segmentBusIn.ip_id != ip_id)
             {
@@ -92,17 +79,15 @@ namespace TCPIP
             }
         }
 
-        void Write()
+        void Send()
         {
 
         }
 
         protected override void OnTick()
         {
-            Read();
-
-            Write();
-
+            Receive();
+            Send();
         }
 
     }

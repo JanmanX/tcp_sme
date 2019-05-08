@@ -13,10 +13,12 @@ namespace TCPIP
             {
 
                 var mem = new TrueDualPortMemory<byte>(8192);
-                //                var simulator = new FileInputSimulator("data/dump5_tcp/", mem.ControlA);
-                var simulator = new TUNSimulator();
+                var simulator = new DatagramInputSimulator("data/dump5_datagrams/");
+                // var simulator = new TUNSimulator();
                 //                var network = new NetworkReader(simulator.frameBus);
                 var internet = new InternetReader(simulator.datagramBusIn);
+                simulator.datagramBusInControl = internet.datagramBusInControl;
+
                 var transport = new Transport(internet.segmentBusIn);
 
                 // Use fluent syntax to configure the simulator.
