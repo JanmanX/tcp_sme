@@ -6,7 +6,7 @@ using SME.Components;
 
 namespace TCPIP
 {
-    public partial class InternetWriter : SimpleProcess
+    public partial class InternetOut: SimpleProcess
     {
         [InputBus]
         private readonly Transport.SegmentBusOut segmentBusOut;
@@ -18,7 +18,7 @@ namespace TCPIP
         public const uint BUFFER_SIZE = 60;
         private byte[] buffer = new byte[BUFFER_SIZE];
 
-        public InternetWriter(Transport.SegmentBusOut segmentBusOut)
+        public InternetOut(Transport.SegmentBusOut segmentBusOut)
         {
             this.segmentBusOut = segmentBusOut ?? throw new ArgumentNullException(nameof(segmentBusOut));
         }

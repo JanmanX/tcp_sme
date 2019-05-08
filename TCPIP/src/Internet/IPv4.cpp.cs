@@ -4,7 +4,7 @@ using SME.VHDL;
 
 namespace TCPIP
 {
-    partial class InternetReader
+    partial class InternetIn
     {
         protected void ParseIPv4()
         {

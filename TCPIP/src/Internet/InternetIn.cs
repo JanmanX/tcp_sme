@@ -6,7 +6,7 @@ using SME.Components;
 
 namespace TCPIP
 {
-    public partial class InternetReader : SimpleProcess
+    public partial class InternetIn : SimpleProcess
     {
         // CONFIG
         // TODO: Find a better place to put this?
@@ -52,7 +52,7 @@ namespace TCPIP
         private uint write_len = 0x00;
 
 
-        public InternetReader(Internet.DatagramBusIn datagramBusIn)
+        public InternetIn(Internet.DatagramBusIn datagramBusIn)
         {
             this.datagramBusIn = datagramBusIn ?? throw new ArgumentNullException(nameof(datagramBusIn));
 

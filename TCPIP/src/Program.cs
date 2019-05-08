@@ -16,7 +16,7 @@ namespace TCPIP
                 var simulator = new DatagramInputSimulator("data/dump5_datagrams/");
                 // var simulator = new TUNSimulator();
                 //                var network = new NetworkReader(simulator.frameBus);
-                var internet = new InternetReader(simulator.datagramBusIn);
+                var internet = new InternetIn(simulator.datagramBusIn);
                 simulator.datagramBusInControl = internet.datagramBusInControl;
 
                 var transport = new Transport(internet.segmentBusIn);
