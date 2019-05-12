@@ -9,6 +9,22 @@ Furthermore, SME will be introduced as a basis for the implementation.
 
 
 \section{Field Programmable Gate Array (FPGA)}
+Field Programmable Gate Arrays, or FPGA for short, are devices containing 
+integrated circuits (ICs) consisting of arrays of logic blocks. These ICs can 
+be reprogrammed at any time for a desired application or functionality\cite{ni_fpga},
+making the devices very flexible and extensible, even after manufacturing.\\
+Unlike conventional processors with a very sequential nature, the logic blocks 
+in FPGAs are truly parallel in nature. Given the right programming, an FPGA can
+allocate dedicated sections of the chip for each independent subtask, enabling
+the circuitry to perform numerious independent calculations at once\cite{ni_fpga}.
+Unfortunately, this universality of FPGAs comes at a cost to their performance.
+Whereas conventional processors are heavily optimised based on the predetermined 
+circuitry, FPGAs programmers must ensure to utilize the parallel nature of the
+device in order to secure best possible performance.\\
+Still, with innovations and steady improvements in modern FPGAs, the devices 
+can easily reach a clock higher than 500 MHz\cite{xilinx_fpga}.   
+
+
 
 
 
@@ -120,3 +136,4 @@ better reflects the functionality of the hardware, as well as making the code
 more readable to the progrmamer. At the time of writing, the C\# implementation currently
 enjoys the most recent features of the SME model, as it is being the most activelly 
 developed version. 
+
