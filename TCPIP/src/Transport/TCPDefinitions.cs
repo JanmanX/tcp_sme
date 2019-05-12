@@ -6,7 +6,6 @@ namespace TCPIP
     {
         public const uint HEADER_SIZE = 0x14;
 
-
         // Offsets
         public const uint SRC_PORT_OFFSET_0 = 0x00;
         public const uint SRC_PORT_OFFSET_1 = 0x01;
@@ -38,6 +37,5 @@ namespace TCPIP
 
         public const uint URGENT_POINTER_OFFSET_0 = 0x12;
         public const uint URGENT_POINTER_OFFSET_1 = 0x13;
-
     }
 }

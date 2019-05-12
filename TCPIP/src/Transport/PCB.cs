@@ -8,6 +8,9 @@ namespace TCPIP
 {
     unsafe struct PCB
     {
+        // Protocol
+        public byte protocol; 
+
         // Foreign address and port
         public uint f_address;
         public ushort f_port;
@@ -16,7 +19,7 @@ namespace TCPIP
         public uint l_address;
         public ushort l_port;
 
-        // Accumulated checksum
+        // Accumulated checksum (used in TCP)
         public uint checksum_acc;
 
         // Counts the bytes received for the current packet

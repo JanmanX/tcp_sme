@@ -11,8 +11,6 @@ namespace TCPIP
 
         public void ParseTCP()
         {
-            LOGGER.DEBUG($"Parsing TCP with 0x{segmentBusIn.ip_id:X}");
-
             ///////////////////// PARSE TCP:
             // - Checksum
             // - Find PCB
@@ -31,7 +29,8 @@ namespace TCPIP
             for (int i = 0; i < NUM_PCB; i++)
             {
                 if (pcbs[i].l_port == dst_port
-                    && pcbs[i].f_port == src_port)
+                    && pcbs[i].f_port == src_port
+                    && pcbs[i].protocol == (byte)IPv4.Protocol.TCP)
                 {
                     pcb_idx = i;
                 }
@@ -40,11 +39,11 @@ namespace TCPIP
             if (pcb_idx == -1)
             {
                 // TODO: Drop with reset
+                LOGGER.WARN("PCB not found");
+                pcb_idx = 0; // debug  
             }
 
-
-
-            // Calculate checksum
+            // Calculate (part of) checksum
             ulong acc = 0x00;
             for (uint i = 0; i < TCP.HEADER_SIZE; i = i + 2)
             {
@@ -56,14 +55,11 @@ namespace TCPIP
             // Add carry bits and do one-complement on 16 bits
             // Overflow  can max happen twice
             acc = ((acc & 0xFFFF) + (acc >> 0x10));
-            ushort calculated_checksum = (ushort)~((acc & 0xFFFF) + (acc >> 0x10));
-            if (calculated_checksum != 0x00)
-            {
+            pcbs[pcb_idx].checksum_acc = (ushort)~((acc & 0xFFFF) + (acc >> 0x10));
 
-                LOGGER.WARN($"Invalid checksum: 0x{calculated_checksum:X}");
-
-            }
         }
+
+
 
         private void DropWithReset()
         {

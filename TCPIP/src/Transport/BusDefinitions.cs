@@ -20,10 +20,6 @@ namespace TCPIP
             byte data { get; set; }
 
             [InitialValue(0x00)]
-            // Refer to Globals.DataMode
-            byte data_mode { get; set; }
-
-            [InitialValue(0x00)]
             byte protocol { get; set; }
 
             [InitialValue(0x00)]
@@ -34,8 +30,6 @@ namespace TCPIP
             ulong ip_addr_0 { get; set; }
             [InitialValue(0x00)]
             ulong ip_addr_1 { get; set; }
-
-
         }
 
         public interface SegmentBusInControl : IBus
@@ -63,6 +57,30 @@ namespace TCPIP
 
             [InitialValue(0x00)]
             byte data_mode { get; set; }
+        }
+
+        public interface DataInBus : IBus
+        {
+            [InitialValue(false)]
+            bool valid { get; set; }
+
+            [InitialValue(-1)]
+            int socket { get; set; }
+
+            [InitialValue(0x00)]
+            uint ip_id { get; set; }
+
+            [InitialValue(0x00)]
+            uint tcp_seq { get; set; }
+
+            [InitialValue(0x00)]
+            byte data { get; set; }                
+
+            [InitialValue(false)]
+            bool finished { get; set; }
+
+            [InitialValue(false)]
+            bool invalidate { get; set; } // XXX: not used yet
         }
     }
 }

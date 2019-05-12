@@ -13,13 +13,14 @@ namespace TCPIP
             {
 
                 var mem = new TrueDualPortMemory<byte>(8192);
-                var simulator = new DatagramInputSimulator("data/dump5_datagrams/");
+                var simulator = new DatagramInputSimulator("data/udp_25/");
                 // var simulator = new TUNSimulator();
                 //                var network = new NetworkReader(simulator.frameBus);
                 var internet = new InternetIn(simulator.datagramBusIn);
                 simulator.datagramBusInControl = internet.datagramBusInControl;
 
                 var transport = new Transport(internet.segmentBusIn);
+                var dataInReader = new DataInReader(transport.dataInBus);
 
                 // Use fluent syntax to configure the simulator.
                 // The order does not matter, but `Run()` must be 
@@ -29,7 +30,7 @@ namespace TCPIP
                 // for interfacing with other VHDL code or board pins
 
                 sim
-                    .AddTopLevelOutputs(transport.networkDataBufferBus)
+//                    .AddTopLevelOutputs(dataInReader.)
                     .AddTopLevelInputs(simulator.datagramBusIn)
                     .BuildCSVFile()
                     .BuildVHDL()

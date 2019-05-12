@@ -90,7 +90,7 @@ namespace TCPIP
 
                 // Processing
                 switch (cur_segment_data.type)
-                    {
+                {
                     case (ushort)EtherType.IPv4:
                         // End of header, start parsing
                         if (idx_in == IPv4.HEADER_SIZE)
@@ -201,14 +201,13 @@ namespace TCPIP
         }
 
         // TODO:
-        void StartWriting(ushort len, byte protocol, DataMode data_mode)
+        void StartWriting(ushort len, byte protocol)
         {
             state = LayerProcessState.Writing;
 
             // We are going to write
             idx_out = 0x00;
             write_len = len;
-            segmentBusIn.data_mode = (byte)data_mode;
             segmentBusIn.protocol = protocol;
 
             // We are not ready to receive new packets until this one is sent
