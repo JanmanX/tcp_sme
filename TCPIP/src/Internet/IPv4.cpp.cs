@@ -9,20 +9,10 @@ namespace TCPIP
         protected void ParseIPv4()
         {
             // Checksum
-            ulong acc = 0x00;
-            for (uint i = 0; i < IPv4.HEADER_SIZE; i = i + 2)
-            {
-                acc += (ulong)((buffer_in[i] << 0x08
-                                 | buffer_in[i + 1]));
-
-            }
-            // Add carry bits and do one-complement on 16 bits
-            // Overflow  can max happen twice
-            acc = ((acc & 0xFFFF) + (acc >> 0x10));
-            ushort calculated_checksum = (ushort)~((acc & 0xFFFF) + (acc >> 0x10));
+            ushort calculated_checksum = ChecksumBufferIn(0,IPv4.HEADER_SIZE);
             if (calculated_checksum != 0x00)
             {
-                LOGGER.WARN($"Invalid checksum: 0x{calculated_checksum:X}");
+                LOGGER.WARN($"Invalid IPv4 checksum: 0x{calculated_checksum:X}");
             }
 
 
@@ -74,7 +64,7 @@ namespace TCPIP
                             | (uint)(buffer_in[IPv4.SRC_ADDRESS_OFFSET_2] << 0x08)
                             | (uint)(buffer_in[IPv4.SRC_ADDRESS_OFFSET_3]);
 
-            Console.WriteLine(
+            LOGGER.INFO(
 $@"Received packet for: \
 {buffer_in[IPv4.SRC_ADDRESS_OFFSET_0]}.\
 {buffer_in[IPv4.SRC_ADDRESS_OFFSET_1]}.\
@@ -95,8 +85,8 @@ $@"Received packet for: \
             ushort pseudoheader_checksum = (ushort)~((acc2 & 0xFFFF) + (acc2 >> 0x10));
 
 
-            // Propagate parsed packet
-            StartPassing(id, protocol, fragment_offset, pseudoheader_checksum);
+            // Save parsed packet
+            SaveSegmentDataIp(id, protocol, total_len, fragment_offset, pseudoheader_checksum,dst_address,src_address);
         }
     }
 }

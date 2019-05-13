@@ -55,6 +55,7 @@ namespace TCPIP
         public const uint DST_ADDRESS_OFFSET_3 = 0x13;
 
 
+        [Flags]
         public enum Flags : byte
         {
             RESERVED = 0x04,

@@ -49,7 +49,7 @@ namespace TCPIP
                     if (datagramBusInControl.ready)
                     {
                         datagramBusIn.frame_number = frame_number;
-                        datagramBusIn.type = (ushort)EtherType.IPv4; // XXX: Hardcoded
+                        datagramBusIn.type = (ushort)EthernetIIFrame.EtherType.IPv4; // XXX: Hardcoded
                         datagramBusIn.data = b;
                     }
 

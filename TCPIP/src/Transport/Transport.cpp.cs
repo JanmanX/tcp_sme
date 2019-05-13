@@ -152,7 +152,7 @@ namespace TCPIP
             // If new segment received, reset
             if (segmentBusIn.ip_id != ip_id)
             {
-                Console.WriteLine("New segment!");
+                LOGGER.INFO("New segment!");
                 ip_id = segmentBusIn.ip_id;
                 idx_in = 0x00;
                 state = TransportProcessState.Reading;
