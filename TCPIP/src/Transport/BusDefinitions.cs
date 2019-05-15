@@ -74,13 +74,37 @@ namespace TCPIP
             uint tcp_seq { get; set; }
 
             [InitialValue(0x00)]
-            byte data { get; set; }                
+            byte data { get; set; }
 
             [InitialValue(false)]
             bool finished { get; set; }
 
             [InitialValue(false)]
             bool invalidate { get; set; } // XXX: not used yet
+        }
+
+        public interface TransportBus : IBus
+        {
+            [InitialValue(false)]
+            bool valid { get; set; }
+
+            [InitialValue(0)]
+            byte interfaceFunction { get; set; }
+
+            [InitialValue(-1)]
+            int socket { get; set; }
+        }
+
+        public interface TransportControlBus : IBus
+        {
+            [InitialValue(false)]
+            bool valid { get; set; }
+
+            [InitialValue(0)]
+            byte exit_status { get; set; }
+
+            [InitialValue(-1)]
+            int socket { get; set; }
         }
     }
 }

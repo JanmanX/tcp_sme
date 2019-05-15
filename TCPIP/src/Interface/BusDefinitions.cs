@@ -2,22 +2,39 @@ using SME;
 
 namespace TCPIP
 {
-    public partial class NetworkDataBuffer
+    public partial class Interface
     {
-        public interface NetworkDataBufferBus : IBus 
+
+        // Busses to user
+        public interface InterfaceBus : IBus
         {
+            [InitialValue(false)]
+            bool valid { get; set; }
+
+            [InitialValue(0x00)]
+            byte interfaceFunction { get; set; }
+
+            [InitialValue(-1)]
+            int socket { get; set; }
+
             [InitialValue(0x00)]
             byte data { get; set; }
 
-            [InitialValue(0x00)]
-            uint ip_id { get; set; }
+        }
+
+        public interface InterfaceBusControl : IBus
+        {
+            [InitialValue(false)]
+            bool valid { get; set; }
+
+            [InitialValue(0)]
+            byte exit_status { get; set; }
+
+            [InitialValue(-1)]
+            int socket { get; set; }
 
             [InitialValue(0x00)]
-            ushort fragment_offset { get; set; }
-
-            [InitialValue(0x00)]
-            uint sequence_number { get; set; }
-
-       }
+            byte data { get; set; }
+        }
     }
 }
