@@ -27,9 +27,9 @@ namespace TCPIP
 
             // Up to 128 bit addressing
             [InitialValue(0x00)]
-            ulong ip_addr_0 { get; set; }
+            ulong src_ip_addr_0 { get; set; }
             [InitialValue(0x00)]
-            ulong ip_addr_1 { get; set; }
+            ulong src_ip_addr_1 { get; set; }
         }
 
         public interface SegmentBusInControl : IBus

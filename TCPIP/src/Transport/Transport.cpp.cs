@@ -126,6 +126,8 @@ namespace TCPIP
                     dataInBus.invalidate = true;
                 }
             } 
+
+            Console.WriteLine($"Written: {(char)segmentBusIn.data}");
        }
 
         void StartPass(int socket, uint ip_id, uint tcp_seq, uint length)
@@ -150,6 +152,7 @@ namespace TCPIP
             // If new segment received, reset
             if (segmentBusIn.ip_id != ip_id)
             {
+                LOGGER.INFO("New segment!");
                 ip_id = segmentBusIn.ip_id;
                 idx_in = 0x00;
                 state = TransportProcessState.Reading;
