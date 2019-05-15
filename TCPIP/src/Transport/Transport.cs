@@ -113,7 +113,7 @@ namespace TCPIP
             passData.bytes_sent++;
 
             // If last byte 
-            if (passData.length >= passData.bytes_sent)
+            if (passData.bytes_sent >= passData.length)
             {
                 // Finish checksum
                 pcbs[passData.socket].checksum_acc = ((pcbs[passData.socket].checksum_acc & 0xFFFF) 
@@ -126,8 +126,6 @@ namespace TCPIP
                     dataInBus.invalidate = true;
                 }
             } 
-
-            Console.WriteLine($"Written: {(char)segmentBusIn.data}");
        }
 
         void StartPass(int socket, uint ip_id, uint tcp_seq, uint length)
@@ -152,7 +150,6 @@ namespace TCPIP
             // If new segment received, reset
             if (segmentBusIn.ip_id != ip_id)
             {
-                Console.WriteLine("New segment!");
                 ip_id = segmentBusIn.ip_id;
                 idx_in = 0x00;
                 state = TransportProcessState.Reading;
