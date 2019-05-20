@@ -89,7 +89,9 @@ namespace TCPIP
             bool valid { get; set; }
 
             [InitialValue(0)]
-            byte interfaceFunction { get; set; }
+            byte interface_function { get; set; }
+
+            InterfaceArgs args { get; set; }
 
             [InitialValue(-1)]
             int socket { get; set; }
@@ -99,6 +101,9 @@ namespace TCPIP
         {
             [InitialValue(false)]
             bool valid { get; set; }
+
+            [InitialValue(0)]
+            byte interface_function { get; set; }
 
             [InitialValue(0)]
             byte exit_status { get; set; }

@@ -15,7 +15,25 @@ namespace TCPIP
             SEND = 5,
             RECV = 6,
             CLOSE = 7,
+            // ...
+            OPEN = 255,
         }
+
+        public struct InterfaceData
+        {
+            public byte interface_function;
+            public int socket;
+            public byte data;
+        }
+
+        public struct InterfaceArgs
+        {
+            public uint socket;
+            public uint ip;
+            public byte protocol;
+            public ushort port;
+        }
+
 
         [InputBus]
         public readonly InterfaceBus interfaceBus;

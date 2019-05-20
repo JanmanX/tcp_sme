@@ -15,6 +15,13 @@ namespace TCPIP
         public readonly SegmentBusInControl segmentBusInControl
                     = Scope.CreateBus<SegmentBusInControl>();
 
+        [InputBus]
+        public TransportBus transportBus;
+
+        [OutputBus]
+        public readonly TransportControlBus transportControlBus = Scope.CreateBus<TransportControlBus>();
+
+
         [OutputBus]
         public readonly DataInBus dataInBus = Scope.CreateBus<DataInBus>();
 
@@ -174,14 +181,116 @@ namespace TCPIP
 
         void Send()
         {
-
+            // TODO
         }
+
+        private void Control()
+        {
+            if(transportBus.valid)  {
+
+                if(transportBus.socket < 0 || transportBus.socket > pcbs.Length) {
+                    // TODO: error
+                }
+
+                switch(transportBus.interfaceFunction) 
+                {
+                    case InterfaceFunction.INVALID:
+                    default:
+                        LOGGER.DEBUG("Wrong interfaceFunction in Transport!");
+                        break;
+
+                    /* 
+                    case InterfaceFunction.ACCEPT:
+                        // TODO
+                        break;
+
+                    case InterfaceFunction.BIND: // Ignored?
+                        // TODO
+                        break;
+
+                    case InterfaceFunction.CONNECT:
+                        // TODO
+                        break;
+                    */
+
+                    case InterfaceFunction.OPEN:
+                        uint socket = GetFreePCB();
+                        if (socket < 0)
+                        {
+                            ControlReturn(transportBus.interface_function,
+                                        transportBus.socket,
+                                        ExitStatus.ENOSPC);
+                            return;
+                        }
+
+                        ResetPCB(socket);
+
+                        pcbs[socket].protocol = transportBus.args.protocol;
+                        pcbs[socket].l_port = transportBus.args.port;
+
+                        // TODO: Start handshake here
+
+                        
+                        ControlReturn(transportBus.interface_function,
+                                        socket,
+                                        ExitStatus.OK);
+                        break;
+
+                    case InterfaceFunction.CLOSE:
+                        // TODO: TCP Finish sequence
+                        // ...
+
+                        pcbs[transportBus.socket].state = PCB_STATE.CLOSED;
+                        break;
+
+                    case InterfaceFunction.LISTEN:
+                        // TODO
+                        break;
+                }
+            }
+        }
+
+        private void ControlReturn(byte interface_function, uint socket, uint exit_status)
+        {
+            transportControlBus.valid = true;
+            transportControlBus.interface_function = interface_function;
+            transportControlBus.socket = socket;
+            transportControlBus.exit_status = exit_status;
+        }
+
+
 
         protected override void OnTick()
         {
             Receive();
             Send();
+            Control();
         }
 
+
+        // Helper functions
+        private uint GetFreePCB()
+        {
+            for (uint i = 0; i < pcbs.Length; i++)
+            {
+                if (pcbs[i] == PCB_STATE.CLOSED)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        private void ResetPCB(uint socket)
+        {
+            pcbs[socket].bytes_received = 0;
+            pcbs[socket].checksum_acc = 0;
+            pcbs[socket].f_address = 0;
+            pcbs[socket].f_port = 0;
+            pcbs[socket].l_address = 0;
+            pcbs[socket].l_port = 0;
+            pcbs[socket].protocol = 0;
+            pcbs[socket].state = 0;
+        }
     }
 }
