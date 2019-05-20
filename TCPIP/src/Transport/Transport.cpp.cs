@@ -187,9 +187,11 @@ namespace TCPIP
         private void Control()
         {
             if(transportBus.valid)  {
-
                 if(transportBus.socket < 0 || transportBus.socket > pcbs.Length) {
-                    // TODO: error
+                    ControlReturn(transportBus.interface_function, 
+                                    transportBus.socket,
+                                    ExitStatus.EINVAL);
+                    return;
                 }
 
                 switch(transportBus.interfaceFunction) 
@@ -225,26 +227,34 @@ namespace TCPIP
 
                         ResetPCB(socket);
 
+                        pcbs[socket].state = PCB_STATE.OPEN;
                         pcbs[socket].protocol = transportBus.args.protocol;
                         pcbs[socket].l_port = transportBus.args.port;
 
-                        // TODO: Start handshake here
+                        switch(pcbs[socket].protocol) {
+                            case (byte)IPv4.Protocol.TCP:
+                                // TODO: Start handshake here
+                                break;
+                        }
 
-                        
                         ControlReturn(transportBus.interface_function,
                                         socket,
                                         ExitStatus.OK);
                         break;
 
+
                     case InterfaceFunction.CLOSE:
-                        // TODO: TCP Finish sequence
-                        // ...
+                        switch(pcbs[transportBus.args.socket].protocol) {
+                            case (byte)IPv4.Protocol.TCP:
+                                // TODO: TCP Finish sequence
+                                break;
+                        }
 
                         pcbs[transportBus.socket].state = PCB_STATE.CLOSED;
                         break;
 
                     case InterfaceFunction.LISTEN:
-                        // TODO
+                        pcbs[transportBus.socket].state = PCB_STATE.LISTENING;
                         break;
                 }
             }

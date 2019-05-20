@@ -10,8 +10,8 @@ namespace TCPIP
     {
         CLOSED = 0,
         OPEN = 1,
-        CONNECTED = 2, 
-
+        LISTENING = 2,
+        CONNECTED = 3, 
         // Add more (waiting, listening, reserved)
     }
 

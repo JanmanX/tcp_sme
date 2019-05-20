@@ -28,7 +28,10 @@ namespace TCPIP
         OK = 0,
         EOK = 0, // however you prefer
 
+        EINVAL = 22,        
+
         ENOSPC = 28,
+
     }
 
 }
