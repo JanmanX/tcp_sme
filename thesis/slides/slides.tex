@@ -59,6 +59,7 @@
     \item Easier hardware modelling
     \item Implicit clock
     \item Built-in simulation utilities 
+    \item VHDL code generation
   \end{itemize}
 \end{block}
 
@@ -71,6 +72,19 @@
 
 \begin{frame}
   \frametitle{Internet Protocol Suite}
+\begin{columns}
+
+ \begin{column}{0.5\textwidth} 
+  \begin{center}
+  \includegraphics[scale=0.5]{tcpip_stack}
+  \end{center}
+  \end{column}
+
+ \begin{column}{0.5\textwidth} 
+ Some text
+  
+\end{column}
+\end{columns}
 
 \end{frame}
 
@@ -78,19 +92,31 @@
 
 \section{Implementation}
 \begin{frame}
-        \frametitle{Architecture}
+  \frametitle{Architecture}
+  \begin{center}
+    \includegraphics[scale=0.5]{graph}
+  \end{center}
+  
 
 \end{frame}
 
 \section{Challenges}
 \begin{frame}
-        \frametitle{Challenges}
+  \frametitle{Challenges}
+
+\begin{itemize}
+  \item Clock-delays
+  \item Data de-multiplexing 
+  \item Limited (fast) memory
+  \item Information sharing is by design hard in SME
+  \item Very limited programming utilities
+\end{itemize}
 
 \end{frame}
 
 \section{Questions}
 \begin{frame}
-        \frametitle{Questions}
+  \frametitle{Questions}
   \begin{center}
     ?
   \end{center}
