@@ -21,7 +21,6 @@ namespace TCPIP
 
         protected override void OnTick()
         {
-
             if(dataInBus.finished || dataInBus.invalidate)
             {
                 idx = 0;

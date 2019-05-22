@@ -21,7 +21,7 @@
 
 
 \title{TCP/IP in hardware }
-\subtitle{Using SME}
+\subtitle{- using SME}
 \author{Mark Jan Jacobi \& Jan Meznik}
 \institute{University of Copenhagen}
 \date{\today}
@@ -35,20 +35,35 @@
 \begin{frame}
   \frametitle{Background and Motivation}
 
-  Dedicated hardware needs to transmit data in real time, but native network 
+  Dedicated hardware needs to transmit data in real time, but OS network 
   stacks are usually not enough!
 
   Dedicated Network cards are not perfect either:
+  \begin{columns}
+
+ \begin{column}{0.7\textwidth} 
   \begin{alertblock}{Weaknesses of network cards}
     \begin{itemize}
       \item Only basic programmability
       \item Incompatible APIs 
       \item Licensed VHDL code blobs
       \item Seldom swap-able
+      \item \textbf{Price!}
     \end{itemize}
   \end{alertblock}
-\end{frame}
+  \end{column}
 
+  \begin{column}{0.3\textwidth}
+    \begin{figure}
+    \includegraphics[scale=0.15,angle=270]{intel_fpga_nic.jpg}
+    \caption{An Intel FPGA NIC}
+    \end{figure}
+  \end{column}
+
+\end{columns}
+
+
+\end{frame}
 \begin{frame}
 \begin{center}
   \textbf{A performant, efficient, and flexible network stack in FPGA!}
@@ -56,10 +71,11 @@
 
 \begin{block}{How?    Using SME!}
   \begin{itemize}
-    \item Easier hardware modelling
+    \item Easy \& intuitive hardware modelling
     \item Implicit clock
     \item Built-in simulation utilities 
-    \item VHDL code generation
+    \item VHDL code generation 
+    \item Signal verification by comparing VHDL signals with C\# simulation
   \end{itemize}
 \end{block}
 

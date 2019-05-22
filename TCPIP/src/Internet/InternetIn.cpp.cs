@@ -35,6 +35,8 @@ namespace TCPIP
             public ushort offset; // The byte offset for data that needs to be passed through
             public uint size; // The size of the packet XXX: total size or only packet size? no offset
             public SegmentDataIP ip;
+            public SegmentDataICMP icmp;
+            public SendType send_type;
         };
         // Local storage for IP information
         private struct SegmentDataIP
@@ -50,11 +52,13 @@ namespace TCPIP
             public ulong dst_addr_1; // Upper 8 bytes of IP addr
         };
 
+
         // Structure used to store information about the segment, updates the
         // bus at the start of every clock cycle
         private SegmentData cur_segment_data;
 
         private LayerProcessState state = LayerProcessState.Reading;
+
 
 
         private const uint BUFFER_SIZE = 100;
@@ -109,8 +113,9 @@ namespace TCPIP
 
                 cur_segment_data.frame_number = datagramBusIn.frame_number;
                 cur_segment_data.type = datagramBusIn.type;
+                parsing_state = ParsingState.PreParsing;
             }
-
+            
             if (idx_in < buffer_in.Length)
             {
                 buffer_in[idx_in++] = datagramBusIn.data;
@@ -128,6 +133,7 @@ namespace TCPIP
                             StartPassing();
 
                         }
+
                         break;
 
                     default:
@@ -187,6 +193,7 @@ namespace TCPIP
         }
 
 
+        }
         // Save the ip segment to the current local data storage
         private void SaveSegmentDataIp(uint id, byte protocol, ushort total_len,
                                     uint fragment_offset,
