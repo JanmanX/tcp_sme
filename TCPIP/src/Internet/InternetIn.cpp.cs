@@ -23,7 +23,7 @@ namespace TCPIP
         public readonly Transport.SegmentBusIn segmentBusIn = Scope.CreateBus<Transport.SegmentBusIn>();
 
         [OutputBus]
-        private readonly PacketOut.BufferIn bufferInternet; 
+        private readonly PacketOut.PacketOutBus bufferInternet;
 
         // Local storage
         private struct SegmentData
@@ -32,10 +32,9 @@ namespace TCPIP
                                 // Please do not hate me for this ...
             public ushort type;
             public long frame_number;
-            public ushort offset; // The byte offset for data that needs to be passed through 
+            public ushort offset; // The byte offset for data that needs to be passed through
+            public uint size; // The size of the packet XXX: total size or only packet size? no offset
             public SegmentDataIP ip;
-            public SegmentDataICMP icmp;
-            public SendType send_type;
         };
         // Local storage for IP information
         private struct SegmentDataIP
@@ -50,38 +49,13 @@ namespace TCPIP
             public ulong dst_addr_0; // Lower 8 bytes of IP addr (lower 4 bytes used in this field on IPv4)
             public ulong dst_addr_1; // Upper 8 bytes of IP addr
         };
-        // Local storage for ICMP
-        private struct SegmentDataICMP
-        {
-            public byte type;
-            public byte code;
-            
-            public ushort checksum;
-            public ushort identifier;
-            public ushort sequence_number;
-        };
 
-        // Structure used to store information about the segment, updates the 
+        // Structure used to store information about the segment, updates the
         // bus at the start of every clock cycle
         private SegmentData cur_segment_data;
 
         private LayerProcessState state = LayerProcessState.Reading;
 
-        // The state in which the parser can be.
-        private enum ParsingState{
-            IPv4Optionals, // The IPv4 Packet contains optionals
-            ICMP, // The packet is ICMP
-            Pass, // no additional parsing needed, pass to the next element
-            PreParsing, // The initial parsing, before we have enough information for additional parsing
-        }
-        // Enum specifying how to construct the outgoing packet
-        private enum SendType
-        {
-            IMCP_Echo
-        }
-
-        private ParsingState parsing_state = ParsingState.PreParsing;
-        
 
         private const uint BUFFER_SIZE = 100;
         private byte[] buffer_in = new byte[BUFFER_SIZE]; // XXX: Set fixed size to longest header. Currently IPv4 without opt..
@@ -94,11 +68,11 @@ namespace TCPIP
         private uint write_len = 0x00;
 
 
-        public InternetIn(Internet.DatagramBusIn datagramBusIn,PacketOut.BufferIn bufferInternet)
+        public InternetIn(Internet.DatagramBusIn datagramBusIn,PacketOut.PacketOutBus bufferInternet)
         {
             this.datagramBusIn = datagramBusIn ?? throw new ArgumentNullException(nameof(datagramBusIn));
             this.bufferInternet = bufferInternet;
-            // Initialize 
+            // Initialize
             StartReading();
        }
 
@@ -119,9 +93,10 @@ namespace TCPIP
                 bufferInternet.ip_dst_addr_1 = cur_segment_data.ip.dst_addr_1;
                 bufferInternet.ip_src_addr_0 = cur_segment_data.ip.src_addr_0;
                 bufferInternet.ip_src_addr_1 = cur_segment_data.ip.src_addr_1;
-                bufferInternet.number = cur_segment_data.frame_number;
+                bufferInternet.frame_number = cur_segment_data.frame_number;
                 bufferInternet.data = buffer_in[idx_out++];
-                bufferInternet.total_len = cur_segment_data.ip.total_len - cur_segment_data.offset;
+                bufferInternet.data_length = cur_segment_data.ip.total_len - cur_segment_data.offset;
+
             }
         }
 
@@ -134,9 +109,8 @@ namespace TCPIP
 
                 cur_segment_data.frame_number = datagramBusIn.frame_number;
                 cur_segment_data.type = datagramBusIn.type;
-                parsing_state = ParsingState.PreParsing;
             }
-            
+
             if (idx_in < buffer_in.Length)
             {
                 buffer_in[idx_in++] = datagramBusIn.data;
@@ -150,50 +124,12 @@ namespace TCPIP
                         {
                             // Parse the ip packet
                             ParseIPv4();
-                            // If the IP packet contains more informaiton, we can set it here
-                            // and go into a new parsing state
-                            if (cur_segment_data.ip.protocol == (byte)IPv4.Protocol.ICMP)
-                            {
-                                parsing_state = ParsingState.ICMP;
-                            }
-                            else
-                            {
-                                parsing_state = ParsingState.Pass;
-                            }
+                            // XXX: Detect if there are optionals on IPv4 and only pass when that have been read
+                            StartPassing();
+
                         }
-                        // We test what parsing state we are in, and handle accordingly
-                        switch(parsing_state)
-                        {
-                            case ParsingState.PreParsing:
-                                // We do not have the information yet to parse additional stuff. Do nothing
-                                break;
-                            case ParsingState.ICMP:
-                                // Wait for the full length, then parse
-                                if (idx_in == cur_segment_data.ip.total_len)
-                                {
-                                    LOGGER.DEBUG("Parsing ICMP");
-                                    ParseICMP((ushort)IPv4.HEADER_SIZE); // If there exist IPv4 options, set length here
-                                    // Should this message be responded too
-                                    if(ResponseICMP()){
-                                        LOGGER.INFO("Responding to ICMP packet");
-                                        // Subtract by one to get the last byte
-                                        StartWriting((ushort)(cur_segment_data.ip.total_len - 1));
-                                    }else{
-                                        // Reset maybe?
-                                    }
-                                }
-                                break;
-                            case ParsingState.Pass:
-                                // The data should go to the Transport layer, pass it on
-                                StartPassing();
-                                break;
-                        default:
-                            LOGGER.ERROR($"Undefined parsing state: {parsing_state}");
-                            break;
-                        }
-                        
                         break;
-                    
+
                     default:
                         LOGGER.ERROR($"Segment type not defined: {cur_segment_data.type}");
                         break;
@@ -218,8 +154,12 @@ namespace TCPIP
                 segmentBusIn.protocol = cur_segment_data.ip.protocol;
                 segmentBusIn.pseudoheader_checksum = cur_segment_data.ip.pseudoheader_checksum;
                 segmentBusIn.src_ip_addr_0 = cur_segment_data.ip.src_addr_0;
-                segmentBusIn.src_ip_addr_1 = cur_segment_data.ip.src_addr_0;
-                
+                segmentBusIn.src_ip_addr_1 = cur_segment_data.ip.src_addr_1;
+                segmentBusIn.dst_ip_addr_0 = cur_segment_data.ip.dst_addr_0;
+                segmentBusIn.dst_ip_addr_1 = cur_segment_data.ip.dst_addr_1;
+                segmentBusIn.data_length = cur_segment_data.ip.total_len - IPv4.HEADER_SIZE;
+                segmentBusIn.frame_number = cur_segment_data.frame_number;
+
 
                 // go go go
                 cur_segment_data.valid = true;
@@ -246,23 +186,9 @@ namespace TCPIP
             }
         }
 
-        
-        // Save the ICMP data to the current local data storage
-        private void SaveSegmentDataICMP(byte type,byte code,
-                                    ushort identifier,ushort sequence_number,
-                                    ushort checksum,ushort offset)
-        {
-            cur_segment_data.icmp.type = type;
-            cur_segment_data.icmp.code = code;
-            cur_segment_data.icmp.identifier = identifier;
-            cur_segment_data.icmp.sequence_number = sequence_number;
-            cur_segment_data.icmp.checksum = checksum;
-            cur_segment_data.offset = offset;
-            
-            
-        }
+
         // Save the ip segment to the current local data storage
-        private void SaveSegmentDataIp(uint id, byte protocol, ushort total_len,  
+        private void SaveSegmentDataIp(uint id, byte protocol, ushort total_len,
                                     uint fragment_offset,
                                     ushort pseudoheader_checksum,
                                     ulong dst_addr_0, ulong src_addr_0,
@@ -272,10 +198,10 @@ namespace TCPIP
             cur_segment_data.ip.id = id;
             cur_segment_data.ip.protocol = protocol;
             cur_segment_data.ip.total_len = total_len;
-            
+
             cur_segment_data.ip.fragment_offset = fragment_offset;
             cur_segment_data.ip.pseudoheader_checksum = pseudoheader_checksum;
-            
+
             cur_segment_data.ip.dst_addr_0 = dst_addr_0;
             cur_segment_data.ip.dst_addr_1 = dst_addr_1;
 
