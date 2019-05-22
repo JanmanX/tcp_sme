@@ -13,11 +13,17 @@ namespace TCPIP
             [InitialValue(0x00)]
             uint ip_id { get; set; } // 32 bits so that we can have ipv4 and ipv6 IDs
 
+            [InitialValue(long.MaxValue)]
+            long frame_number { get; set; }
+
             [InitialValue(0x00)]
             uint fragment_offset { get; set; } // offset in bytes for protocols supporting this (IPv4)
 
             [InitialValue(0x00)]
             byte data { get; set; }
+
+            [InitialValue(0x00)]
+            uint data_length { get; set; } // Length of the data to receive
 
             [InitialValue(0x00)]
             byte protocol { get; set; }
@@ -30,6 +36,12 @@ namespace TCPIP
             ulong src_ip_addr_0 { get; set; }
             [InitialValue(0x00)]
             ulong src_ip_addr_1 { get; set; }
+
+            // Up to 128 bit addressing
+            [InitialValue(0x00)]
+            ulong dst_ip_addr_0 { get; set; }
+            [InitialValue(0x00)]
+            ulong dst_ip_addr_1 { get; set; }
         }
 
         public interface SegmentBusInControl : IBus
@@ -91,7 +103,7 @@ namespace TCPIP
             [InitialValue(0)]
             byte interface_function { get; set; }
 
-            InterfaceArgs args { get; set; }
+            Interface.InterfaceArgs args { get; set; }
 
             [InitialValue(-1)]
             int socket { get; set; }

@@ -12,6 +12,9 @@ namespace TCPIP
         [OutputBus]
         public readonly Internet.DatagramBusIn datagramBusIn = Scope.CreateBus<Internet.DatagramBusIn>();
 
+        [InputBus]
+        public readonly Internet.DatagramBusOut datagramBusOut = Scope.CreateBus<Internet.DatagramBusOut>();
+
         //[OutputBus]
         //public readonly TrueDualPortMemory<byte>.IControlA controlA;
 
@@ -56,7 +59,7 @@ namespace TCPIP
                     Logging.log.Info("End of frame");
                 }
             }
-            
+
             Logging.log.Info($"End of simulation with {frame_number} packets sent");
         }
     }

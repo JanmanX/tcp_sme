@@ -5,6 +5,13 @@ using SME.VHDL;
 
 namespace TCPIP
 {
+    // General bus used for control between
+    public interface ControlBus : IBus
+        {
+            [InitialValue(true)]
+            bool ready { get; set; } // Are we ready to receive data in the pipeline?
+        }
+
     enum LayerProcessState : byte
     {
         Reading,
@@ -28,7 +35,7 @@ namespace TCPIP
         OK = 0,
         EOK = 0, // however you prefer
 
-        EINVAL = 22,        
+        EINVAL = 22,
 
         ENOSPC = 28,
 

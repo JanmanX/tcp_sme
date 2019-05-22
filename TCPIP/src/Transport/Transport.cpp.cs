@@ -112,11 +112,10 @@ namespace TCPIP
                             ParseUDP();
                         }
 
-                        break;
+                    break;
                 }
             }
         }
-
 
         void Pass()
         {
@@ -190,6 +189,7 @@ namespace TCPIP
             passData.length = length;
 
             state = TransportProcessState.Passing;
+
         }
 
         void Send()

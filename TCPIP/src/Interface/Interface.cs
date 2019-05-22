@@ -59,33 +59,33 @@ namespace TCPIP
             {
                 switch (interfaceBus.interfaceFunction)
                 {
-                    case InterfaceFunction.INVALID:
+                    case (byte)InterfaceFunction.INVALID:
                         // TODO
                         break;
 
-                    case InterfaceFunction.ACCEPT:
+                    case (byte)InterfaceFunction.ACCEPT:
                         // TODO
                         break;
 
-                    case InterfaceFunction.BIND:
+                    case (byte)InterfaceFunction.BIND:
                         // TODO
                         break;
 
-                    case InterfaceFunction.CONNECT:
+                    case (byte)InterfaceFunction.CONNECT:
                         // TODO
                         break;
 
-                    case InterfaceFunction.CLOSE:
+                    case (byte)InterfaceFunction.CLOSE:
                         // TODO
                         break;
 
-                    case InterfaceFunction.LISTEN:
+                    case (byte)InterfaceFunction.LISTEN:
                         // TODO
                         break;
-                    case InterfaceFunction.RECV:
+                    case (byte)InterfaceFunction.RECV:
                         // TODO
                         break;
-                    case InterfaceFunction.SEND:
+                    case (byte)InterfaceFunction.SEND:
                         // TODO
                         break;
                 }
