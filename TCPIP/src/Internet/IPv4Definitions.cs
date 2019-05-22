@@ -5,7 +5,7 @@ namespace TCPIP
     class IPv4
     {
         /*
-         0                   1                   2                   3  
+         0                   1                   2                   3
          0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         |Version|  IHL  |Type of Service|          Total Length         |
@@ -31,6 +31,8 @@ namespace TCPIP
         public const uint VERSION_OFFSET = 0x00;
         public const uint IHL_OFFSET = 0x00;
 
+        public const uint DIFFERENTIATED_SERVICES_OFFSET = 0x01;
+
         public const uint TOTAL_LENGTH_OFFSET_0 = 0x02;
         public const uint TOTAL_LENGTH_OFFSET_1 = 0x03;
 
@@ -38,6 +40,8 @@ namespace TCPIP
         public const uint ID_OFFSET_1 = 0x05;
 
         public const uint FLAGS_OFFSET = 0x06;
+
+        public const uint TTL_OFFSET = 0x08;
 
         public const uint PROTOCOL_OFFSET = 0x09;
 
@@ -53,6 +57,11 @@ namespace TCPIP
         public const uint DST_ADDRESS_OFFSET_1 = 0x11;
         public const uint DST_ADDRESS_OFFSET_2 = 0x12;
         public const uint DST_ADDRESS_OFFSET_3 = 0x13;
+
+        public const ulong ADDRESS_MASK_0 = 0xFF;
+        public const ulong ADDRESS_MASK_1 = 0xFF00;
+        public const ulong ADDRESS_MASK_2 = 0xFF0000;
+        public const ulong ADDRESS_MASK_3 = 0xFF000000;
 
 
         [Flags]
