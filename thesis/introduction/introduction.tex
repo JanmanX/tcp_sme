@@ -2,7 +2,7 @@
 % 1. general introduction
 This thesis describes the design and implementation of an efficient, high-speed
 TCP/IP network stack intended to run on custom hardware where performance, responsiveness,
-and throughput are crucial.\\
+and throughput is crucial.\\
 
 % 2. Explanation of specific problem
 As is the trend with modern automation, computerization, and mechanization, new 
@@ -16,7 +16,8 @@ protocols. However, the networking stack supplied with most major operating
 systems, while heavily optimised, suffers from considerable penalties due to 
 complexities of a standard computer architecture. For example, heavy network
 traffic utilizes the computers' internal busses, allocates vast amounts of 
-memory, and spend precious CPU clock-cycles with polling and interrupts. \\
+memory, and spend precious CPU clock-cycles with polling and interrupts. This
+prevents the machine from using these resources for actual computing tasks.\\
 These issues have been identified and solved by hardware manufacturers by
 adopting dedicated Network Interface Controllers (NIC) which would employ
 various techniques to offload the processing. One such offloading technique is 
@@ -29,14 +30,27 @@ are highly specialized for certain applications, and even though they provide
 basic programmability, they are rarely suitable for rapid prototyping of
 applications and other custom hardware devices. Furthermore, each NIC manufacturer
 has a diverse set of hardware with varying interfaces, making it hard to 
-combine and swap and test these cards.\\
+combine and swap and test these cards.
+Licensed software solutions in the form of IP blocks exist as well. Unfortunately,
+these blocks are usually distributed as black-boxes of VHDL code, which is 
+hard to maintain, and even harder to debug and extend.  \\
 
 In this thesis, we bridge the gap between the blazingly-fast network offloading
 devices and their more flexible and malleable software counterparts.\\
 This networking stack is implemented in a fully self-contained fashion so that 
 it is completely independent of any other software running on the machine, while
 utilizing the performance advantages gained from the lack of overhead in
-conventional implementations.
+conventional implementations. 
+The use of a high-level programming language in combination with the modern 
+Synchronous Message Exchange model makes the network stack a very versatile 
+implementation with ease of use, debugging, and even extension. 
+
+% * VHDL unmaintainable
+% * SME better for simulation
+% * IP blocks not open source (No code) + Hard to debug
+% * Price
+
+
 
 MORE TO COME!!
 

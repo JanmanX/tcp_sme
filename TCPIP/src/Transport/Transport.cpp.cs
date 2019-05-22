@@ -5,7 +5,7 @@ using SME.Components;
 
 namespace TCPIP
 {
-    [ClockedProcess]
+	[ClockedProcess]
     public partial class Transport : SimpleProcess
     {
         [InputBus]
@@ -13,7 +13,7 @@ namespace TCPIP
 
         [OutputBus]
         public readonly SegmentBusInControl segmentBusInControl
-                    = Scope.CreateBus<SegmentBusInControl>();
+                = Scope.CreateBus<SegmentBusInControl>();
 
         [InputBus]
         public TransportBus transportBus;
@@ -27,12 +27,14 @@ namespace TCPIP
 
 
         // Local variables
-        // READING AND PASSING
-        private enum TransportProcessState {
-            Reading,  // Reading incoming data into internal buffer (reading headers)
-            Passing,    // Passing data (mostly data-section of packets) to the underlying buffer-processes
+        private enum TransportProcessState
+        {
+            Receiving,  // Reading an incoming packet
+            Passing,    // Passing data of an incoming packet to a buffer (Data_in)
+            Sending,    // Sending a data packet out
+            Control,    // Control work on connections (handshakes, conn. termination)
         }
-        private TransportProcessState state = TransportProcessState.Reading;
+        private TransportProcessState state = TransportProcessState.Receiving;
 
         private const uint NUM_PCB = 10;
         private PCB[] pcbs = new PCB[NUM_PCB];
@@ -42,7 +44,8 @@ namespace TCPIP
         private uint idx_in = 0x00;
         private bool read = true; // Inidicates whetehr process is writing from local buffer
 
-        private struct PassData {
+        private struct PassData
+        {
             public int socket;
             public uint ip_id;
             public uint tcp_seq;
@@ -53,7 +56,7 @@ namespace TCPIP
             public uint bytes_sent; // Number of bytes sent
         }
         private PassData passData;
-        private uint ip_id = 0x00; 
+        private uint ip_id = 0x00;
 
         // WRITE
         private byte[] buffer_out = new byte[BUFFER_SIZE];
@@ -66,8 +69,26 @@ namespace TCPIP
         }
 
 
-        void Read()
+        void Receive()
         {
+            // If invalid, skip
+            if (segmentBusIn.valid == false)
+            {
+                dataInBus.valid = false;
+                return;
+            }
+
+            // If new segment received, reset
+            if (segmentBusIn.ip_id != ip_id)
+            {
+                ip_id = segmentBusIn.ip_id;
+                idx_in = 0x00;
+                state = TransportProcessState.Receiving;
+                read = true;
+                dataInBus.valid = false;
+            }
+
+
             if (read && idx_in < BUFFER_SIZE)
             {
                 buffer_in[idx_in++] = segmentBusIn.data;
@@ -91,18 +112,38 @@ namespace TCPIP
                             ParseUDP();
                         }
 
-                    break;
+                        break;
                 }
             }
         }
 
+
         void Pass()
         {
+            // If invalid, skip
+            if (segmentBusIn.valid == false)
+            {
+                dataInBus.valid = false;
+                return;
+            }
+
+            // If new segment received, reset
+            if (segmentBusIn.ip_id != ip_id)
+            {
+                ip_id = segmentBusIn.ip_id;
+                idx_in = 0x00;
+                state = TransportProcessState.Receiving;
+                read = true;
+                dataInBus.valid = false;
+				return;
+            }
+
+
             // Checksum
             if (passData.bytes_sent % 2 == 0)
             {
                 pcbs[passData.socket].checksum_acc +=
-                                (uint)((passData.high_byte << 8) | dataInBus.data);
+                    (uint)((passData.high_byte << 8) | dataInBus.data);
             }
             else
             {
@@ -119,23 +160,26 @@ namespace TCPIP
             dataInBus.invalidate = false;
             passData.bytes_sent++;
 
-            // If last byte 
+            // If last byte
             if (passData.bytes_sent >= passData.length)
             {
                 // Finish checksum
-                pcbs[passData.socket].checksum_acc = ((pcbs[passData.socket].checksum_acc & 0xFFFF) 
-                                                    + (pcbs[passData.socket].checksum_acc >> 0x10));
+                pcbs[passData.socket].checksum_acc = ((pcbs[passData.socket].checksum_acc & 0xFFFF)
+                        + (pcbs[passData.socket].checksum_acc >> 0x10));
 
-                if(pcbs[passData.socket].checksum_acc == 0) {
+                if (pcbs[passData.socket].checksum_acc == 0)
+                {
                     dataInBus.finished = true;
-                } else {
+                }
+                else
+                {
                     Console.WriteLine($"Checksum failed: 0x{pcbs[passData.socket].checksum_acc:X}");
                     dataInBus.invalidate = true;
                 }
-            } 
+            }
 
             Console.WriteLine($"Written: {(char)segmentBusIn.data}");
-       }
+        }
 
         void StartPass(int socket, uint ip_id, uint tcp_seq, uint length)
         {
@@ -148,71 +192,45 @@ namespace TCPIP
             state = TransportProcessState.Passing;
         }
 
-        void Receive()
-        {
-            // If invalid, skip
-            if(segmentBusIn.valid == false) {
-                dataInBus.valid = false;
-                return;
-            }
-
-            // If new segment received, reset
-            if (segmentBusIn.ip_id != ip_id)
-            {
-                LOGGER.INFO("New segment!");
-                ip_id = segmentBusIn.ip_id;
-                idx_in = 0x00;
-                state = TransportProcessState.Reading;
-                read = true;
-                dataInBus.valid = false;
-            }
-
-            switch (state)
-            {
-                case TransportProcessState.Reading:
-                    Read();
-                    break;
-
-                case TransportProcessState.Passing:
-                    Pass();
-                    break;
-            }
-        }
-
         void Send()
         {
             // TODO
+
         }
 
         private void Control()
         {
-            if(transportBus.valid)  {
-                if(transportBus.socket < 0 || transportBus.socket > pcbs.Length) {
-                    ControlReturn(transportBus.interface_function, 
-                                    transportBus.socket,
-                                    ExitStatus.EINVAL);
+            if (transportBus.valid)
+            {
+                if (transportBus.socket < 0 || transportBus.socket > pcbs.Length)
+                {
+                    ControlReturn(transportBus.interface_function,
+                            transportBus.socket,
+                            ExitStatus.EINVAL);
                     return;
                 }
 
-                switch(transportBus.interfaceFunction) 
+                switch (transportBus.interfaceFunction)
                 {
                     case InterfaceFunction.INVALID:
                     default:
+                        ControlReturn(transportBus.interface_function, 0,
+                                ExitStatus.EINVAL);
                         LOGGER.DEBUG("Wrong interfaceFunction in Transport!");
                         break;
 
-                    /* 
-                    case InterfaceFunction.ACCEPT:
-                        // TODO
-                        break;
+                    /*
+                       case InterfaceFunction.ACCEPT:
+                    // TODO
+                    break;
 
                     case InterfaceFunction.BIND: // Ignored?
-                        // TODO
-                        break;
+                    // TODO
+                    break;
 
                     case InterfaceFunction.CONNECT:
-                        // TODO
-                        break;
+                    // TODO
+                    break;
                     */
 
                     case InterfaceFunction.OPEN:
@@ -220,8 +238,8 @@ namespace TCPIP
                         if (socket < 0)
                         {
                             ControlReturn(transportBus.interface_function,
-                                        transportBus.socket,
-                                        ExitStatus.ENOSPC);
+                                    transportBus.socket,
+                                    ExitStatus.ENOSPC);
                             return;
                         }
 
@@ -231,20 +249,22 @@ namespace TCPIP
                         pcbs[socket].protocol = transportBus.args.protocol;
                         pcbs[socket].l_port = transportBus.args.port;
 
-                        switch(pcbs[socket].protocol) {
+                        switch (pcbs[socket].protocol)
+                        {
                             case (byte)IPv4.Protocol.TCP:
                                 // TODO: Start handshake here
                                 break;
                         }
 
                         ControlReturn(transportBus.interface_function,
-                                        socket,
-                                        ExitStatus.OK);
+                                socket,
+                                ExitStatus.OK);
                         break;
 
 
                     case InterfaceFunction.CLOSE:
-                        switch(pcbs[transportBus.args.socket].protocol) {
+                        switch (pcbs[transportBus.args.socket].protocol)
+                        {
                             case (byte)IPv4.Protocol.TCP:
                                 // TODO: TCP Finish sequence
                                 break;
@@ -272,10 +292,22 @@ namespace TCPIP
 
         protected override void OnTick()
         {
-            Receive();
-            Send();
-            Control();
-        }
+            switch (state)
+            {
+                case TransportProcessState.Receiving:
+					Receive();
+                    break;
+                case TransportProcessState.Passing:
+					Pass();
+                    break;
+                case TransportProcessState.Sending:
+					Send();
+                    break;
+                case TransportProcessState.Control:
+					Control();
+                    break;
+            }
+       }
 
 
         // Helper functions
