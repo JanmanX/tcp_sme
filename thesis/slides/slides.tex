@@ -35,17 +35,17 @@
 \begin{frame}
   \frametitle{Background and Motivation}
 
-  Dedicated hardware needs to transmit data in real time, but OS network 
+  Dedicated hardware needs to transmit data in real time, but OS network
   stacks are usually not enough!
 
   Dedicated Network cards are not perfect either:
   \begin{columns}
 
- \begin{column}{0.7\textwidth} 
+ \begin{column}{0.7\textwidth}
   \begin{alertblock}{Weaknesses of network cards}
     \begin{itemize}
       \item Only basic programmability
-      \item Incompatible APIs 
+      \item Incompatible APIs
       \item Licensed VHDL code blobs
       \item Seldom swap-able
       \item \textbf{Price!}
@@ -73,8 +73,8 @@
   \begin{itemize}
     \item Easy \& intuitive hardware modelling
     \item Implicit clock
-    \item Built-in simulation utilities 
-    \item VHDL code generation 
+    \item Built-in simulation utilities
+    \item VHDL code generation
     \item Verification by comparing VHDL signals with C\# simulation
   \end{itemize}
 \end{block}
@@ -91,16 +91,21 @@
   \frametitle{Internet Protocol Suite (TCP/IP)}
 \begin{columns}
 
- \begin{column}{0.5\textwidth} 
+ \begin{column}{0.3\textwidth}
   \begin{center}
-  \includegraphics[scale=0.5]{tcpip_stack}
+  \includegraphics[scale=0.42]{tcpip_stack}
   \end{center}
   \end{column}
 
- \begin{column}{0.5\textwidth} 
- Some text
-  
-\end{column}
+  \begin{column}{0.5\textwidth}
+    \begin{itemize}
+      \item<1->[Application] FTP, DHCP, SSH etc.
+      \item<2->[Transport] TCP, UDP, DCCP etc.
+      \item<3->[Internet] IPv4, IPv6, {\color{red} ICMP} etc.
+      \item<4->[Data Link] ARP, MAC (Ethernet, wifi) etc.
+      \item<5->[Physical] Actual cables!
+    \end{itemize}
+  \end{column}
 \end{columns}
 
 \end{frame}
@@ -113,7 +118,7 @@
   \begin{center}
     \includegraphics[scale=0.5]{graph}
   \end{center}
-  
+
 
 \end{frame}
 
@@ -123,7 +128,7 @@
 
 \begin{itemize}
   \item Clock-delays
-  \item Data de-multiplexing 
+  \item Data de-multiplexing
   \item Limited (fast) memory
   \item Information sharing is by design hard in SME
   \item Very limited programming utilities
