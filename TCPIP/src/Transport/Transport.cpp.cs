@@ -53,7 +53,7 @@ namespace TCPIP
             public uint bytes_sent; // Number of bytes sent
         }
         private PassData passData;
-        private uint ip_id = 0x00; 
+        private uint ip_id = 0x00;
 
         // WRITE
         private byte[] buffer_out = new byte[BUFFER_SIZE];
@@ -119,11 +119,11 @@ namespace TCPIP
             dataInBus.invalidate = false;
             passData.bytes_sent++;
 
-            // If last byte 
+            // If last byte
             if (passData.bytes_sent >= passData.length)
             {
                 // Finish checksum
-                pcbs[passData.socket].checksum_acc = ((pcbs[passData.socket].checksum_acc & 0xFFFF) 
+                pcbs[passData.socket].checksum_acc = ((pcbs[passData.socket].checksum_acc & 0xFFFF)
                                                     + (pcbs[passData.socket].checksum_acc >> 0x10));
 
                 if(pcbs[passData.socket].checksum_acc == 0) {
@@ -132,7 +132,7 @@ namespace TCPIP
                     Console.WriteLine($"Checksum failed: 0x{pcbs[passData.socket].checksum_acc:X}");
                     dataInBus.invalidate = true;
                 }
-            } 
+            }
 
             Console.WriteLine($"Written: {(char)segmentBusIn.data}");
        }
@@ -188,20 +188,20 @@ namespace TCPIP
         {
             if(transportBus.valid)  {
                 if(transportBus.socket < 0 || transportBus.socket > pcbs.Length) {
-                    ControlReturn(transportBus.interface_function, 
+                    ControlReturn(transportBus.interface_function,
                                     transportBus.socket,
                                     ExitStatus.EINVAL);
                     return;
                 }
 
-                switch(transportBus.interfaceFunction) 
+                switch(transportBus.interfaceFunction)
                 {
                     case InterfaceFunction.INVALID:
                     default:
                         LOGGER.DEBUG("Wrong interfaceFunction in Transport!");
                         break;
 
-                    /* 
+                    /*
                     case InterfaceFunction.ACCEPT:
                         // TODO
                         break;
@@ -279,13 +279,13 @@ namespace TCPIP
 
 
         // Helper functions
-        private uint GetFreePCB()
+        private int GetFreePCB()
         {
             for (uint i = 0; i < pcbs.Length; i++)
             {
-                if (pcbs[i] == PCB_STATE.CLOSED)
+                if (pcbs[i].state == (byte)PCB_STATE.CLOSED)
                 {
-                    return i;
+                    return (int)i;
                 }
             }
             return -1;
@@ -301,6 +301,25 @@ namespace TCPIP
             pcbs[socket].l_port = 0;
             pcbs[socket].protocol = 0;
             pcbs[socket].state = 0;
+        }
+
+
+        private ushort ChecksumBufferOut(uint offset, uint len, int exclude = -1)
+        {
+            ulong acc = 0x00;
+
+            // XXX: Odd lengths might cause trouble!!!
+            for (uint i = offset; i < len; i = i + 2)
+            {
+                if (i != exclude){
+                    acc += (ulong)((buffer_in[i] << 0x08
+                                 | buffer_in[i + 1]));
+                }
+            }
+            // Add carry bits and do one-complement on 16 bits
+            // Overflow  can max happen twice
+            acc = ((acc & 0xFFFF) + (acc >> 0x10));
+            return (ushort)~((acc & 0xFFFF) + (acc >> 0x10));
         }
     }
 }
