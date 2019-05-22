@@ -11,40 +11,13 @@ namespace TCPIP
         {
             using (var sim = new Simulation())
             {
-
-                //var mem = new TrueDualPortMemory<byte>(8192);
-                //var simulator = new DatagramInputSimulator("data/udp_25/");
-                // var simulator = new TUNSimulator();
-                //                var network = new NetworkReader(simulator.frameBus);
-                //var internet = new InternetIn(simulator.datagramBusIn);
-                //simulator.datagramBusInControl = internet.datagramBusInControl;
-
-                //var transport = new Transport(internet.segmentBusIn);
-                //var dataInReader = new DataInReader(transport.dataInBus);
-
-
-                // Graph simulator
-                int packet_out_mem_size = 8192;
-                var packet_out_mem = new TrueDualPortMemory<byte>(packet_out_mem_size);
-                //buffer_test_mem.
-                var packet_out = new PacketOut(packet_out_mem,packet_out_mem_size);
-                
-                var simulator = new GraphFileSimulator("data/icmp_data/");
-                var internetIn = new InternetIn(simulator.datagramBusIn,packet_out.buffer_in_internet);
-                var transport = new Transport(internetIn.segmentBusIn);
-                
-                // Use fluent syntax to configure the simulator.
-                // The order does not matter, but `Run()` must be 
-                // the last method called.
-
-                // The top-level input and outputs are exposed
-                // for interfacing with other VHDL code or board pins
+                var _interface = new Interface();
 
                 sim
-//                    .AddTopLevelOutputs(dataInReader.)
-                    .AddTopLevelInputs(simulator.datagramBusIn)
+                    .AddTopLevelOutputs(_interface.interfaceBusOut)
+                    .AddTopLevelInputs(_interface.interfaceBus)
                     .BuildCSVFile()
-                    //.BuildVHDL()
+                    .BuildVHDL()
                     .Run();
 
                 // After `Run()` has been invoked the folder

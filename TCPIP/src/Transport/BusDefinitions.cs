@@ -94,5 +94,34 @@ namespace TCPIP
             [InitialValue(false)]
             bool invalidate { get; set; } // XXX: not used yet
         }
+
+        public interface TransportBus : IBus
+        {
+            [InitialValue(false)]
+            bool valid { get; set; }
+
+            [InitialValue(0)]
+            byte interface_function { get; set; }
+
+            InterfaceArgs args { get; set; }
+
+            [InitialValue(-1)]
+            int socket { get; set; }
+        }
+
+        public interface TransportControlBus : IBus
+        {
+            [InitialValue(false)]
+            bool valid { get; set; }
+
+            [InitialValue(0)]
+            byte interface_function { get; set; }
+
+            [InitialValue(0)]
+            byte exit_status { get; set; }
+
+            [InitialValue(-1)]
+            int socket { get; set; }
+        }
     }
 }

@@ -6,8 +6,20 @@ using SME.Components;
 
 namespace TCPIP
 {
+    public enum PCB_STATE : byte
+    {
+        CLOSED = 0,
+        OPEN = 1,
+        LISTENING = 2,
+        CONNECTED = 3, 
+        // Add more (waiting, listening, reserved)
+    }
+
     unsafe struct PCB
     {
+        // Connection state
+        public byte state; 
+
         // Protocol
         public byte protocol; 
 
