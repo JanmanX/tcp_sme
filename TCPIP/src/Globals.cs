@@ -6,11 +6,20 @@ using SME.VHDL;
 namespace TCPIP
 {
     // General bus used for control between
-    public interface ControlBus : IBus
+    public interface ControlConsumer : IBus
         {
-            [InitialValue(true)]
+            [InitialValue(false)]
             bool ready { get; set; } // Are we ready to receive data in the pipeline?
         }
+
+  public interface ControlProducer: IBus
+        {
+            [InitialValue(true)]
+            bool available { get; set; } // Stuff is ready to be sent, possibly waiting for ControlConsumer ready
+            bool valid { get; set; } // The current data on the data bus is ready to be read now
+
+        }
+
 
     enum LayerProcessState : byte
     {
