@@ -5,6 +5,13 @@ using SME.VHDL;
 
 namespace TCPIP
 {
+    // General bus used for control between
+    public interface ControlBus : IBus
+        {
+            [InitialValue(true)]
+            bool ready { get; set; } // Are we ready to receive data in the pipeline?
+        }
+
     enum LayerProcessState : byte
     {
         Reading,
@@ -17,7 +24,7 @@ namespace TCPIP
     // Indicates whether the data in the bus is to be sent
     // 0 - not for sending
     // 1 - send to Internet layer
-    // 2 - send to Network layer 
+    // 2 - send to Network layer
     // 3 - send raw to network device (debugging also?)
     public enum DataMode : byte
     {
