@@ -65,12 +65,20 @@ namespace TCPIP
         [OutputBus]
         public readonly PacketOut.PacketOutBus bus_out = Scope.CreateBus<PacketOut.PacketOutBus>();
 
-        [OutputBus]
-        public readonly ControlBus bus_in_internet_control = Scope.CreateBus<ControlBus>();
-        [OutputBus]
-        public readonly ControlBus bus_in_transport_control = Scope.CreateBus<ControlBus>();
         [InputBus]
-        public readonly ControlBus bus_out_control = Scope.CreateBus<ControlBus>();
+        public readonly ControlProducer bus_in_internet_control_producer = Scope.CreateBus<ControlProducer>();
+        [InputBus]
+        public readonly ControlProducer bus_in_transport_control_producer = Scope.CreateBus<ControlProducer>();
+        [OutputBus]
+        public readonly ControlProducer bus_out_control_producer = Scope.CreateBus<ControlProducer>();
+
+
+        [InputBus]
+        public readonly ControlConsumer bus_in_internet_control_consumer = Scope.CreateBus<ControlConsumer>();
+        [InputBus]
+        public readonly ControlConsumer bus_in_transport_control_consumer = Scope.CreateBus<ControlConsumer>();
+        [OutputBus]
+        public readonly ControlConsumer bus_out_control_consumer = Scope.CreateBus<ControlConsumer>();
 
         private const short ring_bus_size = 10;
         private RingEntry[] ring_bus = new RingEntry[ring_bus_size];
@@ -183,7 +191,7 @@ namespace TCPIP
 
 
         private void Write(){
-            if(!bus_out_control.ready){
+            if(!bus_out_control_consumer.ready){
                 return;
             }
             // Only activate bus if we actually need it
