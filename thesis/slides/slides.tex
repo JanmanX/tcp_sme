@@ -5,12 +5,19 @@
 \usepackage{colortbl}
 \usepackage{listings}
 \usepackage{adjustbox}
+\usepackage{verbatim}
 \usepackage{amsmath}
 \usepackage{multirow}
 \usepackage{tabularx}
 \usepackage{tikz}
 \usepackage[linewidth=1pt]{mdframed}
 \usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
 
 \usetheme{Madrid}
 % \usecolortheme{Copenhagen}
@@ -99,16 +106,16 @@
 
   \begin{column}{0.5\textwidth}
     \begin{itemize}
-      \item<1->[Application] FTP, DHCP, SSH etc.
-      \item<2->[Transport] TCP, UDP, DCCP etc.
-      \item<3->[Internet] IPv4, IPv6, {\color{red} ICMP} etc.
-      \item<4->[Data Link] ARP, MAC (Ethernet, wifi) etc.
-      \item<5->[Physical] Actual cables!
+      \item<1->[Application] FTP, DHCP, SSH, etc.
+      \item<2->[Transport] TCP, UDP, DCCP, etc.
+      \item<3->[Internet] IPv4, IPv6, {\color{red} ICMP}, etc.
+      \item<4->[Data Link] ARP, MAC (Ethernet, Wi-Fi), etc.
     \end{itemize}
   \end{column}
 \end{columns}
 
 \end{frame}
+
 
 
 
@@ -126,13 +133,23 @@
 \begin{frame}
   \frametitle{Challenges}
 
+\begin{columns}
+\begin{column}{0.5\textwidth}
 \begin{itemize}
-  \item Clock-delays
-  \item Data de-multiplexing
-  \item Limited (fast) memory
-  \item Information sharing is by design hard in SME
-  \item Very limited programming utilities
+  \item<1-> Clock-delays and congestion
+  \item<2-> Limited subset of programming language utilities
+  \item<3-> Data de-multiplexing
+  \item<4-> Limited (fast) memory
+  \item<5-> Information sharing is by design hard in SME
 \end{itemize}
+\end{column}
+\begin{column}{0.5\textwidth}
+\includegraphics<1>[scale=0.5]{congest.eps}
+
+%\includegraphics<2>{B}
+%\includegraphics<3>{C}
+\end{column}
+\end{columns}
 
 \end{frame}
 

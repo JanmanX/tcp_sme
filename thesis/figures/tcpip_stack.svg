@@ -58,9 +58,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.98994949"
-     inkscape:cx="168.21827"
-     inkscape:cy="476.50249"
+     inkscape:zoom="1.4"
+     inkscape:cx="345.96935"
+     inkscape:cy="541.61506"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -83,7 +83,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -98,18 +98,7 @@
        height="127"
        x="52.916664"
        y="58.875"
-       transform="matrix(1,0,0,0.52083333,0,89.065104)" />
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:4.93888903px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="66.437813"
-       y="180.96129"
-       id="text821"><tspan
-         sodipodi:role="line"
-         id="tspan819"
-         x="66.437813"
-         y="180.96129"
-         style="font-size:4.93888903px;stroke-width:0.26458332">Physical</tspan></text>
+       transform="matrix(1,0,0,0.41666667,0,95.197916)" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.5291667;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 52.916667,172.64583 H 100.54167"
