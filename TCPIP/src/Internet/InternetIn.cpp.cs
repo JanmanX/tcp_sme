@@ -10,7 +10,7 @@ namespace TCPIP
     {
         // CONFIG
         // TODO: Find a better place to put this?
-        public uint IP_ADDRESS_0 = 0x0CA82B01; // 192.168.43.1
+        public uint IP_ADDRESS_0 = 0xC0A82B01; // 192.168.43.1
         public uint IP_ADDRESS_1 = 0x00;
 
         [InputBus]
@@ -72,13 +72,13 @@ namespace TCPIP
         private uint write_len = 0x00;
 
 
-        public InternetIn(Internet.DatagramBusIn datagramBusIn,PacketOut.PacketOutBus bufferInternet)
+        public InternetIn(Internet.DatagramBusIn datagramBusIn, PacketOut.PacketOutBus bufferInternet)
         {
             this.datagramBusIn = datagramBusIn ?? throw new ArgumentNullException(nameof(datagramBusIn));
             this.bufferInternet = bufferInternet;
             // Initialize
             StartReading();
-       }
+        }
 
 
         private void Write()
@@ -115,7 +115,7 @@ namespace TCPIP
                 cur_segment_data.type = datagramBusIn.type;
                 parsing_state = ParsingState.PreParsing;
             }
-            
+
             if (idx_in < buffer_in.Length)
             {
                 buffer_in[idx_in++] = datagramBusIn.data;
@@ -193,107 +193,104 @@ namespace TCPIP
         }
 
 
-        }
-        // Save the ip segment to the current local data storage
-        private void SaveSegmentDataIp(uint id, byte protocol, ushort total_len,
-                                    uint fragment_offset,
-                                    ushort pseudoheader_checksum,
-                                    ulong dst_addr_0, ulong src_addr_0,
-                                    ulong dst_addr_1 = 0, ulong src_addr_1 = 0 )
+    }
+    // Save the ip segment to the current local data storage
+    private void SaveSegmentDataIp(uint id, byte protocol, ushort total_len,
+                                uint fragment_offset,
+                                ushort pseudoheader_checksum,
+                                ulong dst_addr_0, ulong src_addr_0,
+                                ulong dst_addr_1 = 0, ulong src_addr_1 = 0)
 
+    {
+        cur_segment_data.ip.id = id;
+        cur_segment_data.ip.protocol = protocol;
+        cur_segment_data.ip.total_len = total_len;
+
+        cur_segment_data.ip.fragment_offset = fragment_offset;
+        cur_segment_data.ip.pseudoheader_checksum = pseudoheader_checksum;
+
+        cur_segment_data.ip.dst_addr_0 = dst_addr_0;
+        cur_segment_data.ip.dst_addr_1 = dst_addr_1;
+
+        cur_segment_data.ip.src_addr_0 = src_addr_0;
+        cur_segment_data.ip.src_addr_1 = src_addr_1;
+    }
+    private void ClearBufferOut()
+    {
+        for (int i = 0; i < BUFFER_SIZE; i++)
         {
-            cur_segment_data.ip.id = id;
-            cur_segment_data.ip.protocol = protocol;
-            cur_segment_data.ip.total_len = total_len;
-
-            cur_segment_data.ip.fragment_offset = fragment_offset;
-            cur_segment_data.ip.pseudoheader_checksum = pseudoheader_checksum;
-
-            cur_segment_data.ip.dst_addr_0 = dst_addr_0;
-            cur_segment_data.ip.dst_addr_1 = dst_addr_1;
-
-            cur_segment_data.ip.src_addr_0 = src_addr_0;
-            cur_segment_data.ip.src_addr_1 = src_addr_1;
+            buffer_out[i] = 0x00;
         }
-        private void ClearBufferOut()
+    }
+
+    // calculates the checksum from buffer_out[offset] to buffer_out[len]
+    // Exclude a 16 bit step if necessary, to calculate a senders checksum
+    private ushort ChecksumBufferIn(uint offset, uint len, int exclude = -1)
+    {
+        ulong acc = 0x00;
+
+        // XXX: Odd lengths might cause trouble!!!
+        for (uint i = offset; i < len; i = i + 2)
         {
-            for (int i = 0; i < BUFFER_SIZE; i++)
+            if (i != exclude)
             {
-                buffer_out[i] = 0x00;
+                acc += (ulong)((buffer_in[i] << 0x08
+                             | buffer_in[i + 1]));
             }
         }
-
-        // calculates the checksum from buffer_out[offset] to buffer_out[len]
-        // Exclude a 16 bit step if necessary, to calculate a senders checksum
-        private ushort ChecksumBufferIn(uint offset, uint len, int exclude = -1)
-        {
-            ulong acc = 0x00;
-
-            // XXX: Odd lengths might cause trouble!!!
-            for (uint i = offset; i < len; i = i + 2)
-            {
-                if (i != exclude){
-                    acc += (ulong)((buffer_in[i] << 0x08
-                                 | buffer_in[i + 1]));
-                }
-            }
-            // Add carry bits and do one-complement on 16 bits
-            // Overflow  can max happen twice
-            acc = ((acc & 0xFFFF) + (acc >> 0x10));
-            return (ushort)~((acc & 0xFFFF) + (acc >> 0x10));
-        }
+        // Add carry bits and do one-complement on 16 bits
+        // Overflow  can max happen twice
+        acc = ((acc & 0xFFFF) + (acc >> 0x10));
+        return (ushort)~((acc & 0xFFFF) + (acc >> 0x10));
+    }
 
 
-        // Start or resume reading
-        void StartReading()
-        {
-            state = LayerProcessState.Reading;
+    // Start or resume reading
+    void StartReading()
+    {
+        state = LayerProcessState.Reading;
 
-            // Reset various values
-            idx_in = 0x00;
+        // Reset various values
+        idx_in = 0x00;
 
-            cur_segment_data.ip.id = 0;
-            cur_segment_data.ip.protocol = 0;
-            cur_segment_data.frame_number = long.MinValue;
-            cur_segment_data.ip.fragment_offset = 0;
-            cur_segment_data.ip.pseudoheader_checksum = 0;
-            cur_segment_data.ip.src_addr_0 = 0;
-            cur_segment_data.ip.src_addr_1 = 0;
-            cur_segment_data.ip.dst_addr_0 = 0;
-            cur_segment_data.ip.dst_addr_1 = 0;
+        cur_segment_data.ip.id = 0;
+        cur_segment_data.ip.protocol = 0;
+        cur_segment_data.frame_number = long.MinValue;
+        cur_segment_data.ip.fragment_offset = 0;
+        cur_segment_data.ip.pseudoheader_checksum = 0;
+        cur_segment_data.ip.src_addr_0 = 0;
+        cur_segment_data.ip.src_addr_1 = 0;
+        cur_segment_data.ip.dst_addr_0 = 0;
+        cur_segment_data.ip.dst_addr_1 = 0;
 
-            // XXX also reset ICMP
+        // Data currently in segmentBusIn not valid
+        cur_segment_data.valid = false;
+        segmentBusIn.valid = false;
 
+        // We are ready to receive data
+        datagramBusInControl.ready = true;
 
-            // Data currently in segmentBusIn not valid
-            cur_segment_data.valid = false;
-            segmentBusIn.valid = false;
+        // Do not skip
+        datagramBusInControl.skip = false;
+    }
 
-            // We are ready to receive data
-            datagramBusInControl.ready = true;
+    // TODO:
+    void StartWriting(ushort last_byte)
+    {
+        state = LayerProcessState.Writing;
 
-            // Do not skip
-            datagramBusInControl.skip = false;
-        }
+        // We are going to write
+        idx_out = cur_segment_data.offset;
+        write_len = last_byte;
+        //segmentBusIn.protocol = protocol;
 
-        // TODO:
-        void StartWriting(ushort last_byte)
-        {
-            state = LayerProcessState.Writing;
+        // We are not ready to receive new packets until this one is sent
+        datagramBusInControl.ready = false;
+    }
 
-            // We are going to write
-            idx_out = cur_segment_data.offset;
-            write_len = last_byte;
-            //segmentBusIn.protocol = protocol;
+    private void StartPassing()
 
-            // We are not ready to receive new packets until this one is sent
-            datagramBusInControl.ready = false;
-        }
-
-        private void StartPassing()
-
-        {
-            state = LayerProcessState.Passing;
-        }
+    {
+        state = LayerProcessState.Passing;
     }
 }

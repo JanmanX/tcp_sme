@@ -4,7 +4,7 @@ namespace TCPIP
 {
     public partial class PacketOut
     {
-        public interface PacketOutBus: IBus
+        public interface PacketOutBus : IBus
         {
             [InitialValue(false)]
             bool active { get; set; }
@@ -17,24 +17,23 @@ namespace TCPIP
             int data_length { get; set; } // the size we are writing currently
             byte data { get; set; } // The data needed
         }
-        // public interface BufferOut : IBus
-        // {
-        //     [InitialValue(false)]
-        //     bool active { get; set; }
-        //     [InitialValue(long.MaxValue)]
-        //     long frame_number { get; set; }
 
-        //     [InitialValue(0x00)]
-        //     byte data { get; set; }
 
-        //     [InitialValue(0x00)]
-        //     ushort type { get; set; }
-        // }
-        public interface BufferOutControl : IBus
+        public interface PacketInBus : IBus
         {
-            [InitialValue(false)]
-            bool ready { get; set; }
+            [InitialValue(0)]
+            uint bytes_left { get; set; }
 
+            [InitialValue(long.MaxValue)]
+            long frame_number { get; set; }
+
+            [InitialValue(0x00)]
+            ushort type { get; set; }
+
+            [InitialValue(0x00)]
+            byte data { get; set; }
         }
+
+
     }
 }

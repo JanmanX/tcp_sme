@@ -5,19 +5,13 @@ namespace TCPIP
 {
     public partial class Transport
     {
-        public interface SegmentBusIn : IBus
+        public interface PacketInBus : IBus
         {
-            [InitialValue(false)]
-            bool valid { get; set; } // Indicates whether the current data is valid
-
             [InitialValue(0x00)]
             uint ip_id { get; set; } // 32 bits so that we can have ipv4 and ipv6 IDs
 
             [InitialValue(long.MaxValue)]
             long frame_number { get; set; }
-
-            [InitialValue(0x00)]
-            uint fragment_offset { get; set; } // offset in bytes for protocols supporting this (IPv4)
 
             [InitialValue(0x00)]
             byte data { get; set; }
@@ -42,15 +36,6 @@ namespace TCPIP
             ulong dst_ip_addr_0 { get; set; }
             [InitialValue(0x00)]
             ulong dst_ip_addr_1 { get; set; }
-        }
-
-        public interface SegmentBusInControl : IBus
-        {
-            [InitialValue(true)]
-            bool ready { get; set; } // Indicates whether the DataGramBusIn can be written to
-
-            [InitialValue(false)]
-            bool skip { get; set; } // Whether we want the next frame
         }
 
         public interface SegmentBusOut : IBus

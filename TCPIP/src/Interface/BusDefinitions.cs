@@ -4,8 +4,6 @@ namespace TCPIP
 {
     public partial class Interface
     {
-
-
         // Busses to user
         public interface InterfaceBus : IBus
         {
@@ -25,7 +23,7 @@ namespace TCPIP
 
         }
 
-        public interface InterfaceBusControl : IBus
+        public interface InterfaceControlBus : IBus
         {
             [InitialValue(false)]
             bool valid { get; set; }

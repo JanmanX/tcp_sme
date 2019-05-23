@@ -5,36 +5,44 @@ using SME.Components;
 
 namespace TCPIP
 {
-	[ClockedProcess]
+    [ClockedProcess]
     public partial class Transport : SimpleProcess
     {
+        ////////////////////////////// Busses /////////////////////////////////
+        // PacketIn
         [InputBus]
-        private readonly Transport.SegmentBusIn segmentBusIn;
-
-        [OutputBus]
-        public readonly SegmentBusInControl segmentBusInControl
-                = Scope.CreateBus<SegmentBusInControl>();
-
+        private readonly ProducerControlBus packetInProducerControlBus;
         [InputBus]
-        public TransportBus transportBus;
-
+        private readonly PacketInBus packetInBus;
         [OutputBus]
-        public readonly TransportControlBus transportControlBus = Scope.CreateBus<TransportControlBus>();
+        private readonly ConsumerControlBus packetInConsumerControlBus = Scope.CreateBus<ConsumerControlBus>();
 
-
+        // DataOut
+        [InputBus]
+        private readonly DataOutBus dataOutBus;
+        [InputBus]
+        private readonly ProducerControlBus dataOutProducerControlBus;
         [OutputBus]
-        public readonly DataInBus dataInBus = Scope.CreateBus<DataInBus>();
+        private readonly ConsumerControlBus dataOutConsumerControlBus = Scope.CreateBus<ConsumerControlBus>();
+
+        // Interface
+        [InputBus]
+        private readonly InterfaceBus interfaceBus;
+        [OutputBus]
+        private readonly InterfaceControlBus interfaceControlBus = Scope.CreateBus<InterfaceControlBus>();
+
 
 
         // Local variables
         private enum TransportProcessState
         {
-            Receiving,  // Reading an incoming packet
-            Passing,    // Passing data of an incoming packet to a buffer (Data_in)
-            Sending,    // Sending a data packet out
+            Receive,  // Reading an incoming packet
+            Pass,    // Passing data of an incoming packet to a buffer (Data_in)
+            Send,    // Sending a data packet out
             Control,    // Control work on connections (handshakes, conn. termination)
+            Idle,     // Nothing to do
         }
-        private TransportProcessState state = TransportProcessState.Receiving;
+        private TransportProcessState state = TransportProcessState.Receive;
 
         private const uint NUM_PCB = 10;
         private PCB[] pcbs = new PCB[NUM_PCB];
@@ -42,7 +50,7 @@ namespace TCPIP
         private const int BUFFER_SIZE = 100;
         private byte[] buffer_in = new byte[BUFFER_SIZE];
         private uint idx_in = 0x00;
-        private bool read = true; // Inidicates whetehr process is writing from local buffer
+        private bool read = true; // Indicates whether process is writing from local buffer
 
         private struct PassData
         {
@@ -56,7 +64,7 @@ namespace TCPIP
             public uint bytes_sent; // Number of bytes sent
         }
         private PassData passData;
-        private uint ip_id = 0x00;
+        private uint ip_id = 0x00; // Current ip_id
 
         // WRITE
         private byte[] buffer_out = new byte[BUFFER_SIZE];
@@ -69,32 +77,89 @@ namespace TCPIP
         }
 
 
+        protected override void OnTick()
+        {
+            switch (state)
+            {
+                case TransportProcessState.Idle:
+                    Idle();
+                    break;
+                case TransportProcessState.Receive:
+                    Receive();
+                    break;
+                case TransportProcessState.Pass:
+                    Pass();
+                    break;
+                case TransportProcessState.Send:
+                    Send();
+                    break;
+                case TransportProcessState.Control:
+                    Control();
+                    break;
+            }
+        }
+
+        ////////////////////////////// State functions ////////////////////////
+        private void StartIdle()
+        {
+            state = TransportProcessState.Idle;
+
+            // Reset all consumer busses
+            dataOutConsumerControlBus.ready = false;
+            packetInConsumerControlBus.ready = false;
+        }
+
+        private void Idle()
+        {
+            // Check control busses for work to do
+            if (packetInProducerControlBus.available)
+            {
+                StartReceive();
+            }
+            else if (interfaceBus.valid)
+            {
+                StartControl();
+            }
+            else if (dataOutProducerControlBus.available)
+            {
+                StartSending();
+            }
+        }
+
+        private void StartReceive()
+        {
+            state = TransportProcessState.Receive;
+
+            // Ready
+            packetInConsumerControlBus.ready = true;
+        }
+
         void Receive()
         {
             // If invalid, skip
-            if (segmentBusIn.valid == false)
+            if (packetInProducerControlBus.valid == false)
             {
-                dataInBus.valid = false;
                 return;
             }
 
             // If new segment received, reset
-            if (segmentBusIn.ip_id != ip_id)
+            if (packetInBus.ip_id != ip_id)
             {
-                ip_id = segmentBusIn.ip_id;
+                ip_id = packetInBus.ip_id;
+
+                // The rest could be done in StartReceive(), but keeping it 
+                // here might enable us to resume parsing
                 idx_in = 0x00;
-                state = TransportProcessState.Receiving;
                 read = true;
-                dataInBus.valid = false;
             }
 
 
-            if (read && idx_in < BUFFER_SIZE)
+            if (read && idx_in < buffer_in.Length)
             {
-                buffer_in[idx_in++] = segmentBusIn.data;
+                buffer_in[idx_in++] = packetInBus.data;
 
                 // Processing
-                switch (segmentBusIn.protocol)
+                switch (packetInBus.protocol)
                 {
                     case (byte)IPv4.Protocol.TCP:
                         // End of header, start parsing
@@ -112,29 +177,38 @@ namespace TCPIP
                             ParseUDP();
                         }
 
-                    break;
+                        break;
                 }
             }
         }
 
+
+        private void StartPass()
+        {
+            state = TransportProcessState.Pass;
+
+            // Set busses
+            packetInConsumerControlBus.ready = true;
+            dataOutConsumerControlBus.ready = false;
+        }
+
         void Pass()
         {
-            // If invalid, skip
-            if (segmentBusIn.valid == false)
+            // XXX: If invalid, skip and wait till next clock
+            if (packetInProducerControlBus.valid == false)
             {
-                dataInBus.valid = false;
                 return;
             }
 
             // If new segment received, reset
-            if (segmentBusIn.ip_id != ip_id)
+            if (packetInBus.ip_id != ip_id)
             {
                 ip_id = segmentBusIn.ip_id;
                 idx_in = 0x00;
                 state = TransportProcessState.Receiving;
                 read = true;
                 dataInBus.valid = false;
-				return;
+                return;
             }
 
 
@@ -180,22 +254,9 @@ namespace TCPIP
             Console.WriteLine($"Written: {(char)segmentBusIn.data}");
         }
 
-        void StartPass(int socket, uint ip_id, uint tcp_seq, uint length)
-        {
-            Console.WriteLine("Starting to Pass!");
-            passData.socket = socket;
-            passData.ip_id = ip_id;
-            passData.tcp_seq = tcp_seq;
-            passData.length = length;
-
-            state = TransportProcessState.Passing;
-
-        }
-
         void Send()
         {
             // TODO
-
         }
 
         private void Control()
@@ -289,28 +350,19 @@ namespace TCPIP
         }
 
 
-
-        protected override void OnTick()
+        void StartPass(int socket, uint ip_id, uint tcp_seq, uint length)
         {
-            switch (state)
-            {
-                case TransportProcessState.Receiving:
-					Receive();
-                    break;
-                case TransportProcessState.Passing:
-					Pass();
-                    break;
-                case TransportProcessState.Sending:
-					Send();
-                    break;
-                case TransportProcessState.Control:
-					Control();
-                    break;
-            }
-       }
+            Console.WriteLine("Starting to Pass!");
+            passData.socket = socket;
+            passData.ip_id = ip_id;
+            passData.tcp_seq = tcp_seq;
+            passData.length = length;
 
+            state = TransportProcessState.Passing;
 
-        // Helper functions
+        }
+
+        ////////////////////////// Helper functions ///////////////////////////
         private uint GetFreePCB()
         {
             for (uint i = 0; i < pcbs.Length; i++)
@@ -322,6 +374,7 @@ namespace TCPIP
             }
             return -1;
         }
+
 
         private void ResetPCB(uint socket)
         {
