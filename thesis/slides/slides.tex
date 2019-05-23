@@ -130,7 +130,7 @@
 \end{frame}
 
 \section{Challenges}
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{Challenges}
 
 \begin{columns}
@@ -141,11 +141,29 @@
   \item<3-> Data de-multiplexing
   \item<4-> Limited (fast) memory
   \item<5-> Information sharing is by design hard in SME
+  \item<6-> Fragmented IP packets
 \end{itemize}
 \end{column}
 \begin{column}{0.5\textwidth}
 \includegraphics<1>[scale=0.5]{congest.eps}
 
+\begin{overlayarea}{\linewidth}{3cm}
+  \begin{onlyenv}<2>
+  \begin{lstlisting}[language=c,frame=single]
+// These are not allowed
+O.M = new Func<int>(() => 
+{ return 42; });
+
+void Method(ref int x) {}
+
+int* p1 = &x;
+  \end{lstlisting}
+  \end{onlyenv}
+\end{overlayarea}  
+
+\begin{onlyenv}<4>
+\textbf{Packets up to 65,535 bytes!}
+\end{onlyenv}
 %\includegraphics<2>{B}
 %\includegraphics<3>{C}
 \end{column}
