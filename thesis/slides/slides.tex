@@ -130,7 +130,7 @@
 \end{frame}
 
 \section{Challenges}
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{Challenges}
 
 \begin{columns}
@@ -145,6 +145,22 @@
 \end{column}
 \begin{column}{0.5\textwidth}
 \includegraphics<1>[scale=0.5]{congest.eps}
+
+\begin{overlayarea}{\linewidth}{3cm}
+  \begin{onlyenv}<2>
+  \begin{lstlisting}[language=c,frame=single]
+// These are not allowed
+O.M = new Func<int>(() => 
+{ return 42; });
+
+void Method(ref int x) {}
+
+int* p1 = &x;
+  \end{lstlisting}
+
+
+  \end{onlyenv}
+\end{overlayarea}  
 
 %\includegraphics<2>{B}
 %\includegraphics<3>{C}
