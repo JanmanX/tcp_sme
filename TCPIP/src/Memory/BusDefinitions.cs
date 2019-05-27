@@ -27,13 +27,14 @@ namespace TCPIP
             [InitialValue(long.MaxValue)]
             long frame_number { get; set; }
 
+            [InitialValue(long.MaxValue)]
+            long ip_id { get; set; }
+
             [InitialValue(0x00)]
             ushort type { get; set; }
 
             [InitialValue(0x00)]
             byte data { get; set; }
         }
-
-
     }
 }

@@ -19,19 +19,23 @@ namespace TCPIP
 
         // DataOut
         [InputBus]
-        private readonly DataOutBus dataOutBus;
+        private readonly DataOutReadBus dataOutReadBus;
         [InputBus]
         private readonly ProducerControlBus dataOutProducerControlBus;
         [OutputBus]
         private readonly ConsumerControlBus dataOutConsumerControlBus = Scope.CreateBus<ConsumerControlBus>();
+
+        // DataIn
+        [OutputBus]
+        private readonly DataInWriteBus dataInWriteBus = Scope.CreateBus<DataInWriteBus>();
+        [InputBus]
+        private readonly DataInWriteControlBus dataInWriteControlBus; 
 
         // Interface
         [InputBus]
         private readonly InterfaceBus interfaceBus;
         [OutputBus]
         private readonly InterfaceControlBus interfaceControlBus = Scope.CreateBus<InterfaceControlBus>();
-
-
 
         // Local variables
         private enum TransportProcessState
@@ -42,7 +46,7 @@ namespace TCPIP
             Control,    // Control work on connections (handshakes, conn. termination)
             Idle,     // Nothing to do
         }
-        private TransportProcessState state = TransportProcessState.Receive;
+        private TransportProcessState state = TransportProcessState.Idle;
 
         private const uint NUM_PCB = 10;
         private PCB[] pcbs = new PCB[NUM_PCB];
@@ -61,7 +65,7 @@ namespace TCPIP
 
             // Local info
             public byte high_byte; // High byte for checksum calculation
-            public uint bytes_sent; // Number of bytes sent
+            public uint bytes_passed; // Number of bytes passed
         }
         private PassData passData;
         private uint ip_id = 0x00; // Current ip_id
@@ -102,12 +106,10 @@ namespace TCPIP
         ////////////////////////////// State functions ////////////////////////
         private void StartIdle()
         {
-            state = TransportProcessState.Idle;
+            ResetAllBusses();
 
-            // Reset all consumer busses
-            dataOutConsumerControlBus.ready = false;
-            packetInConsumerControlBus.ready = false;
-        }
+            state = TransportProcessState.Idle;
+       }
 
         private void Idle()
         {
@@ -132,27 +134,26 @@ namespace TCPIP
 
             // Ready
             packetInConsumerControlBus.ready = true;
+
+            // Internal variables
+            read = true;
+            idx_in = 0;
         }
 
         void Receive()
         {
-            // If invalid, skip
+            // If invalid, reset
             if (packetInProducerControlBus.valid == false)
             {
+                StartIdle();
                 return;
             }
 
-            // If new segment received, reset
-            if (packetInBus.ip_id != ip_id)
-            {
-                ip_id = packetInBus.ip_id;
-
-                // The rest could be done in StartReceive(), but keeping it 
-                // here might enable us to resume parsing
-                idx_in = 0x00;
+            // If we are receiving a new packet
+            if(packetInBus.ip_id != ip_id) {
                 read = true;
+                idx_in = 0;
             }
-
 
             if (read && idx_in < buffer_in.Length)
             {
@@ -165,8 +166,10 @@ namespace TCPIP
                         // End of header, start parsing
                         if (idx_in == TCP.HEADER_SIZE)
                         {
-                            read = false;
-                            ParseTCP();
+                            LOGGER.WARN("TCP CURRENTLY NOT SUPPORTED!");
+                            // TODO
+                            // read = false;
+                            // ParseTCP();
                         }
                         break;
 
@@ -176,65 +179,60 @@ namespace TCPIP
                             read = false;
                             ParseUDP();
                         }
-
                         break;
                 }
             }
-        }
+       }
 
 
-        private void StartPass()
+        private void StartPass(int pcb_idx, long ip_id, uint tcp_seq, uint length)
         {
             state = TransportProcessState.Pass;
 
+            passData.socket = socket;
+            passData.ip_id = ip_id;
+            passData.tcp_seq = tcp_seq;
+            passData.length = length;
+
             // Set busses
+            ResetAllBusses();
             packetInConsumerControlBus.ready = true;
-            dataOutConsumerControlBus.ready = false;
+ 
         }
 
         void Pass()
         {
-            // XXX: If invalid, skip and wait till next clock
+            // If packetIn suddenly invalid, start idle
             if (packetInProducerControlBus.valid == false)
             {
+                StartIdle();
                 return;
             }
-
-            // If new segment received, reset
-            if (packetInBus.ip_id != ip_id)
-            {
-                ip_id = segmentBusIn.ip_id;
-                idx_in = 0x00;
-                state = TransportProcessState.Receiving;
-                read = true;
-                dataInBus.valid = false;
-                return;
-            }
-
 
             // Checksum
             if (passData.bytes_sent % 2 == 0)
             {
                 pcbs[passData.socket].checksum_acc +=
-                    (uint)((passData.high_byte << 8) | dataInBus.data);
+                    (uint)((passData.high_byte << 8) | dataInWriteBus.data);
             }
             else
             {
-                passData.high_byte = dataInBus.data;
+                passData.high_byte = packetInBus.data;
             }
 
             // Set bus values
-            dataInBus.valid = true;
-            dataInBus.socket = passData.socket;
-            dataInBus.ip_id = passData.ip_id;
-            dataInBus.tcp_seq = passData.tcp_seq;
-            dataInBus.data = segmentBusIn.data;
-            dataInBus.finished = false;
-            dataInBus.invalidate = false;
-            passData.bytes_sent++;
+            dataInWriteBus.valid = true;
+            dataInWriteBus.socket = passData.socket;
+            dataInWriteBus.ip_id = passData.ip_id;
+            dataInWriteBus.tcp_seq = passData.tcp_seq;
+            dataInWriteBus.data = packetInBus.data;
+            dataInWriteBus.finished = false;
+            dataInWriteBus.invalidate = false;
+            passData.bytes_passed++;
+
 
             // If last byte
-            if (passData.bytes_sent >= passData.length)
+            if (passData.bytes_sent >= passData.length || packetInBus.bytes_left == 0)
             {
                 // Finish checksum
                 pcbs[passData.socket].checksum_acc = ((pcbs[passData.socket].checksum_acc & 0xFFFF)
@@ -242,19 +240,25 @@ namespace TCPIP
 
                 if (pcbs[passData.socket].checksum_acc == 0)
                 {
-                    dataInBus.finished = true;
+                    dataInWriteBus.finished = true;
                 }
                 else
                 {
                     Console.WriteLine($"Checksum failed: 0x{pcbs[passData.socket].checksum_acc:X}");
-                    dataInBus.invalidate = true;
+                    dataInWriteBus.invalidate = true;
                 }
-            }
 
-            Console.WriteLine($"Written: {(char)segmentBusIn.data}");
+                // Go to idle
+                StartIdle();
+            }
         }
 
-        void Send()
+        private void StartSend()
+        {
+
+        }
+
+        private void Send()
         {
             // TODO
         }
@@ -350,18 +354,6 @@ namespace TCPIP
         }
 
 
-        void StartPass(int socket, uint ip_id, uint tcp_seq, uint length)
-        {
-            Console.WriteLine("Starting to Pass!");
-            passData.socket = socket;
-            passData.ip_id = ip_id;
-            passData.tcp_seq = tcp_seq;
-            passData.length = length;
-
-            state = TransportProcessState.Passing;
-
-        }
-
         ////////////////////////// Helper functions ///////////////////////////
         private uint GetFreePCB()
         {
@@ -386,6 +378,14 @@ namespace TCPIP
             pcbs[socket].l_port = 0;
             pcbs[socket].protocol = 0;
             pcbs[socket].state = 0;
+        }
+
+        private void ResetAllBusses()
+        {
+            dataOutConsumerControlBus.ready = false;
+            packetInConsumerControlBus.ready = false;
+
+            interfaceControlBus.valid = false;
         }
     }
 }
