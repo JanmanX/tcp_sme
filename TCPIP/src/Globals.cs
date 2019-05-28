@@ -9,15 +9,34 @@ namespace TCPIP
     public interface ConsumerControlBus : IBus
     {
         [InitialValue(false)]
-        bool ready { get; set; } // Are we ready to receive data in the pipeline?
+        bool ready { get; set; }
     }
 
-    public interface ProducerControlBus : IBus
+    public interface ComputeProducerControlBus : IBus
     {
-        [InitialValue(true)]
-        bool available { get; set; } // Stuff is ready to be sent, possibly waiting for ControlConsumer ready
-        bool valid { get; set; } // The current data on the data bus is ready to be read now
+        [InitialValue(false)]
+        bool available { get; set; } 
+
+        [InitialValue(false)]
+        bool valid { get; set; } 
+
+        // Optional
+        [InitialValue(0)]
+        uint bytes_left { get; set; }
     }
+
+    public interface BufferProducerControlBus : IBus
+    {
+        [InitialValue(false)]
+        bool available { get; set; } 
+
+        [InitialValue(false)]
+        bool valid { get; set; }
+
+        [InitialValue(0)]
+        uint bytes_left { get; set; } 
+    }
+
 
 
     enum LayerProcessState : byte
