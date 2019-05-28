@@ -19,9 +19,9 @@ namespace TCPIP
 
         // DataOut
         [InputBus]
-        private readonly DataOutReadBus dataOutReadBus;
+        public readonly DataOutReadBus dataOutReadBus;
         [InputBus]
-        private readonly BufferProducerControlBus dataOutProducerControlBus;
+        public readonly BufferProducerControlBus dataOutProducerControlBus;
         [OutputBus]
         public readonly ConsumerControlBus dataOutConsumerControlBus = Scope.CreateBus<ConsumerControlBus>();
 
@@ -31,11 +31,11 @@ namespace TCPIP
         [OutputBus]
         public readonly ComputeProducerControlBus dataInProducerControlBus = Scope.CreateBus<ComputeProducerControlBus>();
         [InputBus]
-        private readonly ConsumerControlBus dataInConsumerControlBus;
+        public ConsumerControlBus dataInConsumerControlBus;
 
         // Interface
         [InputBus]
-        private readonly Interface.InterfaceBus interfaceBus;
+        public readonly Interface.InterfaceBus interfaceBus;
         [OutputBus]
         public readonly Interface.InterfaceControlBus interfaceControlBus = Scope.CreateBus<Interface.InterfaceControlBus>();
 
@@ -172,7 +172,7 @@ namespace TCPIP
                 {
                     case (byte)IPv4.Protocol.TCP:
                         // End of header, start parsing
-                        if (idx_in - 1 == TCP.HEADER_SIZE)
+                        if (idx_in + 1 == TCP.HEADER_SIZE)
                         {
                             LOGGER.WARN("TCP CURRENTLY NOT SUPPORTED!");
                             // TODO
@@ -182,9 +182,8 @@ namespace TCPIP
                         break;
 
                     case (byte)IPv4.Protocol.UDP:
-                        if (idx_in - 1 == UDP.HEADER_SIZE)
+                        if (idx_in + 1 == UDP.HEADER_SIZE)
                         {
-                            LOGGER.DEBUG("UDP HEADER");
                             read = false;
                             ParseUDP();
                         }
@@ -196,8 +195,6 @@ namespace TCPIP
 
         private void StartPass(int pcb_idx, uint ip_id, uint tcp_seq, uint length)
         {
-            LOGGER.DEBUG("StartPass()");
-
             state = TransportProcessState.Pass;
 
             passData.socket = pcb_idx;
@@ -219,8 +216,7 @@ namespace TCPIP
             }
 
             // if DataIn not ready, abort and start idle
-            //            if (dataInConsumerControlBus.ready == false)
-            if (false)
+            if (dataInConsumerControlBus.ready == false)
             {
                 StartIdle();
                 return;
