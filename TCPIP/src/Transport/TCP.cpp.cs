@@ -50,7 +50,7 @@ namespace TCPIP
                 acc += (ulong)((buffer_in[i] << 0x08
                                  | buffer_in[i + 1]));
             }
-            acc += segmentBusIn.pseudoheader_checksum;
+            acc += packetInBus.pseudoheader_checksum;
 
             // Add carry bits and do one-complement on 16 bits
             // Overflow  can max happen twice

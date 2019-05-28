@@ -17,24 +17,43 @@ namespace TCPIP
             int data_length { get; set; } // the size we are writing currently
             byte data { get; set; } // The data needed
         }
+    }
 
-
+    public partial class PacketIn
+    {
         public interface PacketInBus : IBus
         {
-            [InitialValue(0)]
-            uint bytes_left { get; set; }
+            [InitialValue(0x00)]
+            uint ip_id { get; set; } // 32 bits so that we can have ipv4 and ipv6 IDs
 
             [InitialValue(long.MaxValue)]
             long frame_number { get; set; }
 
-            [InitialValue(long.MaxValue)]
-            long ip_id { get; set; }
-
-            [InitialValue(0x00)]
-            ushort type { get; set; }
-
             [InitialValue(0x00)]
             byte data { get; set; }
+
+            [InitialValue(0x00)]
+            uint data_length { get; set; } // Length of the data to receive
+
+            [InitialValue(0x00)]
+            byte protocol { get; set; }
+
+            [InitialValue(0x00)]
+            ushort pseudoheader_checksum { get; set; }
+
+            // Up to 128 bit addressing
+            [InitialValue(0x00)]
+            ulong src_ip_addr_0 { get; set; }
+            [InitialValue(0x00)]
+            ulong src_ip_addr_1 { get; set; }
+
+            // Up to 128 bit addressing
+            [InitialValue(0x00)]
+            ulong dst_ip_addr_0 { get; set; }
+            [InitialValue(0x00)]
+            ulong dst_ip_addr_1 { get; set; }
         }
+
+
     }
 }
