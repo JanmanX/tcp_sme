@@ -11,31 +11,33 @@ namespace TCPIP
         ////////////////////////////// Busses /////////////////////////////////
         // PacketIn
         [InputBus]
-        private readonly ProducerControlBus packetInProducerControlBus;
+        public BufferProducerControlBus packetInProducerControlBus;
         [InputBus]
-        private readonly PacketInBus packetInBus;
+        public PacketIn.PacketInBus packetInBus;
         [OutputBus]
-        private readonly ConsumerControlBus packetInConsumerControlBus = Scope.CreateBus<ConsumerControlBus>();
+        public ConsumerControlBus packetInConsumerControlBus = Scope.CreateBus<ConsumerControlBus>();
 
         // DataOut
         [InputBus]
         private readonly DataOutReadBus dataOutReadBus;
         [InputBus]
-        private readonly ProducerControlBus dataOutProducerControlBus;
+        private readonly BufferProducerControlBus dataOutProducerControlBus;
         [OutputBus]
-        private readonly ConsumerControlBus dataOutConsumerControlBus = Scope.CreateBus<ConsumerControlBus>();
+        public readonly ConsumerControlBus dataOutConsumerControlBus = Scope.CreateBus<ConsumerControlBus>();
 
         // DataIn
         [OutputBus]
-        private readonly DataInWriteBus dataInWriteBus = Scope.CreateBus<DataInWriteBus>();
+        public readonly DataInWriteBus dataInWriteBus = Scope.CreateBus<DataInWriteBus>();
+        [OutputBus]
+        public readonly ComputeProducerControlBus dataInProducerControlBus = Scope.CreateBus<ComputeProducerControlBus>();
         [InputBus]
-        private readonly DataInWriteControlBus dataInWriteControlBus; 
+        private readonly ConsumerControlBus dataInConsumerControlBus; 
 
         // Interface
         [InputBus]
-        private readonly InterfaceBus interfaceBus;
+        private readonly Interface.InterfaceBus interfaceBus;
         [OutputBus]
-        private readonly InterfaceControlBus interfaceControlBus = Scope.CreateBus<InterfaceControlBus>();
+        public readonly Interface.InterfaceControlBus interfaceControlBus = Scope.CreateBus<Interface.InterfaceControlBus>();
 
         // Local variables
         private enum TransportProcessState
@@ -59,7 +61,6 @@ namespace TCPIP
         private struct PassData
         {
             public int socket;
-            public uint ip_id;
             public uint tcp_seq;
             public uint length;
 
@@ -75,9 +76,9 @@ namespace TCPIP
         private uint idx_out = 0x00;
         private bool write = false; // Inidicates whetehr process is writing from local buffer
 
-        public Transport(Transport.SegmentBusIn segmentBusIn)
+        public Transport()
         {
-            this.segmentBusIn = segmentBusIn ?? throw new ArgumentNullException(nameof(segmentBusIn));
+            // ... 
         }
 
 
@@ -118,18 +119,22 @@ namespace TCPIP
             {
                 StartReceive();
             }
-            else if (interfaceBus.valid)
+/*            else if (interfaceBus.valid)
             {
                 StartControl();
             }
             else if (dataOutProducerControlBus.available)
             {
-                StartSending();
+                StartSend();
             }
+
+            */
         }
 
         private void StartReceive()
         {
+            ResetAllBusses();
+
             state = TransportProcessState.Receive;
 
             // Ready
@@ -185,19 +190,17 @@ namespace TCPIP
        }
 
 
-        private void StartPass(int pcb_idx, long ip_id, uint tcp_seq, uint length)
+        private void StartPass(int pcb_idx, uint ip_id, uint tcp_seq, uint length)
         {
             state = TransportProcessState.Pass;
 
-            passData.socket = socket;
-            passData.ip_id = ip_id;
+            passData.socket = pcb_idx;
             passData.tcp_seq = tcp_seq;
             passData.length = length;
 
             // Set busses
             ResetAllBusses();
             packetInConsumerControlBus.ready = true;
- 
         }
 
         void Pass()
@@ -209,8 +212,14 @@ namespace TCPIP
                 return;
             }
 
-            // Checksum
-            if (passData.bytes_sent % 2 == 0)
+            // if DataIn not ready, abort and start idle
+            if (dataInConsumerControlBus.ready == false) {
+                StartIdle();
+                return;
+            }
+
+            // calculate partial checksum
+            if (passData.bytes_passed % 2 == 0)
             {
                 pcbs[passData.socket].checksum_acc +=
                     (uint)((passData.high_byte << 8) | dataInWriteBus.data);
@@ -220,29 +229,26 @@ namespace TCPIP
                 passData.high_byte = packetInBus.data;
             }
 
-            // Set bus values
-            dataInWriteBus.valid = true;
+            // Set control bus values
+            dataInProducerControlBus.valid = true;
+            dataInProducerControlBus.bytes_left = packetInProducerControlBus.bytes_left; // TODO: Compare with passData.length - passData.bytes_passed?
+
+            // data bus values
             dataInWriteBus.socket = passData.socket;
-            dataInWriteBus.ip_id = passData.ip_id;
             dataInWriteBus.tcp_seq = passData.tcp_seq;
             dataInWriteBus.data = packetInBus.data;
-            dataInWriteBus.finished = false;
             dataInWriteBus.invalidate = false;
             passData.bytes_passed++;
 
 
             // If last byte
-            if (passData.bytes_sent >= passData.length || packetInBus.bytes_left == 0)
+            if (packetInProducerControlBus.bytes_left == 0)
             {
                 // Finish checksum
                 pcbs[passData.socket].checksum_acc = ((pcbs[passData.socket].checksum_acc & 0xFFFF)
                         + (pcbs[passData.socket].checksum_acc >> 0x10));
 
-                if (pcbs[passData.socket].checksum_acc == 0)
-                {
-                    dataInWriteBus.finished = true;
-                }
-                else
+                if (pcbs[passData.socket].checksum_acc != 0)
                 {
                     Console.WriteLine($"Checksum failed: 0x{pcbs[passData.socket].checksum_acc:X}");
                     dataInWriteBus.invalidate = true;
@@ -252,6 +258,7 @@ namespace TCPIP
                 StartIdle();
             }
         }
+
 
         private void StartSend()
         {
@@ -263,8 +270,14 @@ namespace TCPIP
             // TODO
         }
 
+        private void StartControl()
+        {
+
+        }
+
         private void Control()
         {
+           /* 
             if (transportBus.valid)
             {
                 if (transportBus.socket < 0 || transportBus.socket > pcbs.Length)
@@ -283,7 +296,7 @@ namespace TCPIP
                                 ExitStatus.EINVAL);
                         LOGGER.DEBUG("Wrong interfaceFunction in Transport!");
                         break;
-
+            */
                     /*
                        case InterfaceFunction.ACCEPT:
                     // TODO
@@ -297,7 +310,7 @@ namespace TCPIP
                     // TODO
                     break;
                     */
-
+                /* 
                     case InterfaceFunction.OPEN:
                         uint socket = GetFreePCB();
                         if (socket < 0)
@@ -343,23 +356,28 @@ namespace TCPIP
                         break;
                 }
             }
+
+            */
         }
 
         private void ControlReturn(byte interface_function, uint socket, uint exit_status)
         {
+            /* 
             transportControlBus.valid = true;
             transportControlBus.interface_function = interface_function;
             transportControlBus.socket = socket;
             transportControlBus.exit_status = exit_status;
+
+            */
         }
 
 
         ////////////////////////// Helper functions ///////////////////////////
-        private uint GetFreePCB()
+        private int GetFreePCB()
         {
-            for (uint i = 0; i < pcbs.Length; i++)
+            for (int i = 0; i < pcbs.Length; i++)
             {
-                if (pcbs[i] == PCB_STATE.CLOSED)
+                if (pcbs[i].state == (byte)PCB_STATE.CLOSED)
                 {
                     return i;
                 }
