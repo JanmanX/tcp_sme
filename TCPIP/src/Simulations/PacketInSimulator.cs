@@ -10,6 +10,9 @@ namespace TCPIP
 {
     public class PacketInSimulator : SimulationProcess
     {
+        [InputBus]
+        public ConsumerControlBus consumerControlBus;
+
         [OutputBus]
         public readonly PacketIn.PacketInBus packetInBus = Scope.CreateBus<PacketIn.PacketInBus>();
 
@@ -28,33 +31,38 @@ namespace TCPIP
         {
             // Init
             await ClockAsync();
+            await ClockAsync();
+            await ClockAsync();
+            await ClockAsync();
+
+
+            bufferProducerControlBus.available = true;
 
 
             int frame_number = 0;
             uint ip_id = 1;
             string[] files = Directory.GetFiles(dir);
-            Array.Sort(files);
+            Array.Sort(files); // Are dot net developers even human?
 
             foreach (var file in files)
             {
                 byte[] bytes = File.ReadAllBytes(file);
-                Console.WriteLine(Encoding.Default.GetString(bytes));
-                Console.WriteLine($"Sending packet {bytes[0]}{bytes[1]}{bytes[2]}{bytes[3]}");
                 uint bytes_left = (uint)bytes.Length;
                 foreach (byte b in bytes)
                 {
-                    // Control bus
-                    bufferProducerControlBus.bytes_left = bytes_left--;
-                    bufferProducerControlBus.available = true;
-                    bufferProducerControlBus.valid = true;
+                    do {
+                        // Control bus
+                        bufferProducerControlBus.bytes_left = bytes_left--;
+                        bufferProducerControlBus.valid = true;
 
-                    // Data bus
-                    packetInBus.frame_number = frame_number;
-                    packetInBus.ip_id = ip_id;
-                    packetInBus.protocol = (byte)IPv4.Protocol.UDP;
-                    packetInBus.data = b;
+                        // Data bus
+                        packetInBus.frame_number = frame_number;
+                        packetInBus.ip_id = ip_id;
+                        packetInBus.protocol = (byte)IPv4.Protocol.UDP;
+                        packetInBus.data = b;
 
-                    await ClockAsync();
+                        await ClockAsync();
+                    } while(consumerControlBus.ready == false); // resend previous byte if consumer is not ready this cycle
                 }
 
                 ip_id++;

@@ -24,16 +24,22 @@ namespace TCPIP
 
 
                 // Graph simulator
-                int packet_out_mem_size = 8192;
-                var packet_out_mem = new TrueDualPortMemory<byte>(packet_out_mem_size);
-                var packet_out = new PacketOut(packet_out_mem,packet_out_mem_size);
+                // int packet_out_mem_size = 8192;
+                // var packet_out_mem = new TrueDualPortMemory<byte>(packet_out_mem_size);
+                //var packet_out = new PacketOut(packet_out_mem,packet_out_mem_size);
+                PacketInSimulator simulator = new PacketInSimulator("data/transport/udp_25/");
+                // var internetIn = new InternetIn(simulator.datagramBusIn,packet_out.bus_in_internet);
+                // var internetOut = new InternetOut(simulator.datagramBusOut,
+                //                                   packet_out.bus_out,
+                //                                   packet_out.bus_out_control);
+                var transport = new Transport();
+                transport.packetInProducerControlBus = simulator.bufferProducerControlBus;
+                transport.packetInBus = simulator.packetInBus;
 
-                var simulator = new GraphFileSimulator("data/icmp_data/");
-                var internetIn = new InternetIn(simulator.datagramBusIn,packet_out.bus_in_internet);
-                var internetOut = new InternetOut(simulator.datagramBusOut,
-                                                  packet_out.bus_out,
-                                                  packet_out.bus_out_control);
-                var transport = new Transport(internetIn.segmentBusIn,packet_out.bus_in_transport);
+                simulator.consumerControlBus = transport.packetInConsumerControlBus;
+
+                var p = new PrinterProcess(transport.dataInWriteBus, transport.dataInProducerControlBus);
+                transport.dataInConsumerControlBus = p.consumerControlBus;
 
                 // Use fluent syntax to configure the simulator.
                 // The order does not matter, but `Run()` must be
@@ -43,8 +49,8 @@ namespace TCPIP
                 // for interfacing with other VHDL code or board pins
 
                 sim
-//                    .AddTopLevelOutputs(dataInReader.)
-                    .AddTopLevelInputs(simulator.datagramBusIn)
+                    .AddTopLevelOutputs(transport.dataInWriteBus)
+                    .AddTopLevelInputs(simulator.packetInBus)
                     .BuildCSVFile()
                     //.BuildVHDL()
                     .Run();
