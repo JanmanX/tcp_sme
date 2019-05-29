@@ -147,7 +147,6 @@ namespace TCPIP
 
         void Receive()
         {
-            LOGGER.DEBUG("Receive()");
             // If invalid, reset
             if (packetInProducerControlBus.valid == false)
             {
@@ -172,17 +171,16 @@ namespace TCPIP
                 {
                     case (byte)IPv4.Protocol.TCP:
                         // End of header, start parsing
-                        if (idx_in + 1 == TCP.HEADER_SIZE)
+                        if (idx_in == TCP.HEADER_SIZE)
                         {
                             LOGGER.WARN("TCP CURRENTLY NOT SUPPORTED!");
-                            // TODO
                             // read = false;
                             // ParseTCP();
                         }
                         break;
 
                     case (byte)IPv4.Protocol.UDP:
-                        if (idx_in + 1 == UDP.HEADER_SIZE)
+                        if (idx_in == UDP.HEADER_SIZE)
                         {
                             read = false;
                             ParseUDP();
@@ -200,6 +198,7 @@ namespace TCPIP
             passData.socket = pcb_idx;
             passData.tcp_seq = tcp_seq;
             passData.length = length;
+            passData.bytes_passed = 0;
 
             // Set busses
             ResetAllBusses();
@@ -235,7 +234,7 @@ namespace TCPIP
 
             // Set control bus values
             dataInProducerControlBus.valid = true;
-            dataInProducerControlBus.bytes_left = packetInProducerControlBus.bytes_left; // TODO: Compare with passData.length - passData.bytes_passed?
+            dataInProducerControlBus.bytes_left = passData.length - passData.bytes_passed;
 
             // data bus values
             dataInWriteBus.socket = passData.socket;
@@ -258,6 +257,7 @@ namespace TCPIP
                     dataInWriteBus.invalidate = true;
                 }
 
+                Console.WriteLine("Ending packet");
                 // Go to idle
                 StartIdle();
             }
@@ -403,10 +403,19 @@ namespace TCPIP
 
         private void ResetAllBusses()
         {
-            dataOutConsumerControlBus.ready = false;
+            // PacketIn
             packetInConsumerControlBus.ready = false;
 
+            // DataOut
+            dataOutConsumerControlBus.ready = false;
+
+            // DataIn
+            dataInProducerControlBus.valid = false;
+
+            // Interface
             interfaceControlBus.valid = false;
+
+            // TODO: PacketOut
         }
     }
 }

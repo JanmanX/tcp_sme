@@ -18,7 +18,7 @@ namespace TCPIP
         public const uint LENGTH_OFFSET_0 = 0x04;
         public const uint LENGTH_OFFSET_1 = 0x05;
 
-        public const uint CHECKSUM_OFFSET_0 = 0x04;
-        public const uint CHECKSUM_OFFSET_1 = 0x05;
+        public const uint CHECKSUM_OFFSET_0 = 0x06;
+        public const uint CHECKSUM_OFFSET_1 = 0x07;
     }
 }
