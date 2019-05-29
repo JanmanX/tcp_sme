@@ -53,7 +53,6 @@ namespace TCPIP
                                  | buffer_in[UDP.LENGTH_OFFSET_1])
                                  - UDP.HEADER_SIZE);
 
-            LOGGER.DEBUG($"0x{packetInBus.pseudoheader_checksum:X}");
             LOGGER.DEBUG($"Parsed UDP: src_port: {src_port}, dst_port: {dst_port}, length: {data_length+UDP.HEADER_SIZE}, checksum: 0x{checksum:X}");
 
             // Start passing

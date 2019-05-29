@@ -119,10 +119,11 @@ namespace TCPIP
             {
                 StartReceive();
             }
-            /*            else if (interfaceBus.valid)
-                        {
-                            StartControl();
-                        }
+            else if (interfaceBus.valid)
+            {
+                StartControl();
+            }
+            /*
                         else if (dataOutProducerControlBus.available)
                         {
                             StartSend();
@@ -275,103 +276,139 @@ namespace TCPIP
 
         private void StartControl()
         {
+            ResetAllBusses();
 
+            state = TransportProcessState.Control;
         }
 
         private void Control()
         {
-            /* 
-             if (transportBus.valid)
-             {
-                 if (transportBus.socket < 0 || transportBus.socket > pcbs.Length)
-                 {
-                     ControlReturn(transportBus.interface_function,
-                             transportBus.socket,
-                             ExitStatus.EINVAL);
-                     return;
-                 }
+            // Go idle if request invalid
+            if (interfaceBus.valid == false)
+            {
+                StartIdle();
+                return;
+            }
 
-                 switch (transportBus.interfaceFunction)
-                 {
-                     case InterfaceFunction.INVALID:
-                     default:
-                         ControlReturn(transportBus.interface_function, 0,
-                                 ExitStatus.EINVAL);
-                         LOGGER.DEBUG("Wrong interfaceFunction in Transport!");
-                         break;
-             */
-            /*
-               case InterfaceFunction.ACCEPT:
-            // TODO
-            break;
+            // Check for valid socket number
+            if (interfaceBus.request.socket < 0 || interfaceBus.request.socket > pcbs.Length)
+            {
+                ControlReturn(interfaceControlBus.interface_function,
+                        (byte)ExitStatus.EINVAL);
+                return;
+            }
 
-            case InterfaceFunction.BIND: // Ignored?
-            // TODO
-            break;
 
-            case InterfaceFunction.CONNECT:
-            // TODO
-            break;
-            */
-            /* 
-                case InterfaceFunction.OPEN:
-                    uint socket = GetFreePCB();
+            switch (interfaceBus.interface_function)
+            {
+                case (byte)InterfaceFunction.INVALID:
+                default:
+                    ControlReturn(interfaceBus.interface_function,
+                            (byte)ExitStatus.EINVAL);
+                    return;
+
+                case (byte)InterfaceFunction.LISTEN: 
+                {
+                    int socket = GetFreePCB();
+
+                    // no socket available
                     if (socket < 0)
                     {
-                        ControlReturn(transportBus.interface_function,
-                                transportBus.socket,
-                                ExitStatus.ENOSPC);
+                        ControlReturn(interfaceBus.interface_function,
+                                (byte)ExitStatus.ENOSPC);
                         return;
                     }
 
                     ResetPCB(socket);
 
-                    pcbs[socket].state = PCB_STATE.OPEN;
-                    pcbs[socket].protocol = transportBus.args.protocol;
-                    pcbs[socket].l_port = transportBus.args.port;
+                    pcbs[socket].state = (byte)PCB_STATE.LISTENING;
+                    pcbs[socket].protocol = interfaceBus.request.protocol;
+                    pcbs[socket].l_port = interfaceBus.request.port;
 
+                    // Do protocol-based operations here
                     switch (pcbs[socket].protocol)
                     {
-                        case (byte)IPv4.Protocol.TCP:
-                            // TODO: Start handshake here
-                            break;
+                       case (byte)IPv4.Protocol.UDP:
+                        default: // Protocol not supported. Error
+                            ControlReturn(interfaceBus.interface_function,
+                                (byte)ExitStatus.EPROTONOSUPPORT);
+                            return;
                     }
 
-                    ControlReturn(transportBus.interface_function,
-                            socket,
-                            ExitStatus.OK);
+                    ControlReturn(interfaceBus.interface_function,
+                            (byte)ExitStatus.OK);
+                    break;
+                }
+
+                case (byte)InterfaceFunction.ACCEPT:
+                    // TODO
                     break;
 
+                case (byte)InterfaceFunction.CONNECT:
+                {
+                    int socket = GetFreePCB();
 
-                case InterfaceFunction.CLOSE:
-                    switch (pcbs[transportBus.args.socket].protocol)
+                    // no socket available
+                    if (socket < 0)
+                    {
+                        ControlReturn(interfaceBus.interface_function,
+                                (byte)ExitStatus.ENOSPC);
+                        return;
+                    }
+
+                    ResetPCB(socket);
+
+                    pcbs[socket].state = (byte)PCB_STATE.CONNECTING;
+                    pcbs[socket].protocol = interfaceBus.request.protocol;
+                    pcbs[socket].l_port = interfaceBus.request.port;
+                    pcbs[socket].f_address = interfaceBus.request.ip;
+
+                    // Do protocol-based operations here
+                    switch (pcbs[socket].protocol)
+                    {
+                        case (byte)IPv4.Protocol.UDP:
+                            pcbs[socket].state = (byte)PCB_STATE.CONNECTED;
+                            break;
+
+
+                        case (byte)IPv4.Protocol.TCP:
+                        default: // Protocol not supported. Error
+                            ControlReturn(interfaceBus.interface_function,
+                                (byte)ExitStatus.EPROTONOSUPPORT);
+                            return;
+                    }
+
+                    ControlReturn(interfaceBus.interface_function,
+                            (byte)ExitStatus.OK);
+                    break;
+                }
+
+                case (byte)InterfaceFunction.CLOSE:
+                    switch (pcbs[interfaceBus.request.socket].protocol)
                     {
                         case (byte)IPv4.Protocol.TCP:
                             // TODO: TCP Finish sequence
                             break;
                     }
 
-                    pcbs[transportBus.socket].state = PCB_STATE.CLOSED;
+                    pcbs[interfaceBus.request.socket].state = (byte)PCB_STATE.CLOSED;
                     break;
 
-                case InterfaceFunction.LISTEN:
-                    pcbs[transportBus.socket].state = PCB_STATE.LISTENING;
-                    break;
+
             }
         }
 
-        */
-        }
-
-        private void ControlReturn(byte interface_function, uint socket, uint exit_status)
+        private void ControlReturn(byte interface_function, byte exit_status,
+                                    InterfaceData response = default(InterfaceData),
+                                    InterfaceData request = default(InterfaceData))
         {
-            /* 
-            transportControlBus.valid = true;
-            transportControlBus.interface_function = interface_function;
-            transportControlBus.socket = socket;
-            transportControlBus.exit_status = exit_status;
+            interfaceControlBus.valid = true;
+            interfaceControlBus.interface_function = interface_function;
+            interfaceControlBus.response = response;
+            interfaceControlBus.request = request;
+            interfaceControlBus.exit_status = exit_status;
 
-            */
+            StartIdle();
         }
 
 
@@ -389,8 +426,13 @@ namespace TCPIP
         }
 
 
-        private void ResetPCB(uint socket)
+        private void ResetPCB(int socket)
         {
+            if (socket < 0 || socket > pcbs.Length)
+            {
+                return;
+            }
+
             pcbs[socket].bytes_received = 0;
             pcbs[socket].checksum_acc = 0;
             pcbs[socket].f_address = 0;

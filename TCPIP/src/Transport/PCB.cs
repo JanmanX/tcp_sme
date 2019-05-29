@@ -12,7 +12,8 @@ namespace TCPIP
         OPEN = 1,
         LISTENING = 2,
         CONNECTED = 3, 
-        // Add more (waiting, listening, reserved)
+        CONNECTING = 4, // (Trying to connect to remote. Handshakes and stuff)
+        // Add more 
     }
 
     unsafe struct PCB
