@@ -8,7 +8,7 @@ namespace TCPIP
     {
         public void ParseUDP()
         {
-            for(int i = 0; i < UDP.HEADER_SIZE; i++)
+            for (int i = 0; i < UDP.HEADER_SIZE; i++)
             {
                 Console.Write($"0x{buffer_in[i]:X} ");
             }
@@ -22,7 +22,7 @@ namespace TCPIP
 
             // Find PCB
             int pcb_idx = -1;
-            for (int i = 0; i < NUM_PCB; i++)
+            for (int i = 0; i < NUM_SOCKETS; i++)
             {
                 if (pcbs[i].l_port == dst_port
                     && pcbs[i].f_port == src_port
@@ -39,21 +39,22 @@ namespace TCPIP
             }
 
             // Calculate header checksum
-            for(int i = 0; i < UDP.HEADER_SIZE; i += 2) {
+            for (int i = 0; i < UDP.HEADER_SIZE; i += 2)
+            {
                 pcbs[pcb_idx].checksum_acc += (ushort)((buffer_in[i] << 0x08
-                                 | buffer_in[i+1]));
+                                 | buffer_in[i + 1]));
             }
 
             // Get checksum. Used only for debug
             ushort checksum = (ushort)((buffer_in[UDP.CHECKSUM_OFFSET_0] << 0x08
                                  | buffer_in[UDP.CHECKSUM_OFFSET_1]));
-                              
+
             // Length
             ushort data_length = (ushort)((buffer_in[UDP.LENGTH_OFFSET_0] << 0x08
                                  | buffer_in[UDP.LENGTH_OFFSET_1])
                                  - UDP.HEADER_SIZE);
 
-            LOGGER.DEBUG($"Parsed UDP: src_port: {src_port}, dst_port: {dst_port}, length: {data_length+UDP.HEADER_SIZE}, checksum: 0x{checksum:X}");
+            LOGGER.DEBUG($"Parsed UDP: src_port: {src_port}, dst_port: {dst_port}, length: {data_length + UDP.HEADER_SIZE}, checksum: 0x{checksum:X}");
 
             // Start passing
             StartPass(pcb_idx, ip_id, 0, data_length);

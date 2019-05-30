@@ -50,8 +50,8 @@ namespace TCPIP
         }
         private TransportProcessState state = TransportProcessState.Idle;
 
-        private const uint NUM_PCB = 10;
-        private PCB[] pcbs = new PCB[NUM_PCB];
+        private const uint NUM_SOCKETS = 10;
+        private PCB[] pcbs = new PCB[NUM_SOCKETS];
 
         private const int BUFFER_SIZE = 100;
         private byte[] buffer_in = new byte[BUFFER_SIZE];
@@ -307,81 +307,81 @@ namespace TCPIP
                             (byte)ExitStatus.EINVAL);
                     return;
 
-                case (byte)InterfaceFunction.LISTEN: 
-                {
-                    int socket = GetFreePCB();
-
-                    // no socket available
-                    if (socket < 0)
+                case (byte)InterfaceFunction.LISTEN:
                     {
-                        ControlReturn(interfaceBus.interface_function,
-                                (byte)ExitStatus.ENOSPC);
-                        return;
-                    }
+                        int socket = GetFreePCB();
 
-                    ResetPCB(socket);
-
-                    pcbs[socket].state = (byte)PCB_STATE.LISTENING;
-                    pcbs[socket].protocol = interfaceBus.request.protocol;
-                    pcbs[socket].l_port = interfaceBus.request.port;
-
-                    // Do protocol-based operations here
-                    switch (pcbs[socket].protocol)
-                    {
-                       case (byte)IPv4.Protocol.UDP:
-                        default: // Protocol not supported. Error
+                        // no socket available
+                        if (socket < 0)
+                        {
                             ControlReturn(interfaceBus.interface_function,
-                                (byte)ExitStatus.EPROTONOSUPPORT);
+                                    (byte)ExitStatus.ENOSPC);
                             return;
-                    }
+                        }
 
-                    ControlReturn(interfaceBus.interface_function,
-                            (byte)ExitStatus.OK);
-                    break;
-                }
+                        ResetPCB(socket);
+
+                        pcbs[socket].state = (byte)PCB_STATE.LISTENING;
+                        pcbs[socket].protocol = interfaceBus.request.protocol;
+                        pcbs[socket].l_port = interfaceBus.request.port;
+
+                        // Do protocol-based operations here
+                        switch (pcbs[socket].protocol)
+                        {
+                            case (byte)IPv4.Protocol.UDP:
+                            default: // Protocol not supported. Error
+                                ControlReturn(interfaceBus.interface_function,
+                                    (byte)ExitStatus.EPROTONOSUPPORT);
+                                return;
+                        }
+
+                        ControlReturn(interfaceBus.interface_function,
+                                (byte)ExitStatus.OK);
+                        break;
+                    }
 
                 case (byte)InterfaceFunction.ACCEPT:
                     // TODO
                     break;
 
                 case (byte)InterfaceFunction.CONNECT:
-                {
-                    int socket = GetFreePCB();
-
-                    // no socket available
-                    if (socket < 0)
                     {
-                        ControlReturn(interfaceBus.interface_function,
-                                (byte)ExitStatus.ENOSPC);
-                        return;
-                    }
+                        int socket = GetFreePCB();
 
-                    ResetPCB(socket);
-
-                    pcbs[socket].state = (byte)PCB_STATE.CONNECTING;
-                    pcbs[socket].protocol = interfaceBus.request.protocol;
-                    pcbs[socket].l_port = interfaceBus.request.port;
-                    pcbs[socket].f_address = interfaceBus.request.ip;
-
-                    // Do protocol-based operations here
-                    switch (pcbs[socket].protocol)
-                    {
-                        case (byte)IPv4.Protocol.UDP:
-                            pcbs[socket].state = (byte)PCB_STATE.CONNECTED;
-                            break;
-
-
-                        case (byte)IPv4.Protocol.TCP:
-                        default: // Protocol not supported. Error
+                        // no socket available
+                        if (socket < 0)
+                        {
                             ControlReturn(interfaceBus.interface_function,
-                                (byte)ExitStatus.EPROTONOSUPPORT);
+                                    (byte)ExitStatus.ENOSPC);
                             return;
-                    }
+                        }
 
-                    ControlReturn(interfaceBus.interface_function,
-                            (byte)ExitStatus.OK);
-                    break;
-                }
+                        ResetPCB(socket);
+
+                        pcbs[socket].state = (byte)PCB_STATE.CONNECTING;
+                        pcbs[socket].protocol = interfaceBus.request.protocol;
+                        pcbs[socket].l_port = interfaceBus.request.port;
+                        pcbs[socket].f_address = interfaceBus.request.ip;
+
+                        // Do protocol-based operations here
+                        switch (pcbs[socket].protocol)
+                        {
+                            case (byte)IPv4.Protocol.UDP:
+                                pcbs[socket].state = (byte)PCB_STATE.CONNECTED;
+                                break;
+
+
+                            case (byte)IPv4.Protocol.TCP:
+                            default: // Protocol not supported. Error
+                                ControlReturn(interfaceBus.interface_function,
+                                    (byte)ExitStatus.EPROTONOSUPPORT);
+                                return;
+                        }
+
+                        ControlReturn(interfaceBus.interface_function,
+                                (byte)ExitStatus.OK);
+                        break;
+                    }
 
                 case (byte)InterfaceFunction.CLOSE:
                     switch (pcbs[interfaceBus.request.socket].protocol)
