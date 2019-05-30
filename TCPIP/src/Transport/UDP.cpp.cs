@@ -8,6 +8,12 @@ namespace TCPIP
     {
         public void ParseUDP()
         {
+            for(int i = 0; i < UDP.HEADER_SIZE; i++)
+            {
+                Console.Write($"0x{buffer_in[i]:X} ");
+            }
+            Console.WriteLine();
+
             // Ports
             ushort src_port = (ushort)((buffer_in[UDP.SRC_PORT_OFFSET_0] << 0x08
                                  | buffer_in[UDP.SRC_PORT_OFFSET_1]));
@@ -38,14 +44,19 @@ namespace TCPIP
                                  | buffer_in[i+1]));
             }
 
-
+            // Get checksum. Used only for debug
+            ushort checksum = (ushort)((buffer_in[UDP.CHECKSUM_OFFSET_0] << 0x08
+                                 | buffer_in[UDP.CHECKSUM_OFFSET_1]));
+                              
             // Length
-            ushort length = (ushort)((buffer_in[UDP.LENGTH_OFFSET_0] << 0x08
-                                 | buffer_in[UDP.LENGTH_OFFSET_1]));
+            ushort data_length = (ushort)((buffer_in[UDP.LENGTH_OFFSET_0] << 0x08
+                                 | buffer_in[UDP.LENGTH_OFFSET_1])
+                                 - UDP.HEADER_SIZE);
 
+            LOGGER.DEBUG($"Parsed UDP: src_port: {src_port}, dst_port: {dst_port}, length: {data_length+UDP.HEADER_SIZE}, checksum: 0x{checksum:X}");
 
             // Start passing
-            StartPass(pcb_idx, ip_id, 0, length);
+            StartPass(pcb_idx, ip_id, 0, data_length);
         }
     }
 }

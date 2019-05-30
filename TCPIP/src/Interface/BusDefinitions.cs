@@ -10,17 +10,10 @@ namespace TCPIP
             [InitialValue(false)]
             bool valid { get; set; }
 
+            [InitialValue(0x00)]
+            byte interface_function { get; set; }
+
             InterfaceData request { get; set; }
-
-            [InitialValue(0x00)]
-            byte interfaceFunction { get; set; }
-
-            [InitialValue(-1)]
-            int socket { get; set; }
-
-            [InitialValue(0x00)]
-            byte data { get; set; }
-
         }
 
         public interface InterfaceControlBus : IBus
@@ -31,6 +24,8 @@ namespace TCPIP
             [InitialValue(0)]
             byte exit_status { get; set; }
 
+            [InitialValue(0x00)]
+            byte interface_function { get; set; }
 
             InterfaceData request { get; set; }
 

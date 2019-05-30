@@ -11,31 +11,33 @@ namespace TCPIP
         ////////////////////////////// Busses /////////////////////////////////
         // PacketIn
         [InputBus]
-        private readonly ProducerControlBus packetInProducerControlBus;
+        public BufferProducerControlBus packetInProducerControlBus;
         [InputBus]
-        private readonly PacketInBus packetInBus;
+        public PacketIn.PacketInBus packetInBus;
         [OutputBus]
-        private readonly ConsumerControlBus packetInConsumerControlBus = Scope.CreateBus<ConsumerControlBus>();
+        public ConsumerControlBus packetInConsumerControlBus = Scope.CreateBus<ConsumerControlBus>();
 
         // DataOut
         [InputBus]
-        private readonly DataOutReadBus dataOutReadBus;
+        public readonly DataOutReadBus dataOutReadBus;
         [InputBus]
-        private readonly ProducerControlBus dataOutProducerControlBus;
+        public readonly BufferProducerControlBus dataOutProducerControlBus;
         [OutputBus]
-        private readonly ConsumerControlBus dataOutConsumerControlBus = Scope.CreateBus<ConsumerControlBus>();
+        public readonly ConsumerControlBus dataOutConsumerControlBus = Scope.CreateBus<ConsumerControlBus>();
 
         // DataIn
         [OutputBus]
-        private readonly DataInWriteBus dataInWriteBus = Scope.CreateBus<DataInWriteBus>();
+        public readonly DataInWriteBus dataInWriteBus = Scope.CreateBus<DataInWriteBus>();
+        [OutputBus]
+        public readonly ComputeProducerControlBus dataInProducerControlBus = Scope.CreateBus<ComputeProducerControlBus>();
         [InputBus]
-        private readonly DataInWriteControlBus dataInWriteControlBus; 
+        public ConsumerControlBus dataInConsumerControlBus;
 
         // Interface
         [InputBus]
-        private readonly InterfaceBus interfaceBus;
+        public readonly Interface.InterfaceBus interfaceBus;
         [OutputBus]
-        private readonly InterfaceControlBus interfaceControlBus = Scope.CreateBus<InterfaceControlBus>();
+        public readonly Interface.InterfaceControlBus interfaceControlBus = Scope.CreateBus<Interface.InterfaceControlBus>();
 
         // Local variables
         private enum TransportProcessState
@@ -59,7 +61,6 @@ namespace TCPIP
         private struct PassData
         {
             public int socket;
-            public uint ip_id;
             public uint tcp_seq;
             public uint length;
 
@@ -75,9 +76,9 @@ namespace TCPIP
         private uint idx_out = 0x00;
         private bool write = false; // Inidicates whetehr process is writing from local buffer
 
-        public Transport(Transport.SegmentBusIn segmentBusIn)
+        public Transport()
         {
-            this.segmentBusIn = segmentBusIn ?? throw new ArgumentNullException(nameof(segmentBusIn));
+            // ... 
         }
 
 
@@ -109,7 +110,7 @@ namespace TCPIP
             ResetAllBusses();
 
             state = TransportProcessState.Idle;
-       }
+        }
 
         private void Idle()
         {
@@ -122,14 +123,19 @@ namespace TCPIP
             {
                 StartControl();
             }
-            else if (dataOutProducerControlBus.available)
-            {
-                StartSending();
-            }
+            /*
+                        else if (dataOutProducerControlBus.available)
+                        {
+                            StartSend();
+                        }
+
+                        */
         }
 
         private void StartReceive()
         {
+            ResetAllBusses();
+
             state = TransportProcessState.Receive;
 
             // Ready
@@ -150,7 +156,9 @@ namespace TCPIP
             }
 
             // If we are receiving a new packet
-            if(packetInBus.ip_id != ip_id) {
+            if (packetInBus.ip_id != ip_id)
+            {
+                ip_id = packetInBus.ip_id;
                 read = true;
                 idx_in = 0;
             }
@@ -167,7 +175,6 @@ namespace TCPIP
                         if (idx_in == TCP.HEADER_SIZE)
                         {
                             LOGGER.WARN("TCP CURRENTLY NOT SUPPORTED!");
-                            // TODO
                             // read = false;
                             // ParseTCP();
                         }
@@ -182,22 +189,21 @@ namespace TCPIP
                         break;
                 }
             }
-       }
+        }
 
 
-        private void StartPass(int pcb_idx, long ip_id, uint tcp_seq, uint length)
+        private void StartPass(int pcb_idx, uint ip_id, uint tcp_seq, uint length)
         {
             state = TransportProcessState.Pass;
 
-            passData.socket = socket;
-            passData.ip_id = ip_id;
+            passData.socket = pcb_idx;
             passData.tcp_seq = tcp_seq;
             passData.length = length;
+            passData.bytes_passed = 0;
 
             // Set busses
             ResetAllBusses();
             packetInConsumerControlBus.ready = true;
- 
         }
 
         void Pass()
@@ -209,8 +215,15 @@ namespace TCPIP
                 return;
             }
 
-            // Checksum
-            if (passData.bytes_sent % 2 == 0)
+            // if DataIn not ready, abort and start idle
+            if (dataInConsumerControlBus.ready == false)
+            {
+                StartIdle();
+                return;
+            }
+
+            // calculate partial checksum
+            if (passData.bytes_passed % 2 == 0)
             {
                 pcbs[passData.socket].checksum_acc +=
                     (uint)((passData.high_byte << 8) | dataInWriteBus.data);
@@ -220,34 +233,32 @@ namespace TCPIP
                 passData.high_byte = packetInBus.data;
             }
 
-            // Set bus values
-            dataInWriteBus.valid = true;
+            // Set control bus values
+            dataInProducerControlBus.valid = true;
+            dataInProducerControlBus.bytes_left = passData.length - passData.bytes_passed;
+
+            // data bus values
             dataInWriteBus.socket = passData.socket;
-            dataInWriteBus.ip_id = passData.ip_id;
             dataInWriteBus.tcp_seq = passData.tcp_seq;
             dataInWriteBus.data = packetInBus.data;
-            dataInWriteBus.finished = false;
             dataInWriteBus.invalidate = false;
             passData.bytes_passed++;
 
 
             // If last byte
-            if (passData.bytes_sent >= passData.length || packetInBus.bytes_left == 0)
+            if (packetInProducerControlBus.bytes_left == 0)
             {
                 // Finish checksum
                 pcbs[passData.socket].checksum_acc = ((pcbs[passData.socket].checksum_acc & 0xFFFF)
                         + (pcbs[passData.socket].checksum_acc >> 0x10));
 
-                if (pcbs[passData.socket].checksum_acc == 0)
-                {
-                    dataInWriteBus.finished = true;
-                }
-                else
+                if (pcbs[passData.socket].checksum_acc != 0)
                 {
                     Console.WriteLine($"Checksum failed: 0x{pcbs[passData.socket].checksum_acc:X}");
                     dataInWriteBus.invalidate = true;
                 }
 
+                Console.WriteLine("Ending packet");
                 // Go to idle
                 StartIdle();
             }
@@ -263,103 +274,150 @@ namespace TCPIP
             // TODO
         }
 
+        private void StartControl()
+        {
+            ResetAllBusses();
+
+            state = TransportProcessState.Control;
+        }
+
         private void Control()
         {
-            if (transportBus.valid)
+            // Go idle if request invalid
+            if (interfaceBus.valid == false)
             {
-                if (transportBus.socket < 0 || transportBus.socket > pcbs.Length)
-                {
-                    ControlReturn(transportBus.interface_function,
-                            transportBus.socket,
-                            ExitStatus.EINVAL);
+                StartIdle();
+                return;
+            }
+
+            // Check for valid socket number
+            if (interfaceBus.request.socket < 0 || interfaceBus.request.socket > pcbs.Length)
+            {
+                ControlReturn(interfaceControlBus.interface_function,
+                        (byte)ExitStatus.EINVAL);
+                return;
+            }
+
+
+            switch (interfaceBus.interface_function)
+            {
+                case (byte)InterfaceFunction.INVALID:
+                default:
+                    ControlReturn(interfaceBus.interface_function,
+                            (byte)ExitStatus.EINVAL);
                     return;
-                }
 
-                switch (transportBus.interfaceFunction)
+                case (byte)InterfaceFunction.LISTEN: 
                 {
-                    case InterfaceFunction.INVALID:
-                    default:
-                        ControlReturn(transportBus.interface_function, 0,
-                                ExitStatus.EINVAL);
-                        LOGGER.DEBUG("Wrong interfaceFunction in Transport!");
-                        break;
+                    int socket = GetFreePCB();
 
-                    /*
-                       case InterfaceFunction.ACCEPT:
-                    // TODO
-                    break;
+                    // no socket available
+                    if (socket < 0)
+                    {
+                        ControlReturn(interfaceBus.interface_function,
+                                (byte)ExitStatus.ENOSPC);
+                        return;
+                    }
 
-                    case InterfaceFunction.BIND: // Ignored?
-                    // TODO
-                    break;
+                    ResetPCB(socket);
 
-                    case InterfaceFunction.CONNECT:
-                    // TODO
-                    break;
-                    */
+                    pcbs[socket].state = (byte)PCB_STATE.LISTENING;
+                    pcbs[socket].protocol = interfaceBus.request.protocol;
+                    pcbs[socket].l_port = interfaceBus.request.port;
 
-                    case InterfaceFunction.OPEN:
-                        uint socket = GetFreePCB();
-                        if (socket < 0)
-                        {
-                            ControlReturn(transportBus.interface_function,
-                                    transportBus.socket,
-                                    ExitStatus.ENOSPC);
+                    // Do protocol-based operations here
+                    switch (pcbs[socket].protocol)
+                    {
+                       case (byte)IPv4.Protocol.UDP:
+                        default: // Protocol not supported. Error
+                            ControlReturn(interfaceBus.interface_function,
+                                (byte)ExitStatus.EPROTONOSUPPORT);
                             return;
-                        }
+                    }
 
-                        ResetPCB(socket);
-
-                        pcbs[socket].state = PCB_STATE.OPEN;
-                        pcbs[socket].protocol = transportBus.args.protocol;
-                        pcbs[socket].l_port = transportBus.args.port;
-
-                        switch (pcbs[socket].protocol)
-                        {
-                            case (byte)IPv4.Protocol.TCP:
-                                // TODO: Start handshake here
-                                break;
-                        }
-
-                        ControlReturn(transportBus.interface_function,
-                                socket,
-                                ExitStatus.OK);
-                        break;
-
-
-                    case InterfaceFunction.CLOSE:
-                        switch (pcbs[transportBus.args.socket].protocol)
-                        {
-                            case (byte)IPv4.Protocol.TCP:
-                                // TODO: TCP Finish sequence
-                                break;
-                        }
-
-                        pcbs[transportBus.socket].state = PCB_STATE.CLOSED;
-                        break;
-
-                    case InterfaceFunction.LISTEN:
-                        pcbs[transportBus.socket].state = PCB_STATE.LISTENING;
-                        break;
+                    ControlReturn(interfaceBus.interface_function,
+                            (byte)ExitStatus.OK);
+                    break;
                 }
+
+                case (byte)InterfaceFunction.ACCEPT:
+                    // TODO
+                    break;
+
+                case (byte)InterfaceFunction.CONNECT:
+                {
+                    int socket = GetFreePCB();
+
+                    // no socket available
+                    if (socket < 0)
+                    {
+                        ControlReturn(interfaceBus.interface_function,
+                                (byte)ExitStatus.ENOSPC);
+                        return;
+                    }
+
+                    ResetPCB(socket);
+
+                    pcbs[socket].state = (byte)PCB_STATE.CONNECTING;
+                    pcbs[socket].protocol = interfaceBus.request.protocol;
+                    pcbs[socket].l_port = interfaceBus.request.port;
+                    pcbs[socket].f_address = interfaceBus.request.ip;
+
+                    // Do protocol-based operations here
+                    switch (pcbs[socket].protocol)
+                    {
+                        case (byte)IPv4.Protocol.UDP:
+                            pcbs[socket].state = (byte)PCB_STATE.CONNECTED;
+                            break;
+
+
+                        case (byte)IPv4.Protocol.TCP:
+                        default: // Protocol not supported. Error
+                            ControlReturn(interfaceBus.interface_function,
+                                (byte)ExitStatus.EPROTONOSUPPORT);
+                            return;
+                    }
+
+                    ControlReturn(interfaceBus.interface_function,
+                            (byte)ExitStatus.OK);
+                    break;
+                }
+
+                case (byte)InterfaceFunction.CLOSE:
+                    switch (pcbs[interfaceBus.request.socket].protocol)
+                    {
+                        case (byte)IPv4.Protocol.TCP:
+                            // TODO: TCP Finish sequence
+                            break;
+                    }
+
+                    pcbs[interfaceBus.request.socket].state = (byte)PCB_STATE.CLOSED;
+                    break;
+
+
             }
         }
 
-        private void ControlReturn(byte interface_function, uint socket, uint exit_status)
+        private void ControlReturn(byte interface_function, byte exit_status,
+                                    InterfaceData response = default(InterfaceData),
+                                    InterfaceData request = default(InterfaceData))
         {
-            transportControlBus.valid = true;
-            transportControlBus.interface_function = interface_function;
-            transportControlBus.socket = socket;
-            transportControlBus.exit_status = exit_status;
+            interfaceControlBus.valid = true;
+            interfaceControlBus.interface_function = interface_function;
+            interfaceControlBus.response = response;
+            interfaceControlBus.request = request;
+            interfaceControlBus.exit_status = exit_status;
+
+            StartIdle();
         }
 
 
         ////////////////////////// Helper functions ///////////////////////////
-        private uint GetFreePCB()
+        private int GetFreePCB()
         {
-            for (uint i = 0; i < pcbs.Length; i++)
+            for (int i = 0; i < pcbs.Length; i++)
             {
-                if (pcbs[i] == PCB_STATE.CLOSED)
+                if (pcbs[i].state == (byte)PCB_STATE.CLOSED)
                 {
                     return i;
                 }
@@ -368,8 +426,13 @@ namespace TCPIP
         }
 
 
-        private void ResetPCB(uint socket)
+        private void ResetPCB(int socket)
         {
+            if (socket < 0 || socket > pcbs.Length)
+            {
+                return;
+            }
+
             pcbs[socket].bytes_received = 0;
             pcbs[socket].checksum_acc = 0;
             pcbs[socket].f_address = 0;
@@ -382,10 +445,19 @@ namespace TCPIP
 
         private void ResetAllBusses()
         {
-            dataOutConsumerControlBus.ready = false;
+            // PacketIn
             packetInConsumerControlBus.ready = false;
 
+            // DataOut
+            dataOutConsumerControlBus.ready = false;
+
+            // DataIn
+            dataInProducerControlBus.valid = false;
+
+            // Interface
             interfaceControlBus.valid = false;
+
+            // TODO: PacketOut
         }
     }
 }

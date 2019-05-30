@@ -1,21 +1,28 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Text;
 
 using SME;
 using SME.Components;
 
 namespace TCPIP
 {
-    public class PacketOutSimulator : SimulationProcess
+    public class PacketInSimulator : SimulationProcess
     {
+        [InputBus]
+        public ConsumerControlBus consumerControlBus;
+
         [OutputBus]
         public readonly PacketIn.PacketInBus packetInBus = Scope.CreateBus<PacketIn.PacketInBus>();
+
+        [OutputBus]
+        public readonly BufferProducerControlBus bufferProducerControlBus = Scope.CreateBus<BufferProducerControlBus>();
 
         // Simulation fields
         private readonly String dir;
 
-        public DatagramInputSimulator(String dir)
+        public PacketInSimulator(String dir)
         {
             this.dir = dir;
         }
@@ -24,40 +31,43 @@ namespace TCPIP
         {
             // Init
             await ClockAsync();
+            await ClockAsync();
+            await ClockAsync();
+            await ClockAsync();
 
 
-            uint frame_number = 0;
+            bufferProducerControlBus.available = true;
+
+
+            int frame_number = 0;
+            uint ip_id = 1;
             string[] files = Directory.GetFiles(dir);
-            Array.Sort(files);
+            Array.Sort(files); // Are dot net developers even human?
 
             foreach (var file in files)
             {
                 byte[] bytes = File.ReadAllBytes(file);
-
-                Console.WriteLine($"Writing new frame from {file}, len: {bytes.Length}");
+                uint bytes_left = (uint)bytes.Length;
                 foreach (byte b in bytes)
                 {
-                    if (datagramBusInControl.skip)
-                    {
-                        Console.WriteLine("SKIP");
-                        break; // Breaks into the next file
-                    }
-                    if (datagramBusInControl.ready)
-                    {
-                        datagramBusIn.frame_number = frame_number;
-                        datagramBusIn.type = (ushort)EthernetIIFrame.EtherType.IPv4; // XXX: Hardcoded
-                        datagramBusIn.data = b;
-                    }
+                    do {
+                        // Control bus
+                        bufferProducerControlBus.bytes_left = bytes_left--;
+                        bufferProducerControlBus.valid = true;
 
-                    await ClockAsync();
+                        // Data bus
+                        packetInBus.frame_number = frame_number;
+                        packetInBus.ip_id = ip_id;
+                        packetInBus.protocol = (byte)IPv4.Protocol.UDP;
+                        packetInBus.data = b;
+
+                        await ClockAsync();
+                    } while(consumerControlBus.ready == false); // resend previous byte if consumer is not ready this cycle
                 }
 
-                // Next packet
-                frame_number++;
+                ip_id++;
             }
-
             await ClockAsync();
-            Console.WriteLine($"{frame_number} packets sent.");
         }
     }
 }
