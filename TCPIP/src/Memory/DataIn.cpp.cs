@@ -98,7 +98,7 @@ namespace TCPIP
 
             if(dataInComputeProducerControlBusIn.valid){
                 // This is a new packet
-                if(dataIn.socket != cur_write_socket && dataIn.tcp_seq == cur_write_tcp_seq)
+                if(dataIn.socket != cur_write_socket || dataIn.tcp_seq != cur_write_tcp_seq)
                 {
                     // Set the current socket and tcp_seq
                     cur_write_socket = dataIn.socket;
