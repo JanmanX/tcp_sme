@@ -17,6 +17,16 @@ namespace TCPIP
             int data_length { get; set; } // the size we are writing currently
             byte data { get; set; } // The data needed
         }
+        public interface DataInWriteBus : IBus
+        {
+            uint socket { get; set; }
+            uint tcp_seq { get; set; }
+            byte data { get; set; }
+            bool invalidate { get; set; }
+            int data_length { get; set; }
+        }
+
+
     }
 
     public partial class PacketIn
