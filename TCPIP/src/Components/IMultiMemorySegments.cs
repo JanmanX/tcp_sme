@@ -7,7 +7,7 @@ namespace TCPIP
     // The segments also handles meta data, which are additional information per segment,
     // that can be accessed instantly
 
-    interface IMemorySegments<MetaData> where MetaData : struct
+    interface IMultiMemorySegments<MetaData> where MetaData : struct
     {
         // How many segments of memory are left?
         int SegmentsLeft();

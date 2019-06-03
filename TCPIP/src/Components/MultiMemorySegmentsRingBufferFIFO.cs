@@ -2,7 +2,7 @@ namespace TCPIP
 {
     // Implements a ringbus model, with segments saved in a ring like structure
     // This model guarantees a fifo queue
-    public class MemorySegmentsRingBufferFIFO<MetaData> : IMemorySegments<MetaData> where MetaData : struct
+    public class MultiMemorySegmentsRingBufferFIFO<MetaData> : IMultiMemorySegments<MetaData> where MetaData : struct
     {
         public struct SegmentEntry{
             public int start; // Start address. Include byte
@@ -23,7 +23,7 @@ namespace TCPIP
 
 
         ////////// interface
-        public MemorySegmentsRingBufferFIFO(int num_segments,int memory_size)
+        public MultiMemorySegmentsRingBufferFIFO(int num_segments,int memory_size)
         {
             this.num_segments = num_segments;
             this.memory_size = memory_size;
