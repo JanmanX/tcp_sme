@@ -153,7 +153,7 @@ namespace TCPIP
 
             // We now know that we have an socket ready, with at least one element
             // Get What segment to focus on
-            cur_read_block_id = dict.GetFirstValue((int)cur_read_socket);
+            cur_read_block_id = tcp_seq_lookup[dict.GetFirstValue((int)cur_read_socket)];
 
             // If we are to receive stuff, but the request are false
             // we can assume that we need to roll back the last counter by one
