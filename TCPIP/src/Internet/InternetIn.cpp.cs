@@ -13,17 +13,30 @@ namespace TCPIP
         public uint IP_ADDRESS_0 = 0xC0A82B01; // 192.168.43.1
         public uint IP_ADDRESS_1 = 0x00;
 
+        ////////// Datagram in from L proccess
         [InputBus]
-        private readonly Internet.DatagramBusIn datagramBusIn;
-
+        public Internet.DatagramBusIn datagramBusIn;
+        [InputBus]
+        public ComputeProducerControlBus datagramBusInComputeProducerControlBusIn;
         [OutputBus]
-        public readonly Internet.DatagramBusInControl datagramBusInControl = Scope.CreateBus<Internet.DatagramBusInControl>();
+        public ConsumerControlBus datagramBusInComputeConsumerControlBusOut = Scope.CreateBus<ConsumerControlBus>();
 
-        [OutputBus]
-        public readonly Transport.SegmentBusIn segmentBusIn = Scope.CreateBus<Transport.SegmentBusIn>();
 
+        //////////// IP packet to packet in
         [OutputBus]
-        private readonly PacketOut.PacketOutBus bufferInternet;
+        public Memory.InternetPacketBus packetIn = Scope.CreateBus<Memory.InternetPacketBus>();
+        [OutputBus]
+        public ComputeProducerControlBus packetInComputeProducerControlBusOut = Scope.CreateBus<ComputeProducerControlBus>();
+        [InputBus]
+        public ConsumerControlBus packetInComputeConsumerControlBusIn;
+
+        //////////// IP packet to packet out
+        [OutputBus]
+        public Memory.InternetPacketBus packetOut = Scope.CreateBus<Memory.InternetPacketBus>();
+        [OutputBus]
+        public ComputeProducerControlBus packetOutComputeProducerControlBusOut = Scope.CreateBus<ComputeProducerControlBus>();
+        [InputBus]
+        public ConsumerControlBus packetOutComputeConsumerControlBusIn;
 
         // Local storage
         private struct SegmentData
@@ -35,11 +48,9 @@ namespace TCPIP
             public ushort offset; // The byte offset for data that needs to be passed through
             public uint size; // The size of the packet XXX: total size or only packet size? no offset
             public SegmentDataIP ip;
-            public SegmentDataICMP icmp;
-            public SendType send_type;
-        };
+        }
         // Local storage for IP information
-        private struct SegmentDataIP
+        public struct SegmentDataIP
         {
             public uint id;
             public byte protocol;
@@ -59,23 +70,19 @@ namespace TCPIP
 
         private LayerProcessState state = LayerProcessState.Reading;
 
-
-
         private const uint BUFFER_SIZE = 100;
         private byte[] buffer_in = new byte[BUFFER_SIZE]; // XXX: Set fixed size to longest header. Currently IPv4 without opt..
         private uint idx_in = 0x00;
 
-        // XXX : Depricated?
+        // XXX : Deprecated?
         private byte[] buffer_out = new byte[BUFFER_SIZE]; // XXX: Set fixed size to longest header. Currently IPv4 without opt..
 
         private uint idx_out = 0x00;
         private uint write_len = 0x00;
 
 
-        public InternetIn(Internet.DatagramBusIn datagramBusIn, PacketOut.PacketOutBus bufferInternet)
+        public InternetIn()
         {
-            this.datagramBusIn = datagramBusIn ?? throw new ArgumentNullException(nameof(datagramBusIn));
-            this.bufferInternet = bufferInternet;
             // Initialize
             StartReading();
         }
@@ -85,21 +92,22 @@ namespace TCPIP
         {
             if (idx_out > write_len)
             {
-                bufferInternet.active = false;
+                packetOutComputeProducerControlBusOut.valid = false;
+
                 StartReading();
             }
             else
             {
                 LOGGER.INFO($"Writing from {idx_out} data: {buffer_in[idx_out]:X2}");
                 // Send the general data to the buffer
-                bufferInternet.active = true;
-                bufferInternet.ip_dst_addr_0 = cur_segment_data.ip.dst_addr_0;
-                bufferInternet.ip_dst_addr_1 = cur_segment_data.ip.dst_addr_1;
-                bufferInternet.ip_src_addr_0 = cur_segment_data.ip.src_addr_0;
-                bufferInternet.ip_src_addr_1 = cur_segment_data.ip.src_addr_1;
-                bufferInternet.frame_number = cur_segment_data.frame_number;
-                bufferInternet.data = buffer_in[idx_out++];
-                bufferInternet.data_length = cur_segment_data.ip.total_len - cur_segment_data.offset;
+                packetOutComputeProducerControlBusOut.valid = true;
+                packetOut.ip_dst_addr_0 = cur_segment_data.ip.dst_addr_0;
+                packetOut.ip_dst_addr_1 = cur_segment_data.ip.dst_addr_1;
+                packetOut.ip_src_addr_0 = cur_segment_data.ip.src_addr_0;
+                packetOut.ip_src_addr_1 = cur_segment_data.ip.src_addr_1;
+                packetOut.frame_number = cur_segment_data.frame_number;
+                packetOut.data = buffer_in[idx_out++];
+                packetOut.data_length = cur_segment_data.ip.total_len - cur_segment_data.offset;
 
             }
         }
@@ -113,7 +121,6 @@ namespace TCPIP
 
                 cur_segment_data.frame_number = datagramBusIn.frame_number;
                 cur_segment_data.type = datagramBusIn.type;
-                parsing_state = ParsingState.PreParsing;
             }
 
             if (idx_in < buffer_in.Length)
@@ -153,24 +160,23 @@ namespace TCPIP
             }
             else
             {
-                //LOGGER.INFO("Passing");
+                LOGGER.INFO("Passing");
                 // Pass values
-                segmentBusIn.ip_id = cur_segment_data.ip.id;
-                segmentBusIn.fragment_offset = cur_segment_data.ip.fragment_offset;
-                segmentBusIn.protocol = cur_segment_data.ip.protocol;
-                segmentBusIn.pseudoheader_checksum = cur_segment_data.ip.pseudoheader_checksum;
-                segmentBusIn.src_ip_addr_0 = cur_segment_data.ip.src_addr_0;
-                segmentBusIn.src_ip_addr_1 = cur_segment_data.ip.src_addr_1;
-                segmentBusIn.dst_ip_addr_0 = cur_segment_data.ip.dst_addr_0;
-                segmentBusIn.dst_ip_addr_1 = cur_segment_data.ip.dst_addr_1;
-                segmentBusIn.data_length = cur_segment_data.ip.total_len - IPv4.HEADER_SIZE;
-                segmentBusIn.frame_number = cur_segment_data.frame_number;
+                packetIn.ip_id = cur_segment_data.ip.id;
+                packetIn.fragment_offset = cur_segment_data.ip.fragment_offset;
+                packetIn.ip_protocol = cur_segment_data.ip.protocol;
+                packetIn.ip_src_addr_0 = cur_segment_data.ip.src_addr_0;
+                packetIn.ip_src_addr_1 = cur_segment_data.ip.src_addr_1;
+                packetIn.ip_dst_addr_0 = cur_segment_data.ip.dst_addr_0;
+                packetIn.ip_dst_addr_1 = cur_segment_data.ip.dst_addr_1;
+                packetIn.data_length = (int)(cur_segment_data.ip.total_len - IPv4.HEADER_SIZE);
+                packetIn.frame_number = cur_segment_data.frame_number;
 
 
                 // go go go
                 cur_segment_data.valid = true;
-                segmentBusIn.valid = true;
-                segmentBusIn.data = datagramBusIn.data;
+                packetInComputeProducerControlBusOut.valid = true;
+                packetIn.data = datagramBusIn.data;
             }
         }
 
@@ -193,7 +199,7 @@ namespace TCPIP
         }
 
 
-    }
+
     // Save the ip segment to the current local data storage
     private void SaveSegmentDataIp(uint id, byte protocol, ushort total_len,
                                 uint fragment_offset,
@@ -215,13 +221,7 @@ namespace TCPIP
         cur_segment_data.ip.src_addr_0 = src_addr_0;
         cur_segment_data.ip.src_addr_1 = src_addr_1;
     }
-    private void ClearBufferOut()
-    {
-        for (int i = 0; i < BUFFER_SIZE; i++)
-        {
-            buffer_out[i] = 0x00;
-        }
-    }
+
 
     // calculates the checksum from buffer_out[offset] to buffer_out[len]
     // Exclude a 16 bit step if necessary, to calculate a senders checksum
@@ -245,52 +245,50 @@ namespace TCPIP
     }
 
 
-    // Start or resume reading
-    void StartReading()
-    {
-        state = LayerProcessState.Reading;
+        // Start or resume reading
+        void StartReading()
+        {
+            state = LayerProcessState.Reading;
 
-        // Reset various values
-        idx_in = 0x00;
+            // Reset various values
+            idx_in = 0x00;
 
-        cur_segment_data.ip.id = 0;
-        cur_segment_data.ip.protocol = 0;
-        cur_segment_data.frame_number = long.MinValue;
-        cur_segment_data.ip.fragment_offset = 0;
-        cur_segment_data.ip.pseudoheader_checksum = 0;
-        cur_segment_data.ip.src_addr_0 = 0;
-        cur_segment_data.ip.src_addr_1 = 0;
-        cur_segment_data.ip.dst_addr_0 = 0;
-        cur_segment_data.ip.dst_addr_1 = 0;
+            cur_segment_data.ip.id = 0;
+            cur_segment_data.ip.protocol = 0;
+            cur_segment_data.frame_number = long.MinValue;
+            cur_segment_data.ip.fragment_offset = 0;
+            cur_segment_data.ip.pseudoheader_checksum = 0;
+            cur_segment_data.ip.src_addr_0 = 0;
+            cur_segment_data.ip.src_addr_1 = 0;
+            cur_segment_data.ip.dst_addr_0 = 0;
+            cur_segment_data.ip.dst_addr_1 = 0;
 
-        // Data currently in segmentBusIn not valid
-        cur_segment_data.valid = false;
-        segmentBusIn.valid = false;
+            // When reading, the data is not valid
+            cur_segment_data.valid = false;
+            packetInComputeProducerControlBusOut.valid = false;
+            packetInComputeProducerControlBusOut.valid = false;
+            // We are ready to receive data
+            datagramBusInComputeConsumerControlBusOut.ready = true;
+        }
 
-        // We are ready to receive data
-        datagramBusInControl.ready = true;
+        // TODO:
+        void StartWriting(ushort last_byte)
+        {
+            state = LayerProcessState.Writing;
 
-        // Do not skip
-        datagramBusInControl.skip = false;
-    }
+            // We are going to write
+            idx_out = cur_segment_data.offset;
+            write_len = last_byte;
+            //segmentBusIn.protocol = protocol;
 
-    // TODO:
-    void StartWriting(ushort last_byte)
-    {
-        state = LayerProcessState.Writing;
+            // We are not ready to receive new packets until this one is sent
+            datagramBusInComputeConsumerControlBusOut.ready = false;
+        }
 
-        // We are going to write
-        idx_out = cur_segment_data.offset;
-        write_len = last_byte;
-        //segmentBusIn.protocol = protocol;
+        private void StartPassing()
 
-        // We are not ready to receive new packets until this one is sent
-        datagramBusInControl.ready = false;
-    }
-
-    private void StartPassing()
-
-    {
-        state = LayerProcessState.Passing;
+        {
+            state = LayerProcessState.Passing;
+        }
     }
 }
