@@ -9,14 +9,22 @@ namespace TCPIP
 {
     public class GraphFileSimulator : SimulationProcess
     {
+        //////// INTERNET IN (Sending to thus)
         [OutputBus]
-        public readonly Internet.DatagramBusIn datagramBusIn = Scope.CreateBus<Internet.DatagramBusIn>();
-
+        public Internet.DatagramBusIn datagramBusIn = Scope.CreateBus<Internet.DatagramBusIn>();
+        [OutputBus]
+        public ComputeProducerControlBus datagramBusInComputeProducerControlBusOut = Scope.CreateBus<ComputeProducerControlBus>();
         [InputBus]
-        public readonly Internet.DatagramBusOut datagramBusOut = Scope.CreateBus<Internet.DatagramBusOut>();
+        public ConsumerControlBus datagramBusInComputeConsumerControlBusIn;
 
-        //[OutputBus]
-        //public readonly TrueDualPortMemory<byte>.IControlA controlA;
+
+        //////// INTERNET OUT (Receiving from this)
+        [InputBus]
+        public Internet.DatagramBusOut datagramBusOut;
+        [InputBus]
+        public ComputeProducerControlBus datagramBusOutComputeProducerControlBusIn;
+        [OutputBus]
+        public ConsumerControlBus datagramBusOutComputeConsumerControlBusOut =  Scope.CreateBus<ConsumerControlBus>();
 
 
         // Simulation fields
@@ -44,8 +52,16 @@ namespace TCPIP
                 while(packetGraph.HasPackagesToSend())
                 { // Are there anything to send? if not, spinloop dat shizz
                     Logging.log.Info("At frame number " + frame_number);
+                    // Show us as avaliable
+                    datagramBusInComputeProducerControlBusOut.available = true;
+                    // If the consumer is not ready, skip
+                    if (!datagramBusInComputeConsumerControlBusIn.ready){
+                        Logging.log.Error("The datagramBusIn was not ready!");
+                    }
+
                     foreach (var data in packetGraph.IterateOverPacketToSend())
                     {
+
                         // Send to Network
                         datagramBusIn.frame_number = frame_number;
                         datagramBusIn.data = data.b;
