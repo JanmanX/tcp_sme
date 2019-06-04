@@ -19,11 +19,16 @@ namespace TCPIP
         }
         public interface DataInWriteBus : IBus
         {
-            uint socket { get; set; }
+            int socket { get; set; }
             uint tcp_seq { get; set; }
             byte data { get; set; }
             bool invalidate { get; set; }
             int data_length { get; set; }
+        }
+        public interface DataOutReadBus : IBus
+        {
+            int socket { get; set; }
+            byte data { get; set; }
         }
 
 
