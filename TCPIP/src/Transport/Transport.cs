@@ -27,7 +27,7 @@ namespace TCPIP
 
         // DataOut
         [InputBus]
-        public DataOutReadBus dataOutReadBus;
+        public Memory.DataOutReadBus dataOutReadBus;
         [InputBus]
         public BufferProducerControlBus dataOutProducerControlBus;
         [OutputBus]
@@ -35,7 +35,7 @@ namespace TCPIP
 
         // DataIn
         [OutputBus]
-        public readonly DataInWriteBus dataInWriteBus = Scope.CreateBus<DataInWriteBus>();
+        public readonly Memory.DataInWriteBus dataInWriteBus = Scope.CreateBus<Memory.DataInWriteBus>();
         [OutputBus]
         public readonly ComputeProducerControlBus dataInProducerControlBus = Scope.CreateBus<ComputeProducerControlBus>();
         [InputBus]
@@ -92,7 +92,7 @@ namespace TCPIP
 
         public Transport()
         {
-            // ... 
+            // ...
 
             // DEBUG: Debug socket
             pcbs[0].state = (byte)PCB_STATE.CONNECTED;

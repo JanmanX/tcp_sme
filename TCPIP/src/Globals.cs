@@ -65,6 +65,7 @@ namespace TCPIP
         EINVAL = 22,
 
         ENOSPC = 28,
+        //EPROTONOSUPPORT = 123
 
         EPROTONOSUPPORT = 93,
     }
