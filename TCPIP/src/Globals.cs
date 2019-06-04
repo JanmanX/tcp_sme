@@ -15,10 +15,10 @@ namespace TCPIP
     public interface ComputeProducerControlBus : IBus
     {
         [InitialValue(false)]
-        bool available { get; set; } 
+        bool available { get; set; }
 
         [InitialValue(false)]
-        bool valid { get; set; } 
+        bool valid { get; set; }
 
         // Optional
         [InitialValue(0)]
@@ -28,13 +28,13 @@ namespace TCPIP
     public interface BufferProducerControlBus : IBus
     {
         [InitialValue(false)]
-        bool available { get; set; } 
+        bool available { get; set; }
 
         [InitialValue(false)]
         bool valid { get; set; }
 
         [InitialValue(0)]
-        uint bytes_left { get; set; } 
+        uint bytes_left { get; set; }
     }
 
 

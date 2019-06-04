@@ -7,84 +7,109 @@ using SME.Components;
 namespace TCPIP
 {
     [ClockedProcess]
-    public partial class InternetOut: SimpleProcess
+    public partial class InternetOut: Process
     {
-        [InputBus]
-        public readonly PacketOut.PacketOutBus bus_in;
+        // STATIC
+        public readonly uint IP_ADDRESS_0 = 0xC0A82B01; // 192.168.43.1
+        public readonly uint IP_ADDRESS_1 = 0x00;
 
+        // PacketOut
+        [InputBus]
+        public BufferProducerControlBus packetOutProducerControlBus;
+        [InputBus]
+        public PacketOut.PacketOutWriteBus packetOutWriteBus;
         [OutputBus]
-        public readonly Internet.DatagramBusOut datagramBusOut;
+        public ConsumerControlBus packetOutConsumerControlBus = Scope.CreateBus<ConsumerControlBus>();
 
+        // LinkOut
+        [OutputBus]
+        public ComputeProducerControlBus linkOutProducerControlBus = Scope.CreateBus<ComputeProducerControlBus>();
+        [OutputBus]
+        public readonly LinkOut.LinkOutWriteBus linkOutWriteBus = Scope.CreateBus<LinkOut.LinkOutWriteBus>();
         [InputBus]
-        public readonly ControlBus bus_in_control;
+        public ConsumerControlBus linkOutConsumerControlBus;
 
-        private ushort id_identifier = 0;
+
+        // Local
+        private ushort id_id = 0;
 
         private const uint BUFFER_SIZE = 100;
         private byte[] buffer = new byte[BUFFER_SIZE];
-        int idx = 0;
 
         private long frame_number = long.MinValue;
         private uint header_offset = 0;
         private bool sending = false;
 
-        public InternetOut(Internet.DatagramBusOut datagramBusOut, PacketOut.PacketOutBus bus_in, ControlBus bus_in_control)
+        public InternetOut()
         {
-            this.datagramBusOut = datagramBusOut ?? throw new ArgumentNullException(nameof(datagramBusOut));
-            this.bus_in = bus_in ?? throw new ArgumentNullException(nameof(bus_in));
-            this.bus_in_control = bus_in_control ?? throw new ArgumentNullException(nameof(bus_in_control));
         }
 
-        protected override void OnTick()
+        public override async Task Run()
         {
+            linkOutProducerControlBus.valid = false;
+            linkOutProducerControlBus.available = false;
 
-            // If the bus is active, we are getting data, gather it
-            if(bus_in.active){
+            // Set/Reset all values
+            uint bytes_passed = 0;
+            byte protocol = 0;
+            uint dst_ip = 0;
+            uint idx = 0;
+            ip_id++;
 
-                if(bus_in.frame_number != frame_number)
-                {
-                    frame_number = bus_in.frame_number;
-                    header_offset = SetupPacket();
-
-                }
-                // Use the header offset, and send in data
-                buffer[header_offset + idx] = bus_in.data;
-
-//                 LOGGER.TRACE($@"\
-// offset:{header_offset} \
-// idx:{idx} \
-// data:{bus_in.data:X2} \
-// calc:{header_offset + idx} \
-// data_length:{bus_in.data_length}");
-                // Stop one clock beforehand, so we don't start next packet before everything has propagated
-                if(idx == bus_in.data_length - 1){
-                    LOGGER.WARN($"We need to indicate that we do not want more data next clock");
-                    bus_in_control.ready = false;
-                }
-
-                // We can now send out stuff
-                sending = true;
+            // Set ready and wait for first byte
+            packetOutConsumerControlBus.ready = true;
+            while(packetOutProducerControlBus.available == false || packetOutProducerControlBus.valid == false)
+            {
+                await ClockAsync();
             }
-            if(sending){
-                LOGGER.INFO($"sending: idx: {idx} :: {buffer[idx]:X2}");
-                datagramBusOut.data = buffer[idx];
-                datagramBusOut.frame_number = frame_number;
-                datagramBusOut.type = (ushort)EthernetIIFrame.EtherType.IPv4;
-                // Increment the pointer
+
+            // Get primary information about the packet
+            protocol = packetOutWriteBus.protocol;
+            dst_ip = packetOutWriteBus.dst_ip;
+
+            // Pass data while packetOut has valid data
+            while(packetOutProducerControlBus.valid) {
+                linkOutProducerControlBus.available = true;
+                linkOutProducerControlBus.valid = true;
+                linkOutProducerControlBus.bytes_left = 1;
+                linkOutWriteBus.data = packetOutWriteBus.data;
+                linkOutWriteBus.addr = IPv4.HEADER_SIZE + bytes_passed++;
+                await ClockAsync();
+            }
+
+            // If nothing sent, restart
+            if(bytes_passed == 0) { return; }
+
+            // We do not want to receive more bytes at the moment
+            packetOutConsumerControlBus.ready = false;
+
+            // Build header and send it
+            uint header_size = SetupPacket(bytes_passed, ip_id, protocol, IP_ADDRESS_0, dst_ip);
+
+            // Send the header
+            while(idx < header_size)
+            {
+                linkOutProducerControlBus.available = true;
+                linkOutProducerControlBus.valid = true;
+                linkOutProducerControlBus.bytes_left = 1;
+
+                linkOutWriteBus.data = buffer[idx];
+                linkOutWriteBus.addr = idx;
+                linkOutWriteBus.ethertype = (ushort)EthernetIIFrame.EtherType.IPv4;
                 idx++;
-                // Everything has been sent, we now set us as ready, and stop sending
-                if(idx == bus_in.data_length + header_offset){
-                    LOGGER.WARN($"Everything has been sent,Making bus ready");
-                    sending = false;
-                    idx = 0;
-                    bus_in_control.ready = true;
 
+                // Indicate if last byte
+                if(idx < header_size) {
+                    linkOutProducerControlBus.bytes_left = 0;
                 }
-            }
 
+                await ClockAsync();
+            }
         }
+
         // Creates the packet inside the buffer, and returns its data offset
-        private uint SetupPacket(){
+        private uint SetupPacket(ushort data_length, ushort ip_id, byte protocol, uint src_ip, uint dst_ip)
+        {
             // Set the version number
             buffer[IPv4.VERSION_OFFSET] = IPv4.VERSION << 4;
             // Set the IHL part
@@ -92,23 +117,23 @@ namespace TCPIP
             // Set differentiated services(XXX: zero since we do not support it)
             buffer[IPv4.DIFFERENTIATED_SERVICES_OFFSET] = 0x00;
             // Set the packet length
-            buffer[IPv4.TOTAL_LENGTH_OFFSET_0] = (byte)(bus_in.data_length + IPv4.HEADER_SIZE >> 0x08);
-            buffer[IPv4.TOTAL_LENGTH_OFFSET_1] = (byte)(bus_in.data_length + IPv4.HEADER_SIZE & 0xFF);
+            buffer[IPv4.TOTAL_LENGTH_OFFSET_0] = (byte)(data_length + IPv4.HEADER_SIZE >> 0x08);
+            buffer[IPv4.TOTAL_LENGTH_OFFSET_1] = (byte)(data_length + IPv4.HEADER_SIZE & 0xFF);
             // Set the identifier
-            buffer[IPv4.ID_OFFSET_0] = (byte)(id_identifier & 0xFF);
-            buffer[IPv4.ID_OFFSET_1] = (byte)(id_identifier >> 0x08);
+            buffer[IPv4.ID_OFFSET_0] = (byte)(ip_id & 0xFF);
+            buffer[IPv4.ID_OFFSET_1] = (byte)(ip_id >> 0x08);
             id_identifier++; // Increment identifier for next packet (XXX:No support for ip segmentation yet)
             // Set the flags (and offset) to 0 (XXX: fragmentation support maybe?)
             buffer[IPv4.FLAGS_OFFSET] = 0x00;
             // Set time to live to 64 (XXX: save in config somewhere?)
             buffer[IPv4.TTL_OFFSET] = 64;
             // Set the protocol
-            buffer[IPv4.PROTOCOL_OFFSET] = bus_in.ip_protocol;
+            buffer[IPv4.PROTOCOL_OFFSET] = protocol;
             // Set the ip
-            SetIP(IPv4.SRC_ADDRESS_OFFSET_0,bus_in.ip_src_addr_0);
-            SetIP(IPv4.DST_ADDRESS_OFFSET_0,bus_in.ip_dst_addr_0);
+            SetIP(IPv4.SRC_ADDRESS_OFFSET_0, src_ip);
+            SetIP(IPv4.DST_ADDRESS_OFFSET_0, dst_ip);
             // Calculate the checksum, and set it
-            ushort checksum = ChecksumBuffer(0,IPv4.HEADER_SIZE,(int)IPv4.CHECKSUM_OFFSET_0);
+            ushort checksum = ChecksumBuffer(0, IPv4.HEADER_SIZE, (int)IPv4.CHECKSUM_OFFSET_0);
             buffer[IPv4.CHECKSUM_OFFSET_0] = (byte)(checksum & 0xFF);
             buffer[IPv4.CHECKSUM_OFFSET_1] = (byte)(checksum >> 0x08);
 
@@ -116,11 +141,12 @@ namespace TCPIP
         }
 
         // Set an IPv4 from an ulong
-        private void SetIP(uint offset, ulong ip){
+        private void SetIP(uint offset, ulong ip)
+        {
             buffer[offset++] = (byte)(ip & IPv4.ADDRESS_MASK_0);
             buffer[offset++] = (byte)((ip & IPv4.ADDRESS_MASK_1) >> 0x08);
             buffer[offset++] = (byte)((ip & IPv4.ADDRESS_MASK_2) >> 0x10);
-            buffer[offset]   = (byte)((ip & IPv4.ADDRESS_MASK_3) >> 0x18);
+            buffer[offset] = (byte)((ip & IPv4.ADDRESS_MASK_3) >> 0x18);
         }
 
 
@@ -131,7 +157,8 @@ namespace TCPIP
             // XXX: Odd lengths might cause trouble!!!
             for (uint i = offset; i < len; i = i + 2)
             {
-                if (i != exclude){
+                if (i != exclude)
+                {
                     acc += (ulong)((buffer[i] << 0x08
                                  | buffer[i + 1]));
                 }

@@ -38,8 +38,24 @@ namespace TCPIP
 
             [InitialValue(0x00)]
             uint addr { get; set; }
+
+            [InitialValue(0x0000)]
+            ushort ethertype { get; set; }
         }
     }
+
+    public partial class LinkOut
+    {
+        public interface LinkOutWriteBus : IBus
+        {
+            [InitialValue(0x00)]
+            byte data { get; set; }
+
+            [InitialValue(0x00)]
+            uint addr { get; set; }
+        }
+    }
+
 
     public partial class PacketIn
     {
