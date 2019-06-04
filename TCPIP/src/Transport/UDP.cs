@@ -8,12 +8,6 @@ namespace TCPIP
     {
         public void ParseUDP()
         {
-//            for (int i = 0; i < UDP.HEADER_SIZE; i++)
-//            {
-//                Console.Write($"0x{buffer_in[i]:X} ");
-//            }
-//            Console.WriteLine();
-
             // Ports
             ushort src_port = (ushort)((buffer_in[UDP.SRC_PORT_OFFSET_0] << 0x08
                                  | buffer_in[UDP.SRC_PORT_OFFSET_1]));
@@ -63,30 +57,27 @@ namespace TCPIP
 
         private void BuildHeaderUDP(PassData data)
         {
-            buffer_out[UDP.SRC_PORT_OFFSET_0] = pcbs[data.socket].src_port << 0x08;
-            buffer_out[UDP.SRC_PORT_OFFSET_1] = (byte)pcbs[data.socket].src_port;
+            buffer_out[UDP.SRC_PORT_OFFSET_0] = (byte)(pcbs[data.socket].l_port >> 0x08);
+            buffer_out[UDP.SRC_PORT_OFFSET_1] = (byte)pcbs[data.socket].l_port;
 
-            buffer_out[UDP.DST_PORT_OFFSET_0] = pcbs[data.socket].dst_port << 0x08;
-            buffer_out[UDP.DST_PORT_OFFSET_1] = (byte)pcbs[data.socket].dst_port;
+            buffer_out[UDP.DST_PORT_OFFSET_0] = (byte)(pcbs[data.socket].f_port >> 0x08);
+            buffer_out[UDP.DST_PORT_OFFSET_1] = (byte)pcbs[data.socket].f_port;
 
-            ushort udp_length = data.bytes_passed + UDP.HEADER_SIZE;
-            buffer_out[UDP.LENGTH_OFFSET_0] = udp_length << 0x08;
+            ushort udp_length = (ushort)(data.bytes_passed + UDP.HEADER_SIZE);
+            buffer_out[UDP.LENGTH_OFFSET_0] = (byte)(udp_length >> 0x08);
             buffer_out[UDP.LENGTH_OFFSET_1] = (byte)udp_length;
 
 
             // Finish checksum
-            uint checksum_acc = pcbs[data.socket].src_port
-                            + pcbs[data.socket].dst_port
+            long checksum_acc = pcbs[data.socket].l_port
+                            + pcbs[data.socket].f_port
                             + udp_length
                             + data.checksum_acc;
             checksum_acc = (checksum_acc & 0xFFFF) + (checksum_acc >> 0x10);
-            ushort checksum = (ushort)(checksum_acc & 0xFFFF) + (checksum_acc >> 0x10);
+            ushort checksum = (ushort)((checksum_acc & 0xFFFF) + (checksum_acc >> 0x10));
 
-            
-           buffer_out[UDP.CHECKSUM_OFFSET_0] = checksum << 0x08;
-           buffer_out[UDP.CHECKSUM_OFFSET_1] = (byte)checksum; 
-
-
+            buffer_out[UDP.CHECKSUM_OFFSET_0] = (byte)(checksum >> 0x08);
+            buffer_out[UDP.CHECKSUM_OFFSET_1] = (byte)checksum;
         }
     }
 }

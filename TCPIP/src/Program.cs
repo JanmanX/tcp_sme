@@ -27,19 +27,22 @@ namespace TCPIP
                 // int packet_out_mem_size = 8192;
                 // var packet_out_mem = new TrueDualPortMemory<byte>(packet_out_mem_size);
                 //var packet_out = new PacketOut(packet_out_mem,packet_out_mem_size);
-                PacketInSimulator simulator = new PacketInSimulator("data/transport/udp_25/");
+                DataOutSimulator simulator = new DataOutSimulator();
                 // var internetIn = new InternetIn(simulator.datagramBusIn,packet_out.bus_in_internet);
                 // var internetOut = new InternetOut(simulator.datagramBusOut,
                 //                                   packet_out.bus_out,
                 //                                   packet_out.bus_out_control);
                 var transport = new Transport();
-                transport.packetInProducerControlBus = simulator.bufferProducerControlBus;
-                transport.packetInBus = simulator.packetInBus;
+                transport.dataOutProducerControlBus = simulator.bufferProducerControlBus;
+                transport.dataOutReadBus = simulator.dataOutReadBus;
 
-                simulator.consumerControlBus = transport.packetInConsumerControlBus;
+                simulator.consumerControlBus = transport.dataOutConsumerControlBus;
+                
+                var pp = new PrinterProcess();
+                pp.bus = transport.packetOutWriteBus;
+                pp.computeProducerControlBus = transport.packetOutProducerControlBus;
 
-                var p = new PrinterProcess(transport.dataInWriteBus, transport.dataInProducerControlBus);
-                transport.dataInConsumerControlBus = p.consumerControlBus;
+                transport.packetOutConsumerControlBus = pp.consumerControlBus;
 
                 // Use fluent syntax to configure the simulator.
                 // The order does not matter, but `Run()` must be
@@ -49,8 +52,8 @@ namespace TCPIP
                 // for interfacing with other VHDL code or board pins
 
                 sim
-                    .AddTopLevelOutputs(transport.dataInWriteBus)
-                    .AddTopLevelInputs(simulator.packetInBus)
+                    .AddTopLevelOutputs(pp.bus)
+                    .AddTopLevelInputs(simulator.dataOutReadBus)
                     .BuildCSVFile()
                     //.BuildVHDL()
                     .Run();

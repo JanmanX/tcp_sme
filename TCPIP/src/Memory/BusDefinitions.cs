@@ -19,6 +19,18 @@ namespace TCPIP
         }
     }
 
+    public partial class PacketOut
+    {
+        public interface PacketOutWriteBus: IBus
+        {
+            [InitialValue(0x00)]
+            byte data { get; set; }
+
+            [InitialValue(0x00)]
+            uint addr { get; set; }
+        }
+    }
+
     public partial class PacketIn
     {
         public interface PacketInBus : IBus

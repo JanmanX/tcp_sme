@@ -66,6 +66,7 @@ namespace TCPIP
 
         ENOSPC = 28,
 
+        EPROTONOSUPPORT = 93,
     }
 
 }

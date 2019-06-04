@@ -26,7 +26,7 @@ namespace TCPIP
 
             // Find PCB
             int pcb_idx = -1;
-            for (int i = 0; i < NUM_PCB; i++)
+            for (int i = 0; i < NUM_SOCKETS; i++)
             {
                 if (pcbs[i].l_port == dst_port
                     && pcbs[i].f_port == src_port

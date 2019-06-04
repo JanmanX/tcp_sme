@@ -55,7 +55,7 @@ namespace TCPIP
             [InitialValue(0)]
             byte interface_function { get; set; }
 
-            Interface.InterfaceArgs args { get; set; }
+            InterfaceData args { get; set; }
 
             [InitialValue(-1)]
             int socket { get; set; }

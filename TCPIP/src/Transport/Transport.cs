@@ -17,11 +17,19 @@ namespace TCPIP
         [OutputBus]
         public ConsumerControlBus packetInConsumerControlBus = Scope.CreateBus<ConsumerControlBus>();
 
+        // PacketOut
+        [OutputBus]
+        public ComputeProducerControlBus packetOutProducerControlBus = Scope.CreateBus<ComputeProducerControlBus>();
+        [OutputBus]
+        public PacketOut.PacketOutWriteBus packetOutWriteBus = Scope.CreateBus<PacketOut.PacketOutWriteBus>();
+        [InputBus]
+        public ConsumerControlBus packetOutConsumerControlBus = Scope.CreateBus<ConsumerControlBus>();
+
         // DataOut
         [InputBus]
-        public readonly DataOutReadBus dataOutReadBus;
+        public DataOutReadBus dataOutReadBus;
         [InputBus]
-        public readonly BufferProducerControlBus dataOutProducerControlBus;
+        public BufferProducerControlBus dataOutProducerControlBus;
         [OutputBus]
         public readonly ConsumerControlBus dataOutConsumerControlBus = Scope.CreateBus<ConsumerControlBus>();
 
@@ -44,8 +52,9 @@ namespace TCPIP
         {
             Receive,  // Reading an incoming packet
             Pass,    // Passing data of an incoming packet to a buffer (Data_in)
-            Send,    // Sending a data packet out
+            Send,    // Sending a data of a packet out
             Control,    // Control work on connections (handshakes, conn. termination)
+            Finish,     // Intermediate transition state to idle (we do not want to reset busses in _this_ cycle)
             Idle,     // Nothing to do
         }
         private TransportProcessState state = TransportProcessState.Idle;
@@ -53,11 +62,13 @@ namespace TCPIP
         private const uint NUM_SOCKETS = 10;
         private PCB[] pcbs = new PCB[NUM_SOCKETS];
 
-        private const int BUFFER_SIZE = 100;
-        private byte[] buffer_in = new byte[BUFFER_SIZE];
+        private const int BUFFER_IN_SIZE = 100;
+        private byte[] buffer_in = new byte[BUFFER_IN_SIZE];
         private uint idx_in = 0x00;
         private bool read = true; // Indicates whether process is writing from local buffer
 
+        // Structure to hold information about the data being passed
+        // Does not necessarily use all fields
         private struct PassData
         {
             public int socket;
@@ -67,18 +78,29 @@ namespace TCPIP
             // Local info
             public byte high_byte; // High byte for checksum calculation
             public uint bytes_passed; // Number of bytes passed
+            public uint checksum_acc;
         }
         private PassData passData;
         private uint ip_id = 0x00; // Current ip_id
 
         // WRITE
-        private byte[] buffer_out = new byte[BUFFER_SIZE];
+        private const int MAX_PACKET_DATA_SIZE = 8;
+        private const int BUFFER_OUT_SIZE = 100;
+        private byte[] buffer_out = new byte[BUFFER_OUT_SIZE];
         private uint idx_out = 0x00;
-        private bool write = false; // Inidicates whetehr process is writing from local buffer
+        private bool sending_header = false;
 
         public Transport()
         {
             // ... 
+
+            // DEBUG: Debug socket
+            pcbs[0].state = (byte)PCB_STATE.CONNECTED;
+            pcbs[0].protocol = (byte)IPv4.Protocol.UDP;
+            pcbs[0].f_address = 0x11223344;
+            pcbs[0].f_port = 0x5566;
+            pcbs[0].l_address = 0x778899AA;
+            pcbs[0].l_port = 0xBBDD;
         }
 
 
@@ -101,6 +123,10 @@ namespace TCPIP
                 case TransportProcessState.Control:
                     Control();
                     break;
+                case TransportProcessState.Finish:
+                    StartIdle();
+                    break;
+
             }
         }
 
@@ -114,22 +140,29 @@ namespace TCPIP
 
         private void Idle()
         {
-            // Check control busses for work to do
-            if (packetInProducerControlBus.available)
-            {
-                StartReceive();
-            }
-            else if (interfaceBus.valid)
-            {
-                StartControl();
-            }
             /*
-                        else if (dataOutProducerControlBus.available)
+                        // Check control busses for work to do
+                        if (packetInProducerControlBus.available)
                         {
-                            StartSend();
+                            StartReceive();
                         }
+                         else if (interfaceBus.valid)
+                        {
+                            StartControl();
+                        }
+                        else */
+            if (dataOutProducerControlBus.available)
+            {
+                Console.WriteLine("dataOutProducerControlBus.available!");
+                StartSend();
+            }
 
-                        */
+        }
+
+        // Reverts to idle in the next clock, so as to not loose (valid) data in the busses
+        private void Finish()
+        {
+            state = TransportProcessState.Finish;
         }
 
         private void StartReceive()
@@ -258,7 +291,6 @@ namespace TCPIP
                     dataInWriteBus.invalidate = true;
                 }
 
-                Console.WriteLine("Ending packet");
                 // Go to idle
                 StartIdle();
             }
@@ -266,12 +298,95 @@ namespace TCPIP
 
         private void StartSend()
         {
+            // Set busses
+            ResetAllBusses();
+            dataOutConsumerControlBus.ready = true;
 
+            state = TransportProcessState.Send;
+
+            passData.bytes_passed = 0;
+            passData.checksum_acc = 0;
+
+            idx_out = 0;
+            sending_header = false;
         }
 
         private void Send()
         {
-            // TODO
+            if (dataOutProducerControlBus.valid && passData.bytes_passed < MAX_PACKET_DATA_SIZE
+                && sending_header == false)
+            {
+                SendData();
+            }
+            else
+            {
+                if (sending_header == false)
+                { // SendData() finished. Build the header
+                    BuildHeader();
+
+                    dataOutConsumerControlBus.ready = false;
+                }
+
+                sending_header = true;
+
+                SendHeader();
+            }
+
+        }
+
+        private void SendData()
+        {
+            packetOutProducerControlBus.valid = true;
+            packetOutProducerControlBus.bytes_left = 1; // at least one more
+
+            packetOutWriteBus.data = dataOutReadBus.data;
+            packetOutWriteBus.addr = UDP.HEADER_SIZE + passData.bytes_passed++; // XXX: hardcoded for UDP fixed size header
+
+            // Update accumulated checksum
+            passData.checksum_acc += dataOutReadBus.data;
+
+            // Local info
+            passData.socket = dataOutReadBus.socket;
+        }
+
+        private void BuildHeader()
+        {
+            if (passData.socket < 0 || passData.socket > pcbs.Length)
+            {
+                // XXX
+                Console.WriteLine("Trying to send from invalid socket");
+
+                StartIdle();
+                return;
+            }
+            switch (pcbs[passData.socket].protocol)
+            {
+                case (byte)IPv4.Protocol.UDP:
+                    BuildHeaderUDP(passData);
+                    break;
+
+                default:
+                    Console.WriteLine("Unsupported protocol for sending!");
+                    StartIdle();
+                    break;
+            }
+        }
+
+        private void SendHeader()
+        {
+            packetOutProducerControlBus.valid = true;
+            packetOutProducerControlBus.bytes_left = 1;
+
+            packetOutWriteBus.data = buffer_out[idx_out];
+            packetOutWriteBus.addr = idx_out;
+            idx_out++;
+
+            if (idx_out == UDP.HEADER_SIZE)
+            {
+                packetOutProducerControlBus.bytes_left = 0; // this is the last byte
+
+                Finish();
+            }
         }
 
         private void StartControl()
@@ -457,7 +572,8 @@ namespace TCPIP
             // Interface
             interfaceControlBus.valid = false;
 
-            // TODO: PacketOut
+            // PacketOut
+            packetOutProducerControlBus.valid = false;
         }
     }
 }
