@@ -220,6 +220,17 @@ namespace TCPIP
                             ParseUDP();
                         }
                         break;
+
+                    case (byte)IPv4.Protocol.ICMP:
+                        if (idx_in == ICMP.HEADER_SIZE)
+                        {
+                            LOGGER.WARN("TCP CURRENTLY NOT SUPPORTED!");
+                            // read = false;
+                            // ParseUDP();
+                        }
+                        break;
+
+
                 }
             }
         }

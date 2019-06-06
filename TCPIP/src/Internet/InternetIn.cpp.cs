@@ -8,11 +8,6 @@ namespace TCPIP
 {
     public partial class InternetIn : SimpleProcess
     {
-        // CONFIG
-        // TODO: Find a better place to put this?
-        public uint IP_ADDRESS_0 = 0xC0A82B01; // 192.168.43.1
-        public uint IP_ADDRESS_1 = 0x00;
-
         ////////// Datagram in from L proccess
         [InputBus]
         public Internet.DatagramBusIn datagramBusIn;
@@ -70,13 +65,12 @@ namespace TCPIP
 
         private LayerProcessState state = LayerProcessState.Reading;
 
-        private const uint BUFFER_SIZE = 100;
-        private byte[] buffer_in = new byte[BUFFER_SIZE]; // XXX: Set fixed size to longest header. Currently IPv4 without opt..
+        private const uint BUFFER_IN_SIZE = 100;
+        private byte[] buffer_in = new byte[BUFFER_IN_SIZE]; // XXX: Set fixed size to longest header. Currently IPv4 without opt..
         private uint idx_in = 0x00;
 
-        // XXX : Deprecated?
-        private byte[] buffer_out = new byte[BUFFER_SIZE]; // XXX: Set fixed size to longest header. Currently IPv4 without opt..
-
+        private const uint BUFFER_OUT_SIZE = 100;
+        private byte[] buffer_out = new byte[BUFFER_OUT_SIZE];
         private uint idx_out = 0x00;
         private uint write_len = 0x00;
 
@@ -101,14 +95,13 @@ namespace TCPIP
                 LOGGER.INFO($"Writing from {idx_out} data: {buffer_in[idx_out]:X2}");
                 // Send the general data to the buffer
                 packetOutComputeProducerControlBusOut.valid = true;
+                packetOutComputeProducerControlBusOut.bytes_left = 1;
                 packetOut.ip_dst_addr_0 = cur_segment_data.ip.dst_addr_0;
                 packetOut.ip_dst_addr_1 = cur_segment_data.ip.dst_addr_1;
                 packetOut.ip_src_addr_0 = cur_segment_data.ip.src_addr_0;
                 packetOut.ip_src_addr_1 = cur_segment_data.ip.src_addr_1;
-                packetOut.frame_number = cur_segment_data.frame_number;
                 packetOut.data = buffer_in[idx_out++];
                 packetOut.data_length = cur_segment_data.ip.total_len - cur_segment_data.offset;
-
             }
         }
 
@@ -200,49 +193,49 @@ namespace TCPIP
 
 
 
-    // Save the ip segment to the current local data storage
-    private void SaveSegmentDataIp(uint id, byte protocol, ushort total_len,
-                                uint fragment_offset,
-                                ushort pseudoheader_checksum,
-                                ulong dst_addr_0, ulong src_addr_0,
-                                ulong dst_addr_1 = 0, ulong src_addr_1 = 0)
+        // Save the ip segment to the current local data storage
+        private void SaveSegmentDataIp(uint id, byte protocol, ushort total_len,
+                                    uint fragment_offset,
+                                    ushort pseudoheader_checksum,
+                                    ulong dst_addr_0, ulong src_addr_0,
+                                    ulong dst_addr_1 = 0, ulong src_addr_1 = 0)
 
-    {
-        cur_segment_data.ip.id = id;
-        cur_segment_data.ip.protocol = protocol;
-        cur_segment_data.ip.total_len = total_len;
-
-        cur_segment_data.ip.fragment_offset = fragment_offset;
-        cur_segment_data.ip.pseudoheader_checksum = pseudoheader_checksum;
-
-        cur_segment_data.ip.dst_addr_0 = dst_addr_0;
-        cur_segment_data.ip.dst_addr_1 = dst_addr_1;
-
-        cur_segment_data.ip.src_addr_0 = src_addr_0;
-        cur_segment_data.ip.src_addr_1 = src_addr_1;
-    }
-
-
-    // calculates the checksum from buffer_out[offset] to buffer_out[len]
-    // Exclude a 16 bit step if necessary, to calculate a senders checksum
-    private ushort ChecksumBufferIn(uint offset, uint len, int exclude = -1)
-    {
-        ulong acc = 0x00;
-
-        // XXX: Odd lengths might cause trouble!!!
-        for (uint i = offset; i < len; i = i + 2)
         {
-            if (i != exclude)
-            {
-                acc += (ulong)((buffer_in[i] << 0x08
-                             | buffer_in[i + 1]));
-            }
+            cur_segment_data.ip.id = id;
+            cur_segment_data.ip.protocol = protocol;
+            cur_segment_data.ip.total_len = total_len;
+
+            cur_segment_data.ip.fragment_offset = fragment_offset;
+            cur_segment_data.ip.pseudoheader_checksum = pseudoheader_checksum;
+
+            cur_segment_data.ip.dst_addr_0 = dst_addr_0;
+            cur_segment_data.ip.dst_addr_1 = dst_addr_1;
+
+            cur_segment_data.ip.src_addr_0 = src_addr_0;
+            cur_segment_data.ip.src_addr_1 = src_addr_1;
         }
-        // Add carry bits and do one-complement on 16 bits
-        // Overflow  can max happen twice
-        acc = ((acc & 0xFFFF) + (acc >> 0x10));
-        return (ushort)~((acc & 0xFFFF) + (acc >> 0x10));
-    }
+
+
+        // calculates the checksum from buffer_out[offset] to buffer_out[len]
+        // Exclude a 16 bit step if necessary, to calculate a senders checksum
+        private ushort ChecksumBufferIn(uint offset, uint len, int exclude = -1)
+        {
+            ulong acc = 0x00;
+
+            // XXX: Odd lengths might cause trouble!!!
+            for (uint i = offset; i < len; i = i + 2)
+            {
+                if (i != exclude)
+                {
+                    acc += (ulong)((buffer_in[i] << 0x08
+                                 | buffer_in[i + 1]));
+                }
+            }
+            // Add carry bits and do one-complement on 16 bits
+            // Overflow  can max happen twice
+            acc = ((acc & 0xFFFF) + (acc >> 0x10));
+            return (ushort)~((acc & 0xFFFF) + (acc >> 0x10));
+        }
 
 
         // Start or resume reading
@@ -271,22 +264,18 @@ namespace TCPIP
             datagramBusInComputeConsumerControlBusOut.ready = true;
         }
 
-        // TODO:
         void StartWriting(ushort last_byte)
         {
             state = LayerProcessState.Writing;
 
-            // We are going to write
             idx_out = cur_segment_data.offset;
             write_len = last_byte;
-            //segmentBusIn.protocol = protocol;
 
-            // We are not ready to receive new packets until this one is sent
+
             datagramBusInComputeConsumerControlBusOut.ready = false;
         }
 
         private void StartPassing()
-
         {
             state = LayerProcessState.Passing;
         }
