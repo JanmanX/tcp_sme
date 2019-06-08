@@ -39,14 +39,6 @@ namespace TCPIP
 
 
 
-    enum LayerProcessState : byte
-    {
-        Reading,
-        Writing,
-        Passing,
-    };
-
-
     // Structure containing all necessary information about a packet for sending
     struct PacketInfo
     {

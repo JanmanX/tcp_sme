@@ -9,7 +9,7 @@ namespace TCPIP
         protected void ParseIPv4()
         {
             // Checksum
-            ushort calculated_checksum = ChecksumBufferIn(0,IPv4.HEADER_SIZE);
+            ushort calculated_checksum = ChecksumBufferIn(0, IPv4.HEADER_SIZE);
             if (calculated_checksum != 0x00)
             {
                 LOGGER.WARN($"Invalid IPv4 checksum: 0x{calculated_checksum:X}");
@@ -36,6 +36,11 @@ namespace TCPIP
             // Get total length
             ushort total_len = (ushort)((buffer_in[IPv4.TOTAL_LENGTH_OFFSET_0] << 0x08)
                                        | buffer_in[IPv4.TOTAL_LENGTH_OFFSET_1]);
+
+            // Data length
+            ushort data_length = total_len - (ihl << 2);
+
+
 
             // Get protocol
             byte protocol = buffer_in[IPv4.PROTOCOL_OFFSET];
@@ -85,8 +90,7 @@ $@"Received packet for: \
             ushort pseudoheader_checksum = (ushort)~((acc2 & 0xFFFF) + (acc2 >> 0x10));
 
 
-            // Save parsed packet
-            SaveSegmentDataIp(id, protocol, total_len, fragment_offset, pseudoheader_checksum,dst_address,src_address);
+            StartPassing(id, protocol, data_length, fragment_offset, pseudoheader_checksum, dst_address, src_address);
         }
     }
 }
