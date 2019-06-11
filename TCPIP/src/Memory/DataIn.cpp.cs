@@ -26,25 +26,25 @@ namespace TCPIP
         private readonly int memory_size;
 
 
-        ////////// Packet in from T process
+        ////////// Data_in from T process
         [InputBus]
-        public Memory.DataInWriteBus dataIn;
+        public WriteBus dataIn;
         [InputBus]
         public ComputeProducerControlBus dataInComputeProducerControlBusIn;
         [OutputBus]
         public ConsumerControlBus dataInComputeConsumerControlBusOut = Scope.CreateBus<ConsumerControlBus>();
 
 
-        //////////// Packet out to interface
+        //////////// Data_in to interface
         //[OutputBus]
-        public Memory.XXXX dataOut = Scope.CreateBus<Memory.XXXX>();
+        public ReadBus dataOut = Scope.CreateBus<ReadBus>();
         [OutputBus]
-        public ComputeProducerControlBus dataOutComputeProducerControlBusOut = Scope.CreateBus<ComputeProducerControlBus>();
+        public BufferProducerControlBus dataOutBufferProducerControlBusOut = Scope.CreateBus<BufferProducerControlBus>();
         [InputBus]
-        public ConsumerControlBus dataOutComputeConsumerControlBusIn;
+        public ConsumerControlBus dataOutBufferConsumerControlBusIn;
 
 
-        private MemorySegmentsRingBufferFIFO<int> mem_calc;
+        private MultiMemorySegmentsRingBufferFIFO<int> mem_calc;
         private readonly int mem_calc_num_segments = 10;
 
 
@@ -54,11 +54,11 @@ namespace TCPIP
 
         private DictionaryListSparseLinked dict;
 
-        private uint cur_write_socket = int.MaxValue;
+        private int cur_write_socket = int.MaxValue;
         private uint cur_write_tcp_seq = int.MaxValue;
         private int cur_write_block_id = int.MaxValue;
 
-        private uint cur_read_socket = int.MaxValue;
+        private int cur_read_socket = int.MaxValue;
         private uint cur_read_tcp_seq = int.MaxValue;
         private int cur_read_block_id = int.MaxValue;
 
@@ -77,7 +77,7 @@ namespace TCPIP
             this.controlA = memory.ControlA;
             this.readResultA = memory.ReadResultA;
             this.readResultB = memory.ReadResultB;
-            this.mem_calc = new MemorySegmentsRingBufferFIFO<int>(mem_calc_num_segments,memory_size);
+            this.mem_calc = new MultiMemorySegmentsRingBufferFIFO<int>(mem_calc_num_segments,memory_size);
             // XXX better magic numbers
             this.dict = new DictionaryListSparseLinked(10,100);
 
@@ -131,12 +131,12 @@ namespace TCPIP
             if(!this.dict.ContainsKey((int)cur_read_socket)){
                 // Get the first existing key
                 int tmp = this.dict.GetFirstKey();
-                cur_read_socket = (uint)tmp;
+                cur_read_socket = tmp;
                 // If there are no first keys, indicate that no data is avaliable and loop
                 if(tmp == -1)
                 {
-                    dataOutComputeProducerControlBusOut.available = false;
-                    dataOutComputeProducerControlBusOut.valid = false;
+                    dataOutBufferProducerControlBusOut.available = false;
+                    dataOutBufferProducerControlBusOut.valid = false;
                     return;
                 }
             }
@@ -146,8 +146,8 @@ namespace TCPIP
             {
                 this.dict.Free((int)cur_read_socket);
                 // Indicate that there are no avaliable data,
-                dataOutComputeProducerControlBusOut.available = false;
-                dataOutComputeProducerControlBusOut.valid = false;
+                dataOutBufferProducerControlBusOut.available = false;
+                dataOutBufferProducerControlBusOut.valid = false;
                 return;
             }
 
@@ -164,15 +164,15 @@ namespace TCPIP
             // We are now receiving stuff from memory, send to the consumer
             // If we are not, say to T that the data is not valid
             if(send_receiving){
-                dataOutComputeProducerControlBusOut.valid = true;
+                dataOutBufferProducerControlBusOut.valid = true;
                 // XXX id_send can change to different segment that what we got from ram
-                dataOutComputeProducerControlBusOut.bytes_left = (uint)mem_calc.SegmentBytesLeft(cur_read_block_id);
+                dataOutBufferProducerControlBusOut.bytes_left = (uint)mem_calc.SegmentBytesLeft(cur_read_block_id);
                 dataOut.data = readResultB.Data;
 
                 // We reset receiving, since it needs to be set implicit
                 send_receiving = false;
             }else{
-                dataOutComputeProducerControlBusOut.valid = false;
+                dataOutBufferProducerControlBusOut.valid = false;
             }
 
             // If the last clock set the request to true, we must be
@@ -185,13 +185,13 @@ namespace TCPIP
 
             // We have a full segment ready, we can send it
             if (mem_calc.IsSegmentFull(cur_read_block_id)){
-                dataOutComputeProducerControlBusOut.available = true;
+                dataOutBufferProducerControlBusOut.available = true;
             }else{
-                dataOutComputeProducerControlBusOut.available = false;
+                dataOutBufferProducerControlBusOut.available = false;
             }
 
             // The consumer are ready, ask memory and mark that we requested memory
-            if(dataOutComputeConsumerControlBusIn.ready){
+            if(dataOutBufferConsumerControlBusIn.ready){
                 controlB.Enabled = true;
                 controlB.IsWriting = false;
                 controlB.Address = mem_calc.LoadData(cur_read_block_id);

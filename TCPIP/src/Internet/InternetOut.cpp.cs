@@ -14,24 +14,25 @@ namespace TCPIP
         public readonly uint IP_ADDRESS_1 = 0x00;
 
         // PacketOut
+        // packetInComputeProducerControlBusOut
         [InputBus]
-        public BufferProducerControlBus packetOutProducerControlBus;
+        public BufferProducerControlBus packetOutBufferProducerControlBusIn;
         [InputBus]
-        public PacketOut.PacketOutWriteBus packetOutWriteBus;
+        public PacketOut.ReadBus packetOutWriteBus;
         [OutputBus]
-        public ConsumerControlBus packetOutConsumerControlBus = Scope.CreateBus<ConsumerControlBus>();
+        public ConsumerControlBus packetOutBufferConsumerControlBusOut = Scope.CreateBus<ConsumerControlBus>();
 
         // LinkOut
         [OutputBus]
-        public ComputeProducerControlBus linkOutProducerControlBus = Scope.CreateBus<ComputeProducerControlBus>();
+        public ComputeProducerControlBus linkOutComputeProducerControlBusOut = Scope.CreateBus<ComputeProducerControlBus>();
         [OutputBus]
-        public readonly LinkOut.LinkOutWriteBus linkOutWriteBus = Scope.CreateBus<LinkOut.LinkOutWriteBus>();
+        public readonly Internet.DatagramBusOut linkOutWriteBus = Scope.CreateBus<Internet.DatagramBusOut >();
         [InputBus]
-        public ConsumerControlBus linkOutConsumerControlBus;
+        public ConsumerControlBus linkOutComputeConsumerControlBusIn;
 
 
         // Local
-        private ushort id_id = 0;
+        private ushort ip_id = 0;
 
         private const uint BUFFER_SIZE = 100;
         private byte[] buffer = new byte[BUFFER_SIZE];
@@ -46,8 +47,8 @@ namespace TCPIP
 
         public override async Task Run()
         {
-            linkOutProducerControlBus.valid = false;
-            linkOutProducerControlBus.available = false;
+            linkOutComputeProducerControlBusOut.valid = false;
+            linkOutComputeProducerControlBusOut.available = false;
 
             // Set/Reset all values
             uint bytes_passed = 0;
@@ -57,21 +58,21 @@ namespace TCPIP
             ip_id++;
 
             // Set ready and wait for first byte
-            packetOutConsumerControlBus.ready = true;
-            while(packetOutProducerControlBus.available == false || packetOutProducerControlBus.valid == false)
+            packetOutBufferConsumerControlBusOut.ready = true;
+            while(packetOutBufferProducerControlBusIn.available == false || packetOutBufferProducerControlBusIn.valid == false)
             {
                 await ClockAsync();
             }
 
             // Get primary information about the packet
-            protocol = packetOutWriteBus.protocol;
-            dst_ip = packetOutWriteBus.dst_ip;
+            protocol = packetOutWriteBus.ip_protocol;
+            dst_ip = (uint)packetOutWriteBus.ip_dst_addr_0;
 
             // Pass data while packetOut has valid data
-            while(packetOutProducerControlBus.valid) {
-                linkOutProducerControlBus.available = true;
-                linkOutProducerControlBus.valid = true;
-                linkOutProducerControlBus.bytes_left = 1;
+            while(packetOutBufferProducerControlBusIn.valid) {
+                linkOutComputeProducerControlBusOut.available = true;
+                linkOutComputeProducerControlBusOut.valid = true;
+                linkOutComputeProducerControlBusOut.bytes_left = 1;
                 linkOutWriteBus.data = packetOutWriteBus.data;
                 linkOutWriteBus.addr = IPv4.HEADER_SIZE + bytes_passed++;
                 await ClockAsync();
@@ -81,17 +82,17 @@ namespace TCPIP
             if(bytes_passed == 0) { return; }
 
             // We do not want to receive more bytes at the moment
-            packetOutConsumerControlBus.ready = false;
+            packetOutBufferConsumerControlBusOut.ready = false;
 
             // Build header and send it
-            uint header_size = SetupPacket(bytes_passed, ip_id, protocol, IP_ADDRESS_0, dst_ip);
+            uint header_size = SetupPacket((ushort)bytes_passed, ip_id, protocol, IP_ADDRESS_0, dst_ip);
 
             // Send the header
             while(idx < header_size)
             {
-                linkOutProducerControlBus.available = true;
-                linkOutProducerControlBus.valid = true;
-                linkOutProducerControlBus.bytes_left = 1;
+                linkOutComputeProducerControlBusOut.available = true;
+                linkOutComputeProducerControlBusOut.valid = true;
+                linkOutComputeProducerControlBusOut.bytes_left = 1;
 
                 linkOutWriteBus.data = buffer[idx];
                 linkOutWriteBus.addr = idx;
@@ -100,7 +101,7 @@ namespace TCPIP
 
                 // Indicate if last byte
                 if(idx < header_size) {
-                    linkOutProducerControlBus.bytes_left = 0;
+                    linkOutComputeProducerControlBusOut.bytes_left = 0;
                 }
 
                 await ClockAsync();
@@ -122,7 +123,7 @@ namespace TCPIP
             // Set the identifier
             buffer[IPv4.ID_OFFSET_0] = (byte)(ip_id & 0xFF);
             buffer[IPv4.ID_OFFSET_1] = (byte)(ip_id >> 0x08);
-            id_identifier++; // Increment identifier for next packet (XXX:No support for ip segmentation yet)
+            //id_identifier++; // Increment identifier for next packet (XXX:No support for ip segmentation yet)
             // Set the flags (and offset) to 0 (XXX: fragmentation support maybe?)
             buffer[IPv4.FLAGS_OFFSET] = 0x00;
             // Set time to live to 64 (XXX: save in config somewhere?)

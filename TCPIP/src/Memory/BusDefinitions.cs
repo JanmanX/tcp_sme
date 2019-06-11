@@ -6,18 +6,58 @@ namespace TCPIP
     {
         public interface InternetPacketBus : IBus
         {
+            [InitialValue(0x00)]
             long frame_number { get; set; } // Increments so we can distinguish between new packages
+
+            [InitialValue(0x00)]
             byte ip_protocol { get; set; }
+
+            [InitialValue(0x00)]
             ulong ip_dst_addr_0 { get; set; }
+
+            [InitialValue(0x00)]
             ulong ip_dst_addr_1 { get; set; }
+
+            [InitialValue(0x00)]
             ulong ip_src_addr_0 { get; set; }
+
+            [InitialValue(0x00)]
             ulong ip_src_addr_1 { get; set; }
+
+            [InitialValue(0x00)]
             uint ip_id { get; set; }
+
+            [InitialValue(0x00)]
             uint fragment_offset { get; set; }
+
+            [InitialValue(0x00)]
             int data_length { get; set; } // the size we are writing currently
+
+            [InitialValue(0x00)]
             byte data { get; set; } // The data needed
+
+            [InitialValue(-1)]
+            int addr { get; set; } // The data address(-1 if order is not important)
         }
-        public interface DataInWriteBus : IBus
+    }
+
+
+    public partial class DataOut
+    {
+        public interface ReadBus : IBus
+        {
+            int socket { get; set; }
+            byte data { get; set; }
+        }
+        public interface WriteBus : IBus
+        {
+            int data { get; set; }
+        }
+    }
+
+    public partial class DataIn
+    {
+        public interface WriteBus : IBus
         {
             int socket { get; set; }
             uint tcp_seq { get; set; }
@@ -25,78 +65,23 @@ namespace TCPIP
             bool invalidate { get; set; }
             int data_length { get; set; }
         }
-        public interface DataOutReadBus : IBus
+        public interface ReadBus : IBus
         {
-            int socket { get; set; }
             byte data { get; set; }
         }
-
-
     }
+
 
     public partial class PacketOut
     {
-        public interface PacketOutWriteBus: IBus
-        {
-            [InitialValue(0x00)]
-            byte data { get; set; }
-
-            [InitialValue(0x00)]
-            uint addr { get; set; }
-
-            [InitialValue(0x0000)]
-            ushort ethertype { get; set; }
-        }
+        public interface ReadBus : Memory.InternetPacketBus{}
+        public interface WriteBus : Memory.InternetPacketBus{}
     }
-
-    public partial class LinkOut
-    {
-        public interface LinkOutWriteBus : IBus
-        {
-            [InitialValue(0x00)]
-            byte data { get; set; }
-
-            [InitialValue(0x00)]
-            uint addr { get; set; }
-        }
-    }
-
 
     public partial class PacketIn
     {
-        public interface PacketInBus : IBus
-        {
-            [InitialValue(0x00)]
-            uint ip_id { get; set; } // 32 bits so that we can have ipv4 and ipv6 IDs
-
-            [InitialValue(long.MaxValue)]
-            long frame_number { get; set; }
-
-            [InitialValue(0x00)]
-            byte data { get; set; }
-
-            [InitialValue(0x00)]
-            uint data_length { get; set; } // Length of the data to receive
-
-            [InitialValue(0x00)]
-            byte protocol { get; set; }
-
-            [InitialValue(0x00)]
-            ushort pseudoheader_checksum { get; set; }
-
-            // Up to 128 bit addressing
-            [InitialValue(0x00)]
-            ulong src_ip_addr_0 { get; set; }
-            [InitialValue(0x00)]
-            ulong src_ip_addr_1 { get; set; }
-
-            // Up to 128 bit addressing
-            [InitialValue(0x00)]
-            ulong dst_ip_addr_0 { get; set; }
-            [InitialValue(0x00)]
-            ulong dst_ip_addr_1 { get; set; }
-        }
-
+        public interface WriteBus : Memory.InternetPacketBus{}
+        public interface ReadBus : Memory.InternetPacketBus{}
 
     }
 }

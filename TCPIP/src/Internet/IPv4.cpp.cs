@@ -38,7 +38,7 @@ namespace TCPIP
                                        | buffer_in[IPv4.TOTAL_LENGTH_OFFSET_1]);
 
             // Data length
-            ushort data_length = total_len - (ihl << 2);
+            ushort data_length = (ushort)(total_len - (ihl << 2));
 
 
 

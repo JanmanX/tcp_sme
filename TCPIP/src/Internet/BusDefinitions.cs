@@ -34,7 +34,10 @@ namespace TCPIP
             byte data { get; set; }
 
             [InitialValue(0x00)]
-            ushort type { get; set; }
+            uint addr { get; set; }
+
+            [InitialValue(0x00)]
+            ushort ethertype { get; set; }
         }
     }
 }

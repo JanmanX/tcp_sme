@@ -10,39 +10,7 @@ namespace TCPIP
     public partial class PacketOut : SimpleProcess
     {
 
-        public struct RingEntryIP{
-            public byte protocol;
-            public ushort total_len;
-            public ulong src_addr_0; // Lower 8 bytes of IP addr (lower 4 bytes used in this field on IPv4)
-            public ulong src_addr_1; // Upper 8 bytes of IP addr
-            public ulong dst_addr_0; // Lower 8 bytes of IP addr (lower 4 bytes used in this field on IPv4)
-            public ulong dst_addr_1; // Upper 8 bytes of IP addr
-        }
-        private RingEntryIP tmp_ip_info;
-        public struct RingEntry{
-            public int start; // Include bit
-            public int stop; // exclude last bit
-            public int current; // The current bit being written
-            public bool done; // Mark if we are done with all data, and memory transactions are done
-            public bool requesting; // If we have requested for data
-            public bool receiving; // Mark if we are currently receiving data form memory
-            public long frame_number; // The framenumber of the current packet
-            public RingEntryIP ip;
-        }
-        private enum MemoryTypeManager{
-            Transport,
-            Internet,
-            Out
-        }
-        private int in_pointer = 0; // The pointer for the data in packages
-        private int out_pointer = 0; // The pointer for the out packages
-
-        private int transport_pointer = 0;
-        private int internet_pointer = 0;
-
-        private long transport_number = long.MaxValue;
-        private long internet_number = long.MaxValue;
-
+         /////////////////////// Memory busses and ports
         private TrueDualPortMemory<byte> memory;
 
         [OutputBus]
@@ -58,33 +26,76 @@ namespace TCPIP
         private readonly SME.Components.TrueDualPortMemory<byte>.IReadResultB readResultB;
         private readonly int memory_size;
 
+        ////////// Packet in from producer of packets
         [InputBus]
-        public readonly PacketOut.PacketOutBus bus_in_internet = Scope.CreateBus<PacketOut.PacketOutBus>();
+        public WriteBus packetIn;
         [InputBus]
-        public readonly PacketOut.PacketOutBus bus_in_transport = Scope.CreateBus<PacketOut.PacketOutBus>();
+        public ComputeProducerControlBus packetInComputeProducerControlBusIn;
         [OutputBus]
-        public readonly PacketOut.PacketOutBus bus_out = Scope.CreateBus<PacketOut.PacketOutBus>();
+        public ConsumerControlBus packetInComputeConsumerControlBusOut = Scope.CreateBus<ConsumerControlBus>();
 
-        [InputBus]
-        public readonly ControlProducer bus_in_internet_control_producer = Scope.CreateBus<ControlProducer>();
-        [InputBus]
-        public readonly ControlProducer bus_in_transport_control_producer = Scope.CreateBus<ControlProducer>();
+
+        //////////// Packet out to I out
         [OutputBus]
-        public readonly ControlProducer bus_out_control_producer = Scope.CreateBus<ControlProducer>();
-
-
-        [InputBus]
-        public readonly ControlConsumer bus_in_internet_control_consumer = Scope.CreateBus<ControlConsumer>();
-        [InputBus]
-        public readonly ControlConsumer bus_in_transport_control_consumer = Scope.CreateBus<ControlConsumer>();
+        public ReadBus packetOut = Scope.CreateBus<ReadBus>();
         [OutputBus]
-        public readonly ControlConsumer bus_out_control_consumer = Scope.CreateBus<ControlConsumer>();
+        public BufferProducerControlBus packetOutBufferProducerControlBusOut = Scope.CreateBus<BufferProducerControlBus>();
+        [InputBus]
+        public ConsumerControlBus packetOutBufferConsumerControlBusIn;
 
-        private const short ring_bus_size = 10;
-        private RingEntry[] ring_bus = new RingEntry[ring_bus_size];
+
+        public struct TempData{
+            public byte ip_protocol;
+            public long frame_number; // Increments so we can distinguish between new packages
+            public uint ip_id;
+            public ulong ip_src_addr_0; // Lower 8 bytes of IP addr (lower 4 bytes used in this field on IPv4)
+            public ulong ip_src_addr_1; // Upper 8 bytes of IP addr
+            public ulong ip_dst_addr_0; // Lower 8 bytes of IP addr (lower 4 bytes used in this field on IPv4)
+            public ulong ip_dst_addr_1; // Upper 8 bytes of IP addr
+        }
+        private TempData tmp_ip_info;
+
+        private long cur_frame_number = long.MaxValue;
+
+        // The memory calculations
+        private SingleMemorySegmentsRingBufferFIFO<TempData> mem_calc;
+        private readonly int mem_calc_num_segments = 10;
 
 
-        public PacketOut(TrueDualPortMemory<byte> memory, int memory_size){
+
+
+        // Information about the send buffer. The send buffer contains
+        // The history of the packets in an ordred fasion, from the
+        // send_buffer_new_index being the newest index, and counting down,
+        // being the one before etc. the buffer circles around,
+        // so if the buffer is 4 big, and the newest index is 2,
+        // the history(newest->oldest) like 2,1,0,3.
+        private const int send_buffer_max = 4;
+
+        private const int send_buffer_max_fill = 2;
+
+        // Number illustrating how many entries in the buffer are ready
+        private int send_buffer_count = 0;
+
+        // The index for the memory, where it has just written
+        private int send_buffer_memory_index = 0;
+
+        // The index for the writer, where it should read from next
+        private int send_buffer_write_index = 0;
+
+        // The buffer definitions themselves
+        public struct SendBufferData{
+            public byte data;
+            public int data_length;
+            public TempData tempData;
+        }
+        private SendBufferData[] send_buffer = new SendBufferData[send_buffer_max];
+
+        private bool memory_requested = false;
+        private bool memory_receiving = false;
+
+        public PacketOut(TrueDualPortMemory<byte> memory, int memory_size)
+        {
             // Set up the header information
             this.memory = memory;
             this.memory_size = memory_size;
@@ -92,224 +103,124 @@ namespace TCPIP
             this.controlA = memory.ControlA;
             this.readResultA = memory.ReadResultA;
             this.readResultB = memory.ReadResultB;
+            this.mem_calc = new SingleMemorySegmentsRingBufferFIFO<TempData>(mem_calc_num_segments,memory_size);
         }
 
         protected override void OnTick()
         {
-            // If transport had nothing, read internet
-            if(!ReadTransport()){
-                ReadInternet();
-            }
-
+            Send();
             Write();
         }
 
-        private void DisablePorts(){
-            this.controlA.Enabled = false;
-            this.controlB.Enabled = false;
-        }
-        // Read from the data input, use the memorybusA for now, possibly add 3 busses for better interaction?
-        private bool ReadInternet(){
-            // Disable ports until needed
-            DisablePorts();
-
-            if (bus_in_internet.active)
-            {
-                RingEntry cur_range = ring_bus[internet_pointer];
-
-                // If it is a new packet, add it to the pool, else append to current transaction
-                if(bus_in_internet.frame_number != internet_number)
-                {
-                    // Mark the current range as done, so we can transmit it further
-                    cur_range.done = true;
-                    cur_range.current = 0;
-                    internet_number = bus_in_internet.frame_number;
-                    tmp_ip_info.dst_addr_0 = bus_in_internet.ip_dst_addr_0;
-                    tmp_ip_info.dst_addr_1 = bus_in_internet.ip_dst_addr_1;
-                    tmp_ip_info.src_addr_0 = bus_in_internet.ip_src_addr_0;
-                    tmp_ip_info.src_addr_1 = bus_in_internet.ip_src_addr_1;
-                    tmp_ip_info.total_len = (ushort)bus_in_internet.data_length;
-                    tmp_ip_info.protocol = bus_in_internet.ip_protocol;
-                    internet_pointer = AddRingEntry(bus_in_internet.data_length,internet_number);
-
-                }
-
-                SaveData(bus_in_internet.data,MemoryTypeManager.Internet,internet_pointer);
-
-                if(cur_range.current == bus_in_internet.data_length - 1)
-                {
-                    LOGGER.INFO($"Packet received");
-                    cur_range.done = true;
-                    cur_range.current = 0;
-                    ring_bus[internet_pointer] = cur_range;
-
-                }
-                return true;
-            }
-            return false;
-        }
-
-        // Read from the data input, use the memorybusA for now, possibly add 3 busses for better interaction?
-        private bool ReadTransport(){
-            // Disable ports until needed
-            DisablePorts();
-
-            if (bus_in_transport.active)
-            {
-                RingEntry cur_range = ring_bus[transport_pointer];
-
-                // If it is a new packet, add it to the pool, else append to current transaction
-                if(bus_in_transport.frame_number != transport_number)
-                {
-                    // Mark the current range as done, so we can transmit it further
-                    cur_range.done = true;
-                    cur_range.current = 0;
-                    transport_number = bus_in_transport.frame_number;
-                    tmp_ip_info.dst_addr_0 = bus_in_transport.ip_dst_addr_0;
-                    tmp_ip_info.dst_addr_1 = bus_in_transport.ip_dst_addr_1;
-                    tmp_ip_info.src_addr_0 = bus_in_transport.ip_src_addr_0;
-                    tmp_ip_info.src_addr_1 = bus_in_transport.ip_src_addr_1;
-                    tmp_ip_info.total_len = (ushort)bus_in_transport.data_length;
-                    tmp_ip_info.protocol = bus_in_transport.ip_protocol;
-                    transport_pointer = AddRingEntry(bus_in_transport.data_length,transport_number);
-                }
-
-                SaveData(bus_in_transport.data,MemoryTypeManager.Transport,transport_pointer);
-
-                if(cur_range.current == bus_in_transport.data_length - 1)
-                {
-                    LOGGER.INFO($"Packet received");
-                    cur_range.done = true;
-                    cur_range.current = 0;
-                    ring_bus[transport_pointer] = cur_range;
-
-                }
-                return true;
-            }
-            return false;
-        }
-
-
         private void Write(){
-            if(!bus_out_control_consumer.ready){
-                return;
-            }
-            // Only activate bus if we actually need it
-            bus_out.active = false;
-            // XXX Use another memory manager, so we can have controlC?
-            RingEntry range = ring_bus[out_pointer];
-            int address = (range.start + range.current) % memory_size;
+            // Disable the write bus, enable if there is stuff in the packet
+            controlA.Enabled = false;
 
-            // If we are receiving stuff from the memory, pass it on
-            if(range.receiving){
-                LOGGER.INFO($"Receiving from memory {this.readResultB.Data:X2}");
-                range.receiving = false;
-                bus_out.active = true;
-                bus_out.data = this.readResultB.Data;
-                bus_out.frame_number = range.frame_number;
-                bus_out.ip_protocol = range.ip.protocol;
-                bus_out.ip_dst_addr_0 = range.ip.dst_addr_0;
-                bus_out.ip_dst_addr_1 = range.ip.dst_addr_1;
-                bus_out.ip_src_addr_0 = range.ip.src_addr_0;
-                bus_out.ip_src_addr_1 = range.ip.src_addr_1;
-                bus_out.data_length = range.ip.total_len;
-                bus_out.active = true;
+            // Data on the bus is currently valid
 
-                // If there are no futher data requests, go to next output buffer
-                if(!range.requesting){
-                    out_pointer = (out_pointer + 1) % ring_bus_size;
-                }
-            }
-
-            // if the current range is done
-            if(range.done){
-                // If last range is now requesting, we must be reciving this clock cycle
-                if(range.requesting){
-                    range.receiving = true;
-                }
-                // If we are out of bounds, we stop, and go to next packet
-                if(address == range.stop){
-                    LOGGER.ERROR($"Done sending id:{out_pointer} with {range.start},{range.stop}");
-                    range.done = false;
-                    range.requesting = false;
-                    range.current = 0;
-
-
-                }
-                // else we request the memory, and set the current byte to the next
-                else
+            if(packetInComputeProducerControlBusIn.valid){
+                // This is a new packet
+                if(packetIn.frame_number != cur_frame_number)
                 {
-                    //LOGGER.INFO($"Read request to {address}");
-                    this.controlB.Enabled = true;
-                    this.controlB.Address = address;
-                    this.controlB.IsWriting = false;
-                    range.requesting = true;
-                    range.current++;
+                    tmp_ip_info.ip_dst_addr_0 = packetIn.ip_dst_addr_0;
+                    tmp_ip_info.ip_dst_addr_1 = packetIn.ip_dst_addr_1;
+                    tmp_ip_info.ip_src_addr_0 = packetIn.ip_src_addr_0;
+                    tmp_ip_info.ip_src_addr_1 = packetIn.ip_src_addr_1;
+                    tmp_ip_info.ip_protocol = packetIn.ip_protocol;
+                    tmp_ip_info.ip_id = packetIn.ip_id;
+                    tmp_ip_info.frame_number = packetIn.frame_number;
+                    // Mark the last segment as filled
+                    mem_calc.FinishFillingCurrentSaveSegment();
+                    if(!mem_calc.NextSegment(tmp_ip_info))
+                    {
+                        throw new System.Exception("Cannot create next segment for the singleMemorySegment");
+                    }
+                }
+                // Submit the data
+                controlA.Enabled = true;
+                controlA.IsWriting = true;
+                controlA.Address = mem_calc.SaveData();
+                controlA.Data = packetIn.data;
+            }
+        }
+        private void Send()
+        {
+            // Reset until they are needed
+            controlB.Enabled = false;
+            packetOutBufferProducerControlBusOut.available = false;
+
+
+            ////////////// BUFFER code
+            // if we are receiving stuff from the memory, save it to the buffer
+            if(memory_receiving)
+            {
+                SendBufferData buf = send_buffer[send_buffer_memory_index];
+                buf.data = readResultB.Data;
+                // Increment the memory index by one
+                send_buffer_memory_index = (send_buffer_memory_index + 1) % send_buffer_max;
+            }
+            // If the last clock had an request, we know that the next clock has
+            // to be receiving stuff.
+            if(memory_requested){
+                memory_receiving = true;
+                memory_requested = false;
+            }
+
+            // If the buffer is not full, we need to fill it
+            if(send_buffer_count < send_buffer_max_fill)
+            {
+                // Request the data
+                controlB.Enabled = true;
+                controlB.IsWriting = false;
+                int addr = mem_calc.LoadData();
+                // If we actually can get the address(If buffer empty etc)
+                if(addr != -1)
+                {
+                    controlB.Address = addr;
+                    // Increment the send buffer count
+                    send_buffer_count++;
+                    // We have requested memory
+                    memory_requested = true;
+                    // We need to save the current meta data, since we have to wait
+                    // two clocks for the actual data. This means that the meta data is
+                    // two clocks in front of the actual data
+                    SendBufferData buf = send_buffer[(send_buffer_memory_index + 2) % send_buffer_max];
+                    buf.tempData = mem_calc.MetadataCurrentLoadSegment();
+                    buf.data_length = mem_calc.LoadDataBytesLeft(); // Is the full segment since we have not
+                    send_buffer[(send_buffer_memory_index + 2) % send_buffer_max] = buf;
+                    // If we are at the last byte in that specific load data, we request a new one
+                    if(mem_calc.LoadDataBytesLeft() == 0)
+                    {
+                        mem_calc.FinishReadingCurrentLoadSegment();
+                    }
                 }
 
             }
-            ring_bus[out_pointer] = range;
-        }
-
-
-        private void SaveData(byte data, MemoryTypeManager type, int cur_pointer){
-            RingEntry range = ring_bus[cur_pointer];
-            int address = (range.start + range.current) % memory_size;
-            LOGGER.INFO($"SaveData data:{data:X2} addr:{address} pointer:{cur_pointer} range:{range.start},{range.stop},{range.current}");
-            switch (type)
+            // The indexes are not the same, therefore there must be data on the pipeline
+            if(send_buffer_memory_index != send_buffer_write_index)
             {
-                case MemoryTypeManager.Internet:
-                    this.controlA.Enabled = true;
-                    this.controlA.Address = address;
-                    this.controlA.Data = data;
-                    this.controlA.IsWriting = true;
-                    break;
-                case MemoryTypeManager.Transport:
-                    this.controlA.Enabled = true;
-                    this.controlA.Address = address;
-                    this.controlA.Data = data;
-                    this.controlA.IsWriting = true;
-                    break;
-                default:
-                    LOGGER.ERROR($"Current type {type} not defined as an savable type!");
-                    break;
+                packetOutBufferProducerControlBusOut.available = true;
             }
-            range.current++;
-            ring_bus[cur_pointer] = range;
-        }
 
-        private int AddRingEntry(int size, long frame_number){
-            // XXX Add guard for overlapping ring elements
-            // Last range, so we can append to buffer
-            int last_pointer = (in_pointer - 1 > 0) ?
-                in_pointer - 1 :
-                ring_bus_size - 1;
-            RingEntry last_range = ring_bus[last_pointer];
-            RingEntry range = ring_bus[in_pointer];
-            // We start one after the last range ended
-            range.start = last_range.stop;
-            // If the memoryrange overflows, we wrap it around by modulo
-            range.stop = (range.start + size) % memory_size;
-            range.current = 0;
-            range.frame_number = frame_number;
-            range.done = false;
-            range.requesting = false;
-            range.ip.total_len = tmp_ip_info.total_len;
-            range.ip.dst_addr_0 = tmp_ip_info.dst_addr_0;
-            range.ip.dst_addr_1 = tmp_ip_info.dst_addr_1;
-            range.ip.src_addr_0 = tmp_ip_info.src_addr_0;
-            range.ip.src_addr_1 = tmp_ip_info.src_addr_1;
-            range.ip.protocol = tmp_ip_info.protocol;
-            // Saving the struct
-            ring_bus[in_pointer] = range;
-
-            LOGGER.INFO($"Adding ring entry start:{range.start} stop:{range.stop} pointer:{in_pointer}");
-            // Increment the pointer by one, and loop around, return which element we worked on
-            int ret_pointer = in_pointer;
-            in_pointer = (in_pointer + 1) % ring_bus_size;
-            return ret_pointer;
-
-
+            ///////////// Sending code
+            // They are ready, we submit stuff
+            if(packetOutBufferConsumerControlBusIn.ready && packetOutBufferProducerControlBusOut.available)
+            {
+                SendBufferData buf = send_buffer[send_buffer_write_index];
+                packetOut.data = buf.data;
+                packetOut.data_length = buf.data_length;
+                packetOut.ip_dst_addr_0 = buf.tempData.ip_dst_addr_0;
+                packetOut.ip_dst_addr_1 = buf.tempData.ip_dst_addr_1;
+                packetOut.ip_src_addr_0 = buf.tempData.ip_src_addr_0;
+                packetOut.ip_src_addr_1 = buf.tempData.ip_src_addr_1;
+                packetOut.frame_number = buf.tempData.frame_number;
+                // XXX: fragmenttation for us?
+                packetOut.fragment_offset = 0;
+                packetOut.ip_id = buf.tempData.ip_id;
+                packetOut.ip_protocol = buf.tempData.ip_protocol;
+                // Increment the memory index by one
+                send_buffer_write_index = (send_buffer_write_index + 1) % send_buffer_max;
+            }
         }
     }
 }
