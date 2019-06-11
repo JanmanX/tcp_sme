@@ -1,0 +1,70 @@
+\chapter{Design}
+% introduction about the network stack?
+
+\section{Overview}
+The networking stack introduced in this thesis is implemented in the C\# 
+programming language with SME. The aim of its design is to capacitate performance,
+flexibility, and ease of use. In this chapter, the design principles are 
+described, the architecture of the solution is outlined, and the components are
+outlined.
+
+
+\subsection{Design principles}
+As briefly mentioned in the introduction, the proposed network stack is to 
+provide an alternative to the existing proprietary network offloading engines.
+While the main goal of this thesis is to research and study the suitability of 
+SME for implementing a TCP/IP stack on an FPGA, there are many other aspects of the 
+system to be studied.\\
+% TODO 
+% * support for various FPGAs
+% * extensible network stack (not locked to few protocols)
+% * firewall
+
+\subsection{Initial requirements}
+Following our design principles, initial requirements and goals for the 
+networking stack are set so that these can be tested and improved upon. 
+\begin{itemize}
+\item \textbf{Essential protocols only}\\
+Considering that the SME project is still fairly early in its development, and considering 
+the sheer number of protocols in the internet protocol suite, the networking 
+stack in this thesis is to support only the absolutely essential protocols 
+required to provide the users with a meaningful interface to the internet.
+These protocols should be picked such that the system can provide the end-user
+with a network data-stream, which can transport information to and from a remote
+computer.\\
+The initial protocols chosen may be implemented and supported partially, but 
+they must not deviate from the standard specifications. 
+
+\item \textbf{Support an interface for the end-user}\\
+The system must be controlled by an end-user on the FPGA. Such an interface is 
+very unique in its own way, compared to standard software interfaces, like the 
+ones defined in the POSIX collection of specifications. By supporting such an
+external interface gains insight in the way such a networking stack will be used,
+and which measures must be taken in order to provide the best possible integration
+and performance considerations.
+
+\item \textbf{Independent of underlying physical hardware}\\
+By using SME, the underlying hardware description language code can be abstracted
+away from the actual implementation. This will later provide developers to easily
+modify and tweak the networking stack without having to consider the target 
+hardware.\\
+Likewise, the networking stack may not rely on using a certain physical layer hardware,
+and must be designed to be independent of the underlying hardware used for the 
+physical connections. This will ensure that the target hardware can easily 
+swap between physical connectors, such as going from ethernet cables to wireless,
+or even another FPGA.
+\end{itemize}
+
+\section{The architecture}
+
+\includegraphics[scale=0.5]{design/design_0.eps}
+
+
+\section{Link}
+
+\section{Internet}
+
+\section{Transport}
+
+\section{Interface}
+
