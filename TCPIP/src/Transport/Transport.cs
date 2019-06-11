@@ -45,7 +45,7 @@ namespace TCPIP
 
         // Interface
         [InputBus]
-        public readonly Interface.InterfaceBus interfaceBus;
+        public Interface.InterfaceBus interfaceBus;
         [OutputBus]
         public readonly Interface.InterfaceControlBus interfaceControlBus = Scope.CreateBus<Interface.InterfaceControlBus>();
 
@@ -142,18 +142,16 @@ namespace TCPIP
 
         private void Idle()
         {
-            /*
-                        // Check control busses for work to do
-                        if (packetInProducerControlBus.available)
-                        {
-                            StartReceive();
-                        }
-                         else if (interfaceBus.valid)
-                        {
-                            StartControl();
-                        }
-                        else */
-            if (dataOutBufferProducerControlBusIn.available)
+            // Check control busses for work to do
+            if (packetInBufferProducerControlBusIn.available)
+            {
+                StartReceive();
+            }
+            else if (interfaceBus.valid)
+            {
+                StartControl();
+            }
+            else if (dataOutBufferProducerControlBusIn.available)
             {
                 Console.WriteLine("dataOutProducerControlBus.available!");
                 StartSend();
@@ -411,6 +409,13 @@ namespace TCPIP
 
         private void Control()
         {
+            // Variables
+            InterfaceData response;
+            response.ip = 0;
+            response.port = 0;
+            response.protocol = 0;
+            response.socket = 0;
+
             // Go idle if request invalid
             if (interfaceBus.valid == false)
             {
@@ -506,8 +511,11 @@ namespace TCPIP
                                 return;
                         }
 
+
+                        response.socket = socket;
                         ControlReturn(interfaceBus.interface_function,
-                                (byte)ExitStatus.OK);
+                                (byte)ExitStatus.OK,
+                                response);
                         break;
                     }
 
@@ -536,7 +544,7 @@ namespace TCPIP
             interfaceControlBus.request = request;
             interfaceControlBus.exit_status = exit_status;
 
-            StartIdle();
+            Finish();
         }
 
 

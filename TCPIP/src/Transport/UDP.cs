@@ -28,8 +28,8 @@ namespace TCPIP
             if (pcb_idx == -1)
             {
                 // TODO: Drop with reset
-                LOGGER.WARN("PCB not found");
-                pcb_idx = 0; // XXX: Debug  
+                //LOGGER.WARN("PCB not found");
+                pcb_idx = 0; // XXX: Debug
             }
 
             // Calculate header checksum
@@ -48,7 +48,9 @@ namespace TCPIP
                                  | buffer_in[UDP.LENGTH_OFFSET_1])
                                  - UDP.HEADER_SIZE);
 
-            LOGGER.DEBUG($"Parsed UDP: src_port: {src_port}, dst_port: {dst_port}, length: {data_length + UDP.HEADER_SIZE}, checksum: 0x{checksum:X}");
+            // LOGGER.DEBUG($"Parsed UDP: src_port: {src_port}, dst_port: {dst_port}, length: {data_length + UDP.HEADER_SIZE}, checksum: 0x{checksum:X}");
+            Console.WriteLine($"Parsed UDP: src_port: {src_port}, dst_port: {dst_port}, length: {data_length + UDP.HEADER_SIZE}, checksum: 0x{checksum:X}");
+
 
             // Start passing
             StartPass(pcb_idx, ip_id, 0, data_length);

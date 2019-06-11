@@ -19,7 +19,7 @@ namespace TCPIP
 
     public struct InterfaceData
     {
-        public uint socket;
+        public int socket;
         public uint ip;
         public byte protocol;
         public ushort port;
@@ -29,7 +29,7 @@ namespace TCPIP
     partial class Interface
     {
 
-        /* 
+        /*
                 [InputBus]
                 public readonly InterfaceBus interfaceBus;
 

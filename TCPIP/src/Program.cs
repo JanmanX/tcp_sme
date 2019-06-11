@@ -19,88 +19,48 @@ namespace TCPIP
                 // * Make a first in first out ring buffer for the packet out classes
                 // * Use the frame number to distinguish between new packets, instead of
 
-                // Graph simulator
-                var simulator = new GraphFileSimulator("data/icmp_data/");
-
-                // Allocate memory blocks
-                int packet_out_mem_size = 8192;
-                var packet_out_mem = new TrueDualPortMemory<byte>(packet_out_mem_size);
-                var packet_out = new PacketOut(packet_out_mem,packet_out_mem_size);
-
-                int packet_in_mem_size = 8192;
-                var packet_in_mem = new TrueDualPortMemory<byte>(packet_in_mem_size);
-                var packet_in = new PacketIn(packet_in_mem,packet_in_mem_size);
-
-                int data_out_mem_size = 8192;
-                var data_out_mem = new TrueDualPortMemory<byte>(data_out_mem_size);
-                var data_out = new DataOut(data_out_mem,data_out_mem_size);
-
-                int data_in_mem_size = 8192;
-                var data_in_mem = new TrueDualPortMemory<byte>(data_in_mem_size);
-                var data_in = new DataIn(data_in_mem,data_in_mem_size);
-
-
-
-
-                var internet_in = new InternetIn();
-                var internet_out = new InternetOut();
+                var simulator = new UDPPingPong("data/transport/udp_25");
                 var transport = new Transport();
 
-                // Wire L(Simulator) to Internet_in
-                simulator.datagramBusInComputeConsumerControlBusIn = internet_in.datagramBusInComputeConsumerControlBusOut;
-                internet_in.datagramBusInComputeProducerControlBusIn = simulator.datagramBusInComputeProducerControlBusOut;
-                internet_in.datagramInBus = simulator.datagramBusIn;
+                // PacketIn
+                simulator.packetInConsumerControlBus = transport.packetInBufferConsumerControlBusOut;
+                transport.packetInBus = simulator.packetInBus;
+                transport.packetInBufferProducerControlBusIn = simulator.packetInBufferProducerControlBus;
 
-                // Wire Internet_in to packet_in
-                packet_in.packetInComputeProducerControlBusIn = internet_in.packetInComputeProducerControlBusOut;
-                internet_in.packetInComputeConsumerControlBusIn = packet_in.packetInComputeConsumerControlBusOut;
-                packet_in.packetInBus = internet_in.packetInBus;
+                // DataIn
+                transport.dataInComputeConsumerControlBusIn = simulator.dataInConsumerControlBus;
+                simulator.dataInWriteBus = transport.dataInWriteBus;
+                simulator.dataInComputeProducerControlBus = transport.dataInComputeProducerControlBusOut;
 
-                // Wire packet_in to Transport
-                packet_in.packetOutBufferConsumerControlBusIn = transport.packetInBufferConsumerControlBusOut;
-                transport.packetInBufferProducerControlBusIn = packet_in.packetOutBufferProducerControlBusOut;
-                transport.packetInBus = packet_in.packetOutBus;
+                // DataOut
+                transport.dataOutReadBus = transport.dataOutReadBus;
+                transport.dataOutBufferProducerControlBusIn = simulator.dataOutBufferProducerControlBus;
+                simulator.dataOutConsumerControlBus = transport.dataOutBufferConsumerControlBusOut;
 
-                // Wire Data_out to Transport
-                data_out.dataOutBufferConsumerControlBusIn = transport.dataOutBufferConsumerControlBusOut;
-                transport.dataOutBufferProducerControlBusIn = data_out.dataOutBufferProducerControlBusOut;
-                transport.dataOutReadBus = data_out.dataOut;
+                // PacketOut
+                simulator.packetOutComputeProducerControlBusOut = simulator.packetOutComputeProducerControlBusOut;
+                simulator.packetOutWriteBus = simulator.packetOutWriteBus;
+                transport.packetOutComputeConsumerControlBusIn = simulator.packetOutComputeConsumerControlBusIn;
 
-                // Wire Transport to Data_in
-                data_in.dataInComputeProducerControlBusIn = transport.dataInComputeProducerControlBusOut;
-                transport.dataOutBufferProducerControlBusIn = data_in.dataOutBufferProducerControlBusOut;
-                data_in.dataIn = transport.dataInWriteBus;
+                // Interface
+                transport.interfaceBus = simulator.interfaceBus;
+                simulator.interfaceControlBus = transport.interfaceControlBus;
 
-                // Wire Transport to Packet_out
-                packet_out.packetOutBufferConsumerControlBusIn = transport.packetInBufferConsumerControlBusOut;
-                transport.packetOutComputeConsumerControlBusIn = packet_out.packetInComputeConsumerControlBusOut;
-                packet_out.packetIn = transport.packetOutWriteBus;
 
-                // Wire packet_out to internet_out
-                internet_out.packetOutBufferProducerControlBusIn = packet_out.packetOutBufferProducerControlBusOut;
-                packet_out.packetOutBufferConsumerControlBusIn = internet_out.packetOutBufferConsumerControlBusOut;
-                internet_out.packetOutWriteBus = packet_out.packetOut;
 
-                // Wire internet_out to L(Simulator)
-                simulator.datagramBusOutComputeProducerControlBusIn = internet_out.linkOutComputeProducerControlBusOut;
-                internet_out.linkOutComputeConsumerControlBusIn = simulator.datagramBusOutComputeConsumerControlBusOut;
-                simulator.datagramBusOut = internet_out.linkOutWriteBus;
 
-                // Wire
 
-                // var transport = new Transport(internetIn.segmentBusIn,
-                //                               packet_out.bus_in_transport,
-                //                               packet_out.bus_in_transport_control_consumer,
-                //                               packet_out.bus_in_transport_control_producer);
 
-                // Use fluent syntax to configure the simulator.
+
+
+               // Use fluent syntax to configure the simulator.
                 // The order does not matter, but `Run()` must be
                 // the last method called.
 
                 // The top-level input and outputs are exposed
                 // for interfacing with other VHDL code or board pins
 
-                sim.AddTopLevelInputs(simulator.datagramBusIn)
+                sim.AddTopLevelInputs(simulator.dataInWriteBus)
                     .BuildCSVFile()
                     //.BuildVHDL()
                     .Run();

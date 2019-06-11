@@ -4,7 +4,8 @@ namespace TCPIP
 {
     public partial class Interface
     {
-        // Busses to user
+       // Busses to user
+        [InitializedBus]
         public interface InterfaceBus : IBus
         {
             [InitialValue(false)]
@@ -16,6 +17,7 @@ namespace TCPIP
             InterfaceData request { get; set; }
         }
 
+        [InitializedBus]
         public interface InterfaceControlBus : IBus
         {
             [InitialValue(false)]
