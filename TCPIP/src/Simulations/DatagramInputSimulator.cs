@@ -12,8 +12,11 @@ namespace TCPIP
         [OutputBus]
         public readonly Internet.DatagramBusIn datagramBusIn = Scope.CreateBus<Internet.DatagramBusIn>();
 
+        [OutputBus]
+        public readonly ComputeProducerControlBus computeProducerControlBus = Scope.CreateBus<ComputeProducerControlBus>();
+
         [InputBus]
-        public Internet.DatagramBusInControl datagramBusInControl;
+        public ConsumerControlBus consumterControlBus;
 
         // Simulation fields
         private readonly String dir;
@@ -39,19 +42,19 @@ namespace TCPIP
                 byte[] bytes = File.ReadAllBytes(file);
 
                 Console.WriteLine($"Writing new frame from {file}, len: {bytes.Length}");
-                foreach (byte b in bytes)
+                for(int i = 0; i < bytes.Length; i++)
                 {
-                    if (datagramBusInControl.skip)
-                    {
-                        Console.WriteLine("SKIP");
-                        break; // Breaks into the next file
+                    // Control
+                    computeProducerControlBus.available = true;
+                    computeProducerControlBus.valid = true;
+                    computeProducerControlBus.bytes_left = 1;
+                    if(i-1 == bytes.Length) {
+                        computeProducerControlBus.bytes_left = 0;
                     }
-                    if (datagramBusInControl.ready)
-                    {
-                        datagramBusIn.frame_number = frame_number;
-                        datagramBusIn.type = (ushort)EthernetIIFrame.EtherType.IPv4; // XXX: Hardcoded
-                        datagramBusIn.data = b;
-                    }
+
+                    datagramBusIn.frame_number = frame_number;
+                    datagramBusIn.type = (ushort)EthernetIIFrame.EtherType.IPv4; // XXX: Hardcoded
+                    datagramBusIn.data = bytes[i];
 
                     await ClockAsync();
                 }
