@@ -26,22 +26,22 @@ namespace TCPIP
         private readonly int memory_size;
 
 
-        ////////// Packet in from Interface
+        ////////// Data_out in from Interface
         [InputBus]
-        public Memory.InternetPacketBus dataIn;
+        public WriteBus dataIn;
         [InputBus]
         public ComputeProducerControlBus dataInComputeProducerControlBusIn;
         [OutputBus]
         public ConsumerControlBus dataInComputeConsumerControlBusOut = Scope.CreateBus<ConsumerControlBus>();
 
 
-        //////////// Packet out to T
+        //////////// Data_out out to T
         [OutputBus]
-        public Memory.InternetPacketBus dataOut = Scope.CreateBus<Memory.InternetPacketBus>();
+        public ReadBus dataOut = Scope.CreateBus<ReadBus>();
         [OutputBus]
-        public ComputeProducerControlBus dataOutComputeProducerControlBusOut = Scope.CreateBus<ComputeProducerControlBus>();
+        public BufferProducerControlBus dataOutBufferProducerControlBusOut = Scope.CreateBus<BufferProducerControlBus>();
         [InputBus]
-        public ConsumerControlBus dataOutComputeConsumerControlBusIn;
+        public ConsumerControlBus dataOutBufferConsumerControlBusIn;
 
 
         public struct TempData{
@@ -51,7 +51,7 @@ namespace TCPIP
 
 
 
-        private MemorySegmentsRingBufferFIFO<TempData> mem_calc;
+        private MultiMemorySegmentsRingBufferFIFO<TempData> mem_calc;
         private readonly int mem_calc_num_segments = 10;
 
         protected override void OnTick()
@@ -67,7 +67,7 @@ namespace TCPIP
             this.controlA = memory.ControlA;
             this.readResultA = memory.ReadResultA;
             this.readResultB = memory.ReadResultB;
-            this.mem_calc = new MemorySegmentsRingBufferFIFO<TempData>(mem_calc_num_segments,memory_size);
+            this.mem_calc = new MultiMemorySegmentsRingBufferFIFO<TempData>(mem_calc_num_segments,memory_size);
 
         }
     }

@@ -28,7 +28,7 @@ namespace TCPIP
 
         ////////// Packet in from I_in proccess
         [InputBus]
-        public Memory.InternetPacketBus packetIn;
+        public WriteBus packetInBus;
         [InputBus]
         public ComputeProducerControlBus packetInComputeProducerControlBusIn;
         [OutputBus]
@@ -37,11 +37,11 @@ namespace TCPIP
 
         //////////// Packet out to T
         [OutputBus]
-        public Memory.InternetPacketBus packetOut = Scope.CreateBus<Memory.InternetPacketBus>();
+        public ReadBus packetOutBus = Scope.CreateBus<ReadBus>();
         [OutputBus]
-        public ComputeProducerControlBus packetOutComputeProducerControlBusOut = Scope.CreateBus<ComputeProducerControlBus>();
+        public BufferProducerControlBus packetOutBufferProducerControlBusOut = Scope.CreateBus<BufferProducerControlBus>();
         [InputBus]
-        public ConsumerControlBus packetOutComputeConsumerControlBusIn;
+        public ConsumerControlBus packetOutBufferConsumerControlBusIn;
 
 
         public struct TempData{
@@ -67,7 +67,9 @@ namespace TCPIP
         private bool send_receiving = false;
         private bool send_last_byte_requested = false;
 
-        private MemorySegmentsRingBufferFIFO<TempData> mem_calc;
+
+
+        private MultiMemorySegmentsRingBufferFIFO<TempData> mem_calc;
         private readonly int mem_calc_num_segments = 10;
 
         public PacketIn(TrueDualPortMemory<byte> memory, int memory_size){
@@ -78,7 +80,7 @@ namespace TCPIP
             this.controlA = memory.ControlA;
             this.readResultA = memory.ReadResultA;
             this.readResultB = memory.ReadResultB;
-            this.mem_calc = new MemorySegmentsRingBufferFIFO<TempData>(mem_calc_num_segments,memory_size);
+            this.mem_calc = new MultiMemorySegmentsRingBufferFIFO<TempData>(mem_calc_num_segments,memory_size);
 
         }
 
@@ -98,17 +100,17 @@ namespace TCPIP
 
             if(packetInComputeProducerControlBusIn.valid){
                 // This is a new packet
-                if(packetIn.frame_number != cur_frame_number)
+                if(packetInBus.frame_number != cur_frame_number)
                 {
                     // get the new write id
-                    id_write = mem_calc.AllocateSegment(packetIn.data_length);
-                    tmp_ip_info.ip_dst_addr_0 = packetIn.ip_dst_addr_0;
-                    tmp_ip_info.ip_dst_addr_1 = packetIn.ip_dst_addr_1;
-                    tmp_ip_info.ip_src_addr_0 = packetIn.ip_src_addr_0;
-                    tmp_ip_info.ip_src_addr_1 = packetIn.ip_src_addr_1;
-                    tmp_ip_info.ip_protocol = packetIn.ip_protocol;
-                    tmp_ip_info.ip_id = packetIn.ip_id;
-                    tmp_ip_info.frame_number = packetIn.frame_number;
+                    id_write = mem_calc.AllocateSegment(packetInBus.data_length);
+                    tmp_ip_info.ip_dst_addr_0 = packetInBus.ip_dst_addr_0;
+                    tmp_ip_info.ip_dst_addr_1 = packetInBus.ip_dst_addr_1;
+                    tmp_ip_info.ip_src_addr_0 = packetInBus.ip_src_addr_0;
+                    tmp_ip_info.ip_src_addr_1 = packetInBus.ip_src_addr_1;
+                    tmp_ip_info.ip_protocol = packetInBus.ip_protocol;
+                    tmp_ip_info.ip_id = packetInBus.ip_id;
+                    tmp_ip_info.frame_number = packetInBus.frame_number;
                     // Save the struct in the memory structure
                     mem_calc.SaveMetaData(id_write,tmp_ip_info);
                 }
@@ -116,7 +118,7 @@ namespace TCPIP
                 controlA.Enabled = true;
                 controlA.IsWriting = true;
                 controlA.Address = mem_calc.SaveData(id_write);
-                controlA.Data = packetIn.data;
+                controlA.Data = packetInBus.data;
             }
         }
         private void Send()
@@ -136,23 +138,23 @@ namespace TCPIP
             // We are now receiving stuff from memory, send to the consumer
             // If we are not, say to T that the data is not valid
             if(send_receiving){
-                packetOutComputeProducerControlBusOut.valid = true;
+                packetOutBufferProducerControlBusOut.valid = true;
                 // XXX id_send can change to different segment that what we got from ram
-                packetOutComputeProducerControlBusOut.bytes_left = (uint)mem_calc.SegmentBytesLeft(id_send);
+                packetOutBufferProducerControlBusOut.bytes_left = (uint)mem_calc.SegmentBytesLeft(id_send);
                 TempData temp_data = mem_calc.LoadMetaData(id_send);
-                packetOut.data = readResultB.Data;
-                packetOut.ip_dst_addr_0 = temp_data.ip_dst_addr_0;
-                packetOut.ip_dst_addr_1 = temp_data.ip_dst_addr_1;
-                packetOut.ip_src_addr_0 = temp_data.ip_src_addr_0;
-                packetOut.ip_src_addr_1 = temp_data.ip_src_addr_1;
-                packetOut.ip_protocol = temp_data.ip_protocol;
-                packetOut.frame_number = temp_data.frame_number;
-                packetOut.ip_id = temp_data.ip_id;
+                packetOutBus.data = readResultB.Data;
+                packetOutBus.ip_dst_addr_0 = temp_data.ip_dst_addr_0;
+                packetOutBus.ip_dst_addr_1 = temp_data.ip_dst_addr_1;
+                packetOutBus.ip_src_addr_0 = temp_data.ip_src_addr_0;
+                packetOutBus.ip_src_addr_1 = temp_data.ip_src_addr_1;
+                packetOutBus.ip_protocol = temp_data.ip_protocol;
+                packetOutBus.frame_number = temp_data.frame_number;
+                packetOutBus.ip_id = temp_data.ip_id;
                 //packetOut.frame_number = XXX;
                 // We reset receiving, since it needs to be set implicit
                 send_receiving = false;
             }else{
-                packetOutComputeProducerControlBusOut.valid = false;
+                packetOutBufferProducerControlBusOut.valid = false;
             }
 
             // If the last clock set the request to true, we must be
@@ -165,13 +167,13 @@ namespace TCPIP
 
             // We have a full segment ready, we can send it
             if (mem_calc.IsSegmentFull(id_send)){
-                packetOutComputeProducerControlBusOut.available = true;
+                packetOutBufferProducerControlBusOut.available = true;
             }else{
-                packetOutComputeProducerControlBusOut.available = false;
+                packetOutBufferProducerControlBusOut.available = false;
             }
 
             // The consumer are ready, ask memory and mark that we requested memory
-            if(packetOutComputeConsumerControlBusIn.ready){
+            if(packetOutBufferConsumerControlBusIn.ready){
                 controlB.Enabled = true;
                 controlB.IsWriting = false;
                 controlB.Address = mem_calc.LoadData(id_send);

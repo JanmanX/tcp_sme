@@ -185,18 +185,19 @@ namespace TCPIP
             int pid = packetPointers.First();
             Logging.log.Trace("PacketID: " + pid + " iterator started");
             Packet p = packetList[pid];
-            
+
             // Start after ethernet header
             foreach(byte b in p.data.Skip((int)EthernetIIFrame.HEADER_SIZE)){
+                //Logging.log.Trace($"Yielding {(p.type,b)}");
                 yield return (p.type,b);
             }
-            
+
             // Mark as valid
             packetList[pid].info |= PacketInfo.Valid;
-            
+
             // Remove from queue
             packetPointers.Remove(pid);
-            
+
             // We add what is up next, so it is valid packet pointers
             packetPointers.UnionWith(packetList[pid].requiredBy);
             Logging.log.Trace("PacketID: " + pid + " iterator ended");

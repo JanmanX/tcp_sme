@@ -10,7 +10,7 @@ namespace TCPIP
     {
         ////////// Datagram in from L proccess
         [InputBus]
-        public Internet.DatagramBusIn datagramBusIn;
+        public Internet.DatagramBusIn datagramInBus;
         [InputBus]
         public ComputeProducerControlBus datagramBusInComputeProducerControlBusIn;
         [OutputBus]
@@ -19,7 +19,7 @@ namespace TCPIP
 
         //////////// IP packet to packet in
         [OutputBus]
-        public Memory.InternetPacketBus packetIn = Scope.CreateBus<Memory.InternetPacketBus>();
+        public PacketIn.WriteBus packetInBus = Scope.CreateBus<PacketIn.WriteBus>();
         [OutputBus]
         public ComputeProducerControlBus packetInComputeProducerControlBusOut = Scope.CreateBus<ComputeProducerControlBus>();
         [InputBus]
@@ -27,7 +27,7 @@ namespace TCPIP
 
         //////////// IP packet to packet out
         [OutputBus]
-        public Memory.InternetPacketBus packetOut = Scope.CreateBus<Memory.InternetPacketBus>();
+        public PacketOut.WriteBus packetOut = Scope.CreateBus<PacketOut.WriteBus>();
         [OutputBus]
         public ComputeProducerControlBus packetOutComputeProducerControlBusOut = Scope.CreateBus<ComputeProducerControlBus>();
         [InputBus]
@@ -96,6 +96,8 @@ namespace TCPIP
             {
                 case InternetInState.Finish:
                     StartIdle();
+                    // Csharp do not permit fall through.. but can be forced with goto. clever language desing!
+                    goto case InternetInState.Idle;
                 // Fall through!
                 case InternetInState.Idle:
                     Idle();
@@ -141,7 +143,7 @@ namespace TCPIP
             StartIdle();
 
             LOGGER.WARN($"WRITING CURRENTLY NOT SUPPORTED ON INTERNET_IN");
-            state = LayerProcessState.Writing;
+            state = InternetInState.Write;
 
             idx_out = cur_segment_data.offset;
             write_len = last_byte;
@@ -199,7 +201,7 @@ namespace TCPIP
         {
             if (idx_in < buffer_in.Length)
             {
-                buffer_in[idx_in++] = datagramBusIn.data;
+                buffer_in[idx_in++] = datagramInBus.data;
 
                 // Processing
                 switch (cur_segment_data.type)
@@ -230,16 +232,16 @@ namespace TCPIP
             LOGGER.INFO("Passing");
 
             // Pass values
-            packetIn.ip_id = cur_segment_data.ip.id;
-            packetIn.fragment_offset = cur_segment_data.ip.fragment_offset;
-            packetIn.ip_protocol = cur_segment_data.ip.protocol;
-            packetIn.ip_src_addr_0 = cur_segment_data.ip.src_addr_0;
-            packetIn.ip_src_addr_1 = cur_segment_data.ip.src_addr_1;
-            packetIn.ip_dst_addr_0 = cur_segment_data.ip.dst_addr_0;
-            packetIn.ip_dst_addr_1 = cur_segment_data.ip.dst_addr_1;
-            packetIn.data_length = cur_segment_data.size;
-            packetIn.frame_number = cur_segment_data.frame_number;
-            packetIn.data = datagramBusIn.data;
+            packetInBus.ip_id = cur_segment_data.ip.id;
+            packetInBus.fragment_offset = cur_segment_data.ip.fragment_offset;
+            packetInBus.ip_protocol = cur_segment_data.ip.protocol;
+            packetInBus.ip_src_addr_0 = cur_segment_data.ip.src_addr_0;
+            packetInBus.ip_src_addr_1 = cur_segment_data.ip.src_addr_1;
+            packetInBus.ip_dst_addr_0 = cur_segment_data.ip.dst_addr_0;
+            packetInBus.ip_dst_addr_1 = cur_segment_data.ip.dst_addr_1;
+            packetInBus.data_length = (int)cur_segment_data.size;
+            packetInBus.frame_number = cur_segment_data.frame_number;
+            packetInBus.data = datagramInBus.data;
 
             // go go go
             cur_segment_data.valid = true;

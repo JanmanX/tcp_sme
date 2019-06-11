@@ -11,35 +11,37 @@ namespace TCPIP
         ////////////////////////////// Busses /////////////////////////////////
         // PacketIn
         [InputBus]
-        public BufferProducerControlBus packetInProducerControlBus;
+        public BufferProducerControlBus packetInBufferProducerControlBusIn;
         [InputBus]
-        public PacketIn.PacketInBus packetInBus;
+        public PacketIn.ReadBus packetInBus;
         [OutputBus]
-        public ConsumerControlBus packetInConsumerControlBus = Scope.CreateBus<ConsumerControlBus>();
+        public ConsumerControlBus packetInBufferConsumerControlBusOut = Scope.CreateBus<ConsumerControlBus>();
+
+
 
         // PacketOut
         [OutputBus]
-        public ComputeProducerControlBus packetOutProducerControlBus = Scope.CreateBus<ComputeProducerControlBus>();
+        public ComputeProducerControlBus packetOutComputeProducerControlBusOut = Scope.CreateBus<ComputeProducerControlBus>();
         [OutputBus]
-        public PacketOut.PacketOutWriteBus packetOutWriteBus = Scope.CreateBus<PacketOut.PacketOutWriteBus>();
+        public PacketOut.WriteBus packetOutWriteBus = Scope.CreateBus<PacketOut.WriteBus>();
         [InputBus]
-        public ConsumerControlBus packetOutConsumerControlBus = Scope.CreateBus<ConsumerControlBus>();
+        public ConsumerControlBus packetOutComputeConsumerControlBusIn;
 
         // DataOut
         [InputBus]
-        public Memory.DataOutReadBus dataOutReadBus;
+        public DataOut.ReadBus dataOutReadBus;
         [InputBus]
-        public BufferProducerControlBus dataOutProducerControlBus;
+        public BufferProducerControlBus dataOutBufferProducerControlBusIn;
         [OutputBus]
-        public readonly ConsumerControlBus dataOutConsumerControlBus = Scope.CreateBus<ConsumerControlBus>();
+        public readonly ConsumerControlBus dataOutBufferConsumerControlBusOut = Scope.CreateBus<ConsumerControlBus>();
 
         // DataIn
         [OutputBus]
-        public readonly Memory.DataInWriteBus dataInWriteBus = Scope.CreateBus<Memory.DataInWriteBus>();
+        public readonly DataIn.WriteBus dataInWriteBus = Scope.CreateBus<DataIn.WriteBus>();
         [OutputBus]
-        public readonly ComputeProducerControlBus dataInProducerControlBus = Scope.CreateBus<ComputeProducerControlBus>();
+        public readonly ComputeProducerControlBus dataInComputeProducerControlBusOut = Scope.CreateBus<ComputeProducerControlBus>();
         [InputBus]
-        public ConsumerControlBus dataInConsumerControlBus;
+        public ConsumerControlBus dataInComputeConsumerControlBusIn;
 
         // Interface
         [InputBus]
@@ -151,7 +153,7 @@ namespace TCPIP
                             StartControl();
                         }
                         else */
-            if (dataOutProducerControlBus.available)
+            if (dataOutBufferProducerControlBusIn.available)
             {
                 Console.WriteLine("dataOutProducerControlBus.available!");
                 StartSend();
@@ -172,7 +174,7 @@ namespace TCPIP
             state = TransportProcessState.Receive;
 
             // Ready
-            packetInConsumerControlBus.ready = true;
+            packetInBufferConsumerControlBusOut.ready = true;
 
             // Internal variables
             read = true;
@@ -182,7 +184,7 @@ namespace TCPIP
         void Receive()
         {
             // If invalid, reset
-            if (packetInProducerControlBus.valid == false)
+            if (packetInBufferProducerControlBusIn.valid == false)
             {
                 StartIdle();
                 return;
@@ -201,7 +203,7 @@ namespace TCPIP
                 buffer_in[idx_in++] = packetInBus.data;
 
                 // Processing
-                switch (packetInBus.protocol)
+                switch (packetInBus.ip_protocol)
                 {
                     case (byte)IPv4.Protocol.TCP:
                         // End of header, start parsing
@@ -247,20 +249,20 @@ namespace TCPIP
 
             // Set busses
             ResetAllBusses();
-            packetInConsumerControlBus.ready = true;
+            packetInBufferConsumerControlBusOut.ready = true;
         }
 
         void Pass()
         {
             // If packetIn suddenly invalid, start idle
-            if (packetInProducerControlBus.valid == false)
+            if (packetInBufferProducerControlBusIn.valid == false)
             {
                 StartIdle();
                 return;
             }
 
             // if DataIn not ready, abort and start idle
-            if (dataInConsumerControlBus.ready == false)
+            if (dataInComputeConsumerControlBusIn.ready == false)
             {
                 StartIdle();
                 return;
@@ -278,8 +280,8 @@ namespace TCPIP
             }
 
             // Set control bus values
-            dataInProducerControlBus.valid = true;
-            dataInProducerControlBus.bytes_left = passData.length - passData.bytes_passed;
+            dataInComputeProducerControlBusOut.valid = true;
+            dataInComputeProducerControlBusOut.bytes_left = passData.length - passData.bytes_passed;
 
             // data bus values
             dataInWriteBus.socket = passData.socket;
@@ -290,7 +292,7 @@ namespace TCPIP
 
 
             // If last byte
-            if (packetInProducerControlBus.bytes_left == 0)
+            if (packetInBufferProducerControlBusIn.bytes_left == 0)
             {
                 // Finish checksum
                 pcbs[passData.socket].checksum_acc = ((pcbs[passData.socket].checksum_acc & 0xFFFF)
@@ -311,7 +313,7 @@ namespace TCPIP
         {
             // Set busses
             ResetAllBusses();
-            dataOutConsumerControlBus.ready = true;
+            dataOutBufferConsumerControlBusOut.ready = true;
 
             state = TransportProcessState.Send;
 
@@ -324,7 +326,7 @@ namespace TCPIP
 
         private void Send()
         {
-            if (dataOutProducerControlBus.valid && passData.bytes_passed < MAX_PACKET_DATA_SIZE
+            if (dataOutBufferProducerControlBusIn.valid && passData.bytes_passed < MAX_PACKET_DATA_SIZE
                 && sending_header == false)
             {
                 SendData();
@@ -335,7 +337,7 @@ namespace TCPIP
                 { // SendData() finished. Build the header
                     BuildHeader();
 
-                    dataOutConsumerControlBus.ready = false;
+                    dataOutBufferConsumerControlBusOut.ready = false;
                 }
 
                 sending_header = true;
@@ -347,11 +349,11 @@ namespace TCPIP
 
         private void SendData()
         {
-            packetOutProducerControlBus.valid = true;
-            packetOutProducerControlBus.bytes_left = 1; // at least one more
+            packetOutComputeProducerControlBusOut.valid = true;
+            packetOutComputeProducerControlBusOut.bytes_left = 1; // at least one more
 
             packetOutWriteBus.data = dataOutReadBus.data;
-            packetOutWriteBus.addr = UDP.HEADER_SIZE + passData.bytes_passed++; // XXX: hardcoded for UDP fixed size header
+            packetOutWriteBus.addr = (int)(UDP.HEADER_SIZE + passData.bytes_passed++); // XXX: hardcoded for UDP fixed size header
 
             // Update accumulated checksum
             passData.checksum_acc += dataOutReadBus.data;
@@ -385,16 +387,16 @@ namespace TCPIP
 
         private void SendHeader()
         {
-            packetOutProducerControlBus.valid = true;
-            packetOutProducerControlBus.bytes_left = 1;
+            packetOutComputeProducerControlBusOut.valid = true;
+            packetOutComputeProducerControlBusOut.bytes_left = 1;
 
             packetOutWriteBus.data = buffer_out[idx_out];
-            packetOutWriteBus.addr = idx_out;
+            packetOutWriteBus.addr = (int)idx_out;
             idx_out++;
 
             if (idx_out == UDP.HEADER_SIZE)
             {
-                packetOutProducerControlBus.bytes_left = 0; // this is the last byte
+                packetOutComputeProducerControlBusOut.bytes_left = 0; // this is the last byte
 
                 Finish();
             }
@@ -572,19 +574,19 @@ namespace TCPIP
         private void ResetAllBusses()
         {
             // PacketIn
-            packetInConsumerControlBus.ready = false;
+            packetInBufferConsumerControlBusOut.ready = false;
 
             // DataOut
-            dataOutConsumerControlBus.ready = false;
+            dataOutBufferConsumerControlBusOut.ready = false;
 
             // DataIn
-            dataInProducerControlBus.valid = false;
+            dataInComputeProducerControlBusOut.valid = false;
 
             // Interface
             interfaceControlBus.valid = false;
 
             // PacketOut
-            packetOutProducerControlBus.valid = false;
+            packetOutComputeProducerControlBusOut.valid = false;
         }
     }
 }

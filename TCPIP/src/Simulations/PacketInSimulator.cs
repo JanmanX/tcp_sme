@@ -14,7 +14,7 @@ namespace TCPIP
         public ConsumerControlBus consumerControlBus;
 
         [OutputBus]
-        public readonly PacketIn.PacketInBus packetInBus = Scope.CreateBus<PacketIn.PacketInBus>();
+        public readonly PacketIn.ReadBus packetInBus = Scope.CreateBus<PacketIn.ReadBus>();
 
         [OutputBus]
         public readonly BufferProducerControlBus bufferProducerControlBus = Scope.CreateBus<BufferProducerControlBus>();
@@ -58,7 +58,7 @@ namespace TCPIP
                         // Data bus
                         packetInBus.frame_number = frame_number;
                         packetInBus.ip_id = ip_id;
-                        packetInBus.protocol = (byte)IPv4.Protocol.UDP;
+                        packetInBus.ip_protocol = (byte)IPv4.Protocol.UDP;
                         packetInBus.data = b;
 
                         await ClockAsync();

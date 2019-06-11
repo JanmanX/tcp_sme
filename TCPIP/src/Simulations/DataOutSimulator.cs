@@ -14,7 +14,7 @@ namespace TCPIP
         public BufferProducerControlBus bufferProducerControlBus = Scope.CreateBus<BufferProducerControlBus>();
 
         [OutputBus]
-        public DataOutReadBus dataOutReadBus = Scope.CreateBus<DataOutReadBus>(); 
+        public DataOut.ReadBus dataOutReadBus = Scope.CreateBus<DataOut.ReadBus>();
 
         [InputBus]
         public ConsumerControlBus consumerControlBus;
@@ -37,7 +37,7 @@ namespace TCPIP
             bufferProducerControlBus.available = true;
 
 
-            while (i < bytes.Length) 
+            while (i < bytes.Length)
             {
                 bufferProducerControlBus.valid = true;
                 dataOutReadBus.socket = 0;

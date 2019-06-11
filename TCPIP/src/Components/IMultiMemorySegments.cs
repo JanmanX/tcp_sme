@@ -1,11 +1,18 @@
 namespace TCPIP
 {
-    // Interface that defines how to handle the memory in segments.
+    // Interface that defines how to handle multiple memory in segments at once,
+    // with multiple saves and loads on segments out of order.
     // The memory savings itself are not handled here, only addres are returned, and
     // the process which recives the address must save the data themselves
 
     // The segments also handles meta data, which are additional information per segment,
     // that can be accessed instantly
+
+    // This interface can handle multiple elements at the same time, but
+    // requires the size of the segment beforehand
+
+    // If we do not know the size of the element, but only have one element at a time
+    // use the ISingleMemorySegments.
 
     interface IMultiMemorySegments<MetaData> where MetaData : struct
     {

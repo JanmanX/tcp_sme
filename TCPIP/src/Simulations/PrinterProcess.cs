@@ -11,7 +11,7 @@ namespace TCPIP
         [InputBus]
         public ComputeProducerControlBus computeProducerControlBus;
         [InputBus]
-        public PacketOut.PacketOutWriteBus bus;
+        public PacketOut.WriteBus bus;
 
         [OutputBus]
         public readonly ConsumerControlBus consumerControlBus = Scope.CreateBus<ConsumerControlBus>();
@@ -43,7 +43,7 @@ namespace TCPIP
                     }
                     Console.WriteLine();
 
-                    length = 0; 
+                    length = 0;
                 }
             }
         }
