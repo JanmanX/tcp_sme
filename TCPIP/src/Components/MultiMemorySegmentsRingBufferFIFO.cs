@@ -39,6 +39,7 @@ namespace TCPIP
                 x.full = true;
                 x.start = 0;
                 x.stop = 0;
+                x.current = 0;
                 segment_list[i] = x;
             }
         }
@@ -134,7 +135,10 @@ namespace TCPIP
                throw new System.Exception("The segment entry table is full!");
             }
             // If the range is currently bigger than what we can handle, there is nothing to do
-            if (MemoryRange(last_segment.stop, tail_segment.start) < size){
+            // If the tail segment and the last segment is are the same, then we must be hitting
+            // themselves (full empty buffer)
+            if (MemoryRange(last_segment.stop, tail_segment.start) < size && tail_segment_id != last_segment_id){
+                Logging.log.Error($"The range : {last_segment.stop},{tail_segment.start} is not large enough for {size}");
                 throw new System.Exception("The range is not big enough for the allocation");
             }
             new_segment.done = false;

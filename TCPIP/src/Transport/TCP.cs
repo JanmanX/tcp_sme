@@ -39,7 +39,7 @@ namespace TCPIP
             if (pcb_idx == -1)
             {
                 // TODO: Drop with reset
-                LOGGER.WARN("PCB not found");
+                Logging.log.Warn("PCB not found");
                 pcb_idx = 0; // debug
             }
 

@@ -12,7 +12,7 @@ namespace TCPIP
             ushort calculated_checksum = ChecksumBufferIn(0, IPv4.HEADER_SIZE);
             if (calculated_checksum != 0x00)
             {
-                LOGGER.WARN($"Invalid IPv4 checksum: 0x{calculated_checksum:X}");
+                Logging.log.Warn($"Invalid IPv4 checksum: 0x{calculated_checksum:X}");
             }
 
 
@@ -23,14 +23,14 @@ namespace TCPIP
             // Check version
             if ((buffer_in[IPv4.VERSION_OFFSET] >> 0x04) != IPv4.VERSION)
             {
-                LOGGER.WARN($"Unknown IPv4 version {(buffer_in[IPv4.VERSION_OFFSET] & 0x0F):X}");
+                Logging.log.Warn($"Unknown IPv4 version {(buffer_in[IPv4.VERSION_OFFSET] & 0x0F):X}");
             }
 
             // Get Internet Header Length
             byte ihl = (byte)(buffer_in[IPv4.IHL_OFFSET] & 0x0F);
             if (ihl != 0x05)
             {
-                LOGGER.DEBUG($"Odd size of IPv4 Packet: IHL: {(byte)ihl}");
+                Logging.log.Debug($"Odd size of IPv4 Packet: IHL: {(byte)ihl}");
             }
 
             // Get total length
@@ -52,7 +52,7 @@ namespace TCPIP
                                         & IPv4.FRAGMENT_OFFSET_MASK);
             if ((flags & (byte)IPv4.Flags.MF) != 0x00)
             {
-                LOGGER.ERROR($"IP packet fragmentation not supported!");
+                Logging.log.Error($"IP packet fragmentation not supported!");
             }
 
             // Destionation address
@@ -69,7 +69,7 @@ namespace TCPIP
                             | (uint)(buffer_in[IPv4.SRC_ADDRESS_OFFSET_2] << 0x08)
                             | (uint)(buffer_in[IPv4.SRC_ADDRESS_OFFSET_3]);
 
-            LOGGER.INFO(
+            Logging.log.Info(
 $@"Received packet for: \
 {buffer_in[IPv4.SRC_ADDRESS_OFFSET_0]}.\
 {buffer_in[IPv4.SRC_ADDRESS_OFFSET_1]}.\

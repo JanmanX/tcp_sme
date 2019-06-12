@@ -17,6 +17,8 @@ namespace TCPIP
         [OutputBus]
         public ConsumerControlBus packetInBufferConsumerControlBusOut = Scope.CreateBus<ConsumerControlBus>();
 
+
+
         // PacketOut
         [OutputBus]
         public ComputeProducerControlBus packetOutComputeProducerControlBusOut = Scope.CreateBus<ComputeProducerControlBus>();
@@ -65,6 +67,7 @@ namespace TCPIP
         private const int BUFFER_IN_SIZE = 100;
         private byte[] buffer_in = new byte[BUFFER_IN_SIZE];
         private uint idx_in = 0x00;
+        private bool read = true; // Indicates whether process is writing from local buffer
 
         // Structure to hold information about the data being passed
         // Does not necessarily use all fields
@@ -172,6 +175,7 @@ namespace TCPIP
             packetInBufferConsumerControlBusOut.ready = true;
 
             // Internal variables
+            read = true;
             idx_in = 0;
         }
 
@@ -188,6 +192,7 @@ namespace TCPIP
             if (packetInBus.ip_id != ip_id)
             {
                 ip_id = packetInBus.ip_id;
+                read = true;
                 idx_in = 0;
             }
 
@@ -420,6 +425,12 @@ namespace TCPIP
             return;
         }
 
+            // Go idle if request invalid
+            if (interfaceBus.valid == false)
+            {
+                StartIdle();
+                return;
+            }
 
         switch (interfaceBus.interface_function)
         {
@@ -428,6 +439,7 @@ namespace TCPIP
                 ControlReturn(interfaceBus.interface_function,
                         (byte)ExitStatus.EINVAL);
                 return;
+            }
 
             case (byte)InterfaceFunction.LISTEN:
                 {
@@ -500,6 +512,7 @@ namespace TCPIP
                             return;
                     }
 
+                        ResetPCB(socket);
 
                     response.socket = socket;
                     ControlReturn(interfaceBus.interface_function,
@@ -519,7 +532,11 @@ namespace TCPIP
                 pcbs[interfaceBus.request.socket].state = (byte)PCB_STATE.CLOSED;
                 break;
 
+                    pcbs[interfaceBus.request.socket].state = (byte)PCB_STATE.CLOSED;
+                    break;
 
+
+            }
         }
     }
 
@@ -546,6 +563,7 @@ namespace TCPIP
             {
                 return i;
             }
+            return -1;
         }
         return -1;
     }

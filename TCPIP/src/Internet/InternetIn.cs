@@ -142,7 +142,7 @@ namespace TCPIP
         {
             StartIdle();
 
-            LOGGER.WARN($"WRITING CURRENTLY NOT SUPPORTED ON INTERNET_IN");
+            Logging.log.Warn($"WRITING CURRENTLY NOT SUPPORTED ON INTERNET_IN");
             state = InternetInState.Write;
 
             idx_out = cur_segment_data.offset;
@@ -154,7 +154,7 @@ namespace TCPIP
 
         private void Write()
         {
-            LOGGER.INFO($"Writing from {idx_out} data: {buffer_in[idx_out]:X2}");
+            Logging.log.Info($"Writing from {idx_out} data: {buffer_in[idx_out]:X2}");
 
             // Send the general data to the buffer
             packetOutComputeProducerControlBusOut.valid = true;
@@ -216,7 +216,7 @@ namespace TCPIP
                         break;
 
                     default:
-                        LOGGER.ERROR($"Segment type not defined: {cur_segment_data.type}");
+                        Logging.log.Error($"Segment type not defined: {cur_segment_data.type}");
                         break;
                 }
             }
@@ -229,7 +229,7 @@ namespace TCPIP
                 StartIdle();
             }
 
-            LOGGER.INFO("Passing");
+            Logging.log.Info("Passing");
 
             // Pass values
             packetInBus.ip_id = cur_segment_data.ip.id;
