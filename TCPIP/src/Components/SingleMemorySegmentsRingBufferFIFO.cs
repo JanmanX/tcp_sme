@@ -94,7 +94,8 @@ namespace TCPIP
             SegmentEntry current = segment_list[load_segment_id];
             if(!current.reading)
             {
-                throw new System.Exception("The segment is not in reading mode! we cannot load from it");
+                Logging.log.Warn("The segment is not in reading mode! we cannot load from it");
+                return -1;
             }
             int addr = (current.start + index) % memory_size;
             // The memory is out of range
