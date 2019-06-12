@@ -421,7 +421,9 @@ namespace TCPIP
             if (interfaceBus.request.socket < 0 || interfaceBus.request.socket > pcbs.Length)
             {
                 ControlReturn(interfaceControlBus.interface_function,
-                        (byte)ExitStatus.EINVAL);
+                        (byte)ExitStatus.EINVAL,
+                        response,
+                        interfaceBus.request);
                 return;
             }
 
@@ -437,7 +439,9 @@ namespace TCPIP
                 case (byte)InterfaceFunction.INVALID:
                 default:
                     ControlReturn(interfaceBus.interface_function,
-                            (byte)ExitStatus.EINVAL);
+                            (byte)ExitStatus.EINVAL,
+                            response,
+                            interfaceBus.request);
                     return;
 
                 case (byte)InterfaceFunction.LISTEN:
@@ -448,7 +452,9 @@ namespace TCPIP
                         if (socket < 0)
                         {
                             ControlReturn(interfaceBus.interface_function,
-                                    (byte)ExitStatus.ENOSPC);
+                                    (byte)ExitStatus.ENOSPC,
+                                    response,
+                                    interfaceBus.request);
                             return;
                         }
 
@@ -464,12 +470,16 @@ namespace TCPIP
                             case (byte)IPv4.Protocol.UDP:
                             default: // Protocol not supported. Error
                                 ControlReturn(interfaceBus.interface_function,
-                                    (byte)ExitStatus.EPROTONOSUPPORT);
+                                    (byte)ExitStatus.EPROTONOSUPPORT,
+                                    response,
+                                    interfaceBus.request);
                                 return;
                         }
 
                         ControlReturn(interfaceBus.interface_function,
-                                (byte)ExitStatus.OK);
+                                (byte)ExitStatus.OK,
+                                response,
+                                interfaceBus.request);
                         break;
                     }
 
@@ -485,7 +495,9 @@ namespace TCPIP
                         if (socket < 0)
                         {
                             ControlReturn(interfaceBus.interface_function,
-                                    (byte)ExitStatus.ENOSPC);
+                                    (byte)ExitStatus.ENOSPC,
+                                    response,
+                                    interfaceBus.request);
                             return;
                         }
 
@@ -507,7 +519,9 @@ namespace TCPIP
                             case (byte)IPv4.Protocol.TCP:
                             default: // Protocol not supported. Error
                                 ControlReturn(interfaceBus.interface_function,
-                                    (byte)ExitStatus.EPROTONOSUPPORT);
+                                    (byte)ExitStatus.EPROTONOSUPPORT,
+                                    response,
+                                    interfaceBus.request);
                                 return;
                         }
 
@@ -516,7 +530,8 @@ namespace TCPIP
                         response.socket = socket;
                         ControlReturn(interfaceBus.interface_function,
                                 (byte)ExitStatus.OK,
-                                response);
+                                response,
+                                interfaceBus.request);
                         break;
                     }
 
@@ -541,8 +556,8 @@ namespace TCPIP
         }
 
         private void ControlReturn(byte interface_function, byte exit_status,
-                                    InterfaceData response = default(InterfaceData),
-                                    InterfaceData request = default(InterfaceData))
+                                    InterfaceData response,
+                                    InterfaceData request)
         {
             interfaceControlBus.valid = true;
             interfaceControlBus.interface_function = interface_function;

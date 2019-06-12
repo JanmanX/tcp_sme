@@ -55,7 +55,7 @@ namespace TCPIP
 
                 sim.AddTopLevelInputs(simulator.packetInBus)
                     .BuildCSVFile()
-                    //.BuildVHDL()
+                    .BuildVHDL()
                     .Run();
            }
            return true;

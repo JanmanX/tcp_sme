@@ -29,11 +29,7 @@ namespace TCPIP
 
         public override async Task Run()
         {
-            while(true)
-            {
-                await ClockAsync();
-            }
-            // Init
+           // Init
             await ClockAsync();
             await ClockAsync();
             await ClockAsync();
