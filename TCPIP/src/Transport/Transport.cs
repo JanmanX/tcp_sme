@@ -45,7 +45,7 @@ namespace TCPIP
 
         // Interface
         [InputBus]
-        public Interface.InterfaceBus interfaceBus;
+        public readonly Interface.InterfaceBus interfaceBus = Scope.CreateBus<Interface.InterfaceBus>();
         [OutputBus]
         public readonly Interface.InterfaceControlBus interfaceControlBus = Scope.CreateBus<Interface.InterfaceControlBus>();
 
