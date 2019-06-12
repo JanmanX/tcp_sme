@@ -147,10 +147,10 @@ namespace TCPIP
             {
                 StartReceive();
             }
-       //     else if (interfaceBus.valid)
-       //     {
-       //         StartControl();
-       //     }
+            //     else if (interfaceBus.valid)
+            //     {
+            //         StartControl();
+            //     }
             else if (dataOutBufferProducerControlBusIn.available)
             {
                 Console.WriteLine("dataOutProducerControlBus.available!");
@@ -229,201 +229,186 @@ namespace TCPIP
             }
         }
 
-    private void StartPass(int pcb_idx, uint ip_id, uint tcp_seq, uint length)
-    {
-        state = TransportProcessState.Pass;
-
-        passData.socket = pcb_idx;
-        passData.tcp_seq = tcp_seq;
-        passData.length = length;
-        passData.bytes_passed = 0;
-
-        // Set busses
-        ResetAllBusses();
-        packetInBufferConsumerControlBusOut.ready = true;
-    }
-
-    void Pass()
-    {
-        // If packetIn suddenly invalid, start idle
-        if (packetInBufferProducerControlBusIn.valid == false)
+        private void StartPass(int pcb_idx, uint ip_id, uint tcp_seq, uint length)
         {
-            StartIdle();
-            return;
+            state = TransportProcessState.Pass;
+
+            passData.socket = pcb_idx;
+            passData.tcp_seq = tcp_seq;
+            passData.length = length;
+            passData.bytes_passed = 0;
+
+            // Set busses
+            ResetAllBusses();
+            packetInBufferConsumerControlBusOut.ready = true;
         }
 
-        // if DataIn not ready, abort and start idle
-        if (dataInComputeConsumerControlBusIn.ready == false)
+        void Pass()
         {
-            StartIdle();
-            return;
-        }
-
-        // calculate partial checksum
-        if (passData.bytes_passed % 2 == 0)
-        {
-            pcbs[passData.socket].checksum_acc +=
-                (uint)((passData.high_byte << 8) | packetInBus.data);
-        }
-        else
-        {
-            passData.high_byte = packetInBus.data;
-        }
-
-        // Set control bus values
-        dataInComputeProducerControlBusOut.valid = true;
-        dataInComputeProducerControlBusOut.bytes_left = passData.length - passData.bytes_passed;
-
-        // data bus values
-        dataInWriteBus.socket = passData.socket;
-        dataInWriteBus.tcp_seq = passData.tcp_seq;
-        dataInWriteBus.data = packetInBus.data;
-        dataInWriteBus.invalidate = false;
-        passData.bytes_passed++;
-
-
-        // If last byte
-        if (packetInBufferProducerControlBusIn.bytes_left == 0)
-        {
-            // Finish checksum
-            pcbs[passData.socket].checksum_acc = ((pcbs[passData.socket].checksum_acc & 0xFFFF)
-                    + (pcbs[passData.socket].checksum_acc >> 0x10));
-
-            dataInComputeProducerControlBusOut.bytes_left = 0;
-            //                if (pcbs[passData.socket].checksum_acc != 0)
-            //                {
-            //                    Console.WriteLine($"Checksum failed: 0x{pcbs[passData.socket].checksum_acc:X}");
-            //                    dataInWriteBus.invalidate = true;
-            //                }
-
-            // Go to idle
-            Finish();
-        }
-    }
-
-    private void StartSend()
-    {
-        // Set busses
-        ResetAllBusses();
-        dataOutBufferConsumerControlBusOut.ready = true;
-
-        state = TransportProcessState.Send;
-
-        passData.bytes_passed = 0;
-        passData.checksum_acc = 0;
-
-        idx_out = 0;
-        sending_header = false;
-    }
-
-    private void Send()
-    {
-        if (dataOutBufferProducerControlBusIn.valid && passData.bytes_passed < MAX_PACKET_DATA_SIZE
-            && sending_header == false)
-        {
-            SendData();
-        }
-        else
-        {
-            if (sending_header == false)
-            { // SendData() finished. Build the header
-                BuildHeader();
-
-                dataOutBufferConsumerControlBusOut.ready = false;
+            // If packetIn suddenly invalid, start idle
+            if (packetInBufferProducerControlBusIn.valid == false)
+            {
+                StartIdle();
+                return;
             }
 
-            sending_header = true;
-
-            SendHeader();
-        }
-
-    }
-
-    private void SendData()
-    {
-        packetOutComputeProducerControlBusOut.valid = true;
-        packetOutComputeProducerControlBusOut.bytes_left = 1; // at least one more
-
-        packetOutWriteBus.data = dataOutReadBus.data;
-        packetOutWriteBus.addr = (int)(UDP.HEADER_SIZE + passData.bytes_passed++); // XXX: hardcoded for UDP fixed size header
-
-        // Update accumulated checksum
-        passData.checksum_acc += dataOutReadBus.data;
-
-        // Local info
-        passData.socket = dataOutReadBus.socket;
-    }
-
-    private void BuildHeader()
-    {
-        if (passData.socket < 0 || passData.socket > pcbs.Length)
-        {
-            // XXX
-            Console.WriteLine("Trying to send from invalid socket");
-
-            StartIdle();
-            return;
-        }
-        switch (pcbs[passData.socket].protocol)
-        {
-            case (byte)IPv4.Protocol.UDP:
-                BuildHeaderUDP(passData);
-                break;
-
-            default:
-                Console.WriteLine($"Unsupported protocol for sending: {pcbs[passData.socket].protocol}");
+            // if DataIn not ready, abort and start idle
+            if (dataInComputeConsumerControlBusIn.ready == false)
+            {
                 StartIdle();
-                break;
+                return;
+            }
+
+            // calculate partial checksum
+            if (passData.bytes_passed % 2 == 0)
+            {
+                pcbs[passData.socket].checksum_acc +=
+                    (uint)((passData.high_byte << 8) | packetInBus.data);
+            }
+            else
+            {
+                passData.high_byte = packetInBus.data;
+            }
+
+            // Set control bus values
+            dataInComputeProducerControlBusOut.valid = true;
+            dataInComputeProducerControlBusOut.bytes_left = passData.length - passData.bytes_passed;
+
+            // data bus values
+            dataInWriteBus.socket = passData.socket;
+            dataInWriteBus.tcp_seq = passData.tcp_seq;
+            dataInWriteBus.data = packetInBus.data;
+            dataInWriteBus.invalidate = false;
+            passData.bytes_passed++;
+
+
+            // If last byte
+            if (packetInBufferProducerControlBusIn.bytes_left == 0)
+            {
+                // Finish checksum
+                pcbs[passData.socket].checksum_acc = ((pcbs[passData.socket].checksum_acc & 0xFFFF)
+                        + (pcbs[passData.socket].checksum_acc >> 0x10));
+
+                dataInComputeProducerControlBusOut.bytes_left = 0;
+                //                if (pcbs[passData.socket].checksum_acc != 0)
+                //                {
+                //                    Console.WriteLine($"Checksum failed: 0x{pcbs[passData.socket].checksum_acc:X}");
+                //                    dataInWriteBus.invalidate = true;
+                //                }
+
+                // Go to idle
+                Finish();
+            }
         }
-    }
 
-    private void SendHeader()
-    {
-        packetOutComputeProducerControlBusOut.valid = true;
-        packetOutComputeProducerControlBusOut.bytes_left = 1;
-
-        packetOutWriteBus.data = buffer_out[idx_out];
-        packetOutWriteBus.addr = (int)idx_out;
-        idx_out++;
-
-        if (idx_out == UDP.HEADER_SIZE)
+        private void StartSend()
         {
-            packetOutComputeProducerControlBusOut.bytes_left = 0; // this is the last byte
+            // Set busses
+            ResetAllBusses();
+            dataOutBufferConsumerControlBusOut.ready = true;
 
-            Finish();
+            state = TransportProcessState.Send;
+
+            passData.bytes_passed = 0;
+            passData.checksum_acc = 0;
+
+            idx_out = 0;
+            sending_header = false;
         }
-    }
 
-    private void StartControl()
-    {
-        ResetAllBusses();
-
-        state = TransportProcessState.Control;
-    }
-
-    private void Control()
-    {
-        // Variables
-        InterfaceData response;
-        response.ip = 0;
-        response.port = 0;
-        response.protocol = 0;
-        response.socket = 0;
-
-        // Go idle if request invalid
-        if (interfaceBus.valid == false)
+        private void Send()
         {
-            StartIdle();
-            return;
+            if (dataOutBufferProducerControlBusIn.valid && passData.bytes_passed < MAX_PACKET_DATA_SIZE
+                && sending_header == false)
+            {
+                SendData();
+            }
+            else
+            {
+                if (sending_header == false)
+                { // SendData() finished. Build the header
+                    BuildHeader();
+
+                    dataOutBufferConsumerControlBusOut.ready = false;
+                }
+
+                sending_header = true;
+
+                SendHeader();
+            }
+
         }
 
-        // Check for valid socket number
-        if (interfaceBus.request.socket < 0 || interfaceBus.request.socket > pcbs.Length)
+        private void SendData()
         {
-            ControlReturn(interfaceControlBus.interface_function,
-                    (byte)ExitStatus.EINVAL);
-            return;
+            packetOutComputeProducerControlBusOut.valid = true;
+            packetOutComputeProducerControlBusOut.bytes_left = 1; // at least one more
+
+            packetOutWriteBus.data = dataOutReadBus.data;
+            packetOutWriteBus.addr = (int)(UDP.HEADER_SIZE + passData.bytes_passed++); // XXX: hardcoded for UDP fixed size header
+
+            // Update accumulated checksum
+            passData.checksum_acc += dataOutReadBus.data;
+
+            // Local info
+            passData.socket = dataOutReadBus.socket;
         }
+
+        private void BuildHeader()
+        {
+            if (passData.socket < 0 || passData.socket > pcbs.Length)
+            {
+                // XXX
+                Console.WriteLine("Trying to send from invalid socket");
+
+                StartIdle();
+                return;
+            }
+            switch (pcbs[passData.socket].protocol)
+            {
+                case (byte)IPv4.Protocol.UDP:
+                    BuildHeaderUDP(passData);
+                    break;
+
+                default:
+                    Console.WriteLine($"Unsupported protocol for sending: {pcbs[passData.socket].protocol}");
+                    StartIdle();
+                    break;
+            }
+        }
+
+        private void SendHeader()
+        {
+            packetOutComputeProducerControlBusOut.valid = true;
+            packetOutComputeProducerControlBusOut.bytes_left = 1;
+
+            packetOutWriteBus.data = buffer_out[idx_out];
+            packetOutWriteBus.addr = (int)idx_out;
+            idx_out++;
+
+            if (idx_out == UDP.HEADER_SIZE)
+            {
+                packetOutComputeProducerControlBusOut.bytes_left = 0; // this is the last byte
+
+                Finish();
+            }
+        }
+
+        private void StartControl()
+        {
+            ResetAllBusses();
+
+            state = TransportProcessState.Control;
+        }
+
+        private void Control()
+        {
+            // Variables
+            InterfaceData response;
+            response.ip = 0;
+            response.port = 0;
+            response.protocol = 0;
+            response.socket = 0;
 
             // Go idle if request invalid
             if (interfaceBus.valid == false)
@@ -432,176 +417,191 @@ namespace TCPIP
                 return;
             }
 
-        switch (interfaceBus.interface_function)
-        {
-            case (byte)InterfaceFunction.INVALID:
-            default:
-                ControlReturn(interfaceBus.interface_function,
+            // Check for valid socket number
+            if (interfaceBus.request.socket < 0 || interfaceBus.request.socket > pcbs.Length)
+            {
+                ControlReturn(interfaceControlBus.interface_function,
                         (byte)ExitStatus.EINVAL);
                 return;
             }
 
-            case (byte)InterfaceFunction.LISTEN:
-                {
-                    int socket = GetFreePCB();
+            // Go idle if request invalid
+            if (interfaceBus.valid == false)
+            {
+                StartIdle();
+                return;
+            }
 
-                    // no socket available
-                    if (socket < 0)
-                    {
-                        ControlReturn(interfaceBus.interface_function,
-                                (byte)ExitStatus.ENOSPC);
-                        return;
-                    }
-
-                    ResetPCB(socket);
-
-                    pcbs[socket].state = (byte)PCB_STATE.LISTENING;
-                    pcbs[socket].protocol = interfaceBus.request.protocol;
-                    pcbs[socket].l_port = interfaceBus.request.port;
-
-                    // Do protocol-based operations here
-                    switch (pcbs[socket].protocol)
-                    {
-                        case (byte)IPv4.Protocol.UDP:
-                        default: // Protocol not supported. Error
-                            ControlReturn(interfaceBus.interface_function,
-                                (byte)ExitStatus.EPROTONOSUPPORT);
-                            return;
-                    }
-
+            switch (interfaceBus.interface_function)
+            {
+                case (byte)InterfaceFunction.INVALID:
+                default:
                     ControlReturn(interfaceBus.interface_function,
-                            (byte)ExitStatus.OK);
-                    break;
-                }
+                            (byte)ExitStatus.EINVAL);
+                    return;
 
-            case (byte)InterfaceFunction.ACCEPT:
-                // TODO
-                break;
-
-            case (byte)InterfaceFunction.CONNECT:
-                {
-                    int socket = GetFreePCB();
-
-                    // no socket available
-                    if (socket < 0)
+                case (byte)InterfaceFunction.LISTEN:
                     {
-                        ControlReturn(interfaceBus.interface_function,
-                                (byte)ExitStatus.ENOSPC);
-                        return;
-                    }
+                        int socket = GetFreePCB();
 
-                    ResetPCB(socket);
-
-                    pcbs[socket].state = (byte)PCB_STATE.CONNECTING;
-                    pcbs[socket].protocol = interfaceBus.request.protocol;
-                    pcbs[socket].l_port = interfaceBus.request.port;
-                    pcbs[socket].f_address = interfaceBus.request.ip;
-
-                    // Do protocol-based operations here
-                    switch (pcbs[socket].protocol)
-                    {
-                        case (byte)IPv4.Protocol.UDP:
-                            pcbs[socket].state = (byte)PCB_STATE.CONNECTED;
-                            break;
-
-
-                        case (byte)IPv4.Protocol.TCP:
-                        default: // Protocol not supported. Error
+                        // no socket available
+                        if (socket < 0)
+                        {
                             ControlReturn(interfaceBus.interface_function,
-                                (byte)ExitStatus.EPROTONOSUPPORT);
+                                    (byte)ExitStatus.ENOSPC);
                             return;
-                    }
+                        }
 
                         ResetPCB(socket);
 
-                    response.socket = socket;
-                    ControlReturn(interfaceBus.interface_function,
-                            (byte)ExitStatus.OK,
-                            response);
-                    break;
-                }
+                        pcbs[socket].state = (byte)PCB_STATE.LISTENING;
+                        pcbs[socket].protocol = interfaceBus.request.protocol;
+                        pcbs[socket].l_port = interfaceBus.request.port;
 
-            case (byte)InterfaceFunction.CLOSE:
-                switch (pcbs[interfaceBus.request.socket].protocol)
-                {
-                    case (byte)IPv4.Protocol.TCP:
-                        // TODO: TCP Finish sequence
+                        // Do protocol-based operations here
+                        switch (pcbs[socket].protocol)
+                        {
+                            case (byte)IPv4.Protocol.UDP:
+                            default: // Protocol not supported. Error
+                                ControlReturn(interfaceBus.interface_function,
+                                    (byte)ExitStatus.EPROTONOSUPPORT);
+                                return;
+                        }
+
+                        ControlReturn(interfaceBus.interface_function,
+                                (byte)ExitStatus.OK);
                         break;
-                }
+                    }
 
-                pcbs[interfaceBus.request.socket].state = (byte)PCB_STATE.CLOSED;
-                break;
-
-                    pcbs[interfaceBus.request.socket].state = (byte)PCB_STATE.CLOSED;
+                case (byte)InterfaceFunction.ACCEPT:
+                    // TODO
                     break;
 
+                case (byte)InterfaceFunction.CONNECT:
+                    {
+                        int socket = GetFreePCB();
 
+                        // no socket available
+                        if (socket < 0)
+                        {
+                            ControlReturn(interfaceBus.interface_function,
+                                    (byte)ExitStatus.ENOSPC);
+                            return;
+                        }
+
+                        ResetPCB(socket);
+
+                        pcbs[socket].state = (byte)PCB_STATE.CONNECTING;
+                        pcbs[socket].protocol = interfaceBus.request.protocol;
+                        pcbs[socket].l_port = interfaceBus.request.port;
+                        pcbs[socket].f_address = interfaceBus.request.ip;
+
+                        // Do protocol-based operations here
+                        switch (pcbs[socket].protocol)
+                        {
+                            case (byte)IPv4.Protocol.UDP:
+                                pcbs[socket].state = (byte)PCB_STATE.CONNECTED;
+                                break;
+
+
+                            case (byte)IPv4.Protocol.TCP:
+                            default: // Protocol not supported. Error
+                                ControlReturn(interfaceBus.interface_function,
+                                    (byte)ExitStatus.EPROTONOSUPPORT);
+                                return;
+                        }
+
+                        ResetPCB(socket);
+
+                        response.socket = socket;
+                        ControlReturn(interfaceBus.interface_function,
+                                (byte)ExitStatus.OK,
+                                response);
+                        break;
+                    }
+
+                case (byte)InterfaceFunction.CLOSE:
+                    {
+                        switch (pcbs[interfaceBus.request.socket].protocol)
+                        {
+                            case (byte)IPv4.Protocol.TCP:
+                                // TODO: TCP Finish sequence
+                                break;
+                        }
+
+                        pcbs[interfaceBus.request.socket].state = (byte)PCB_STATE.CLOSED;
+                        break;
+
+                        pcbs[interfaceBus.request.socket].state = (byte)PCB_STATE.CLOSED;
+                        break;
+
+
+                    }
             }
         }
-    }
 
-    private void ControlReturn(byte interface_function, byte exit_status,
-                                InterfaceData response = default(InterfaceData),
-                                InterfaceData request = default(InterfaceData))
-    {
-        interfaceControlBus.valid = true;
-        interfaceControlBus.interface_function = interface_function;
-        interfaceControlBus.response = response;
-        interfaceControlBus.request = request;
-        interfaceControlBus.exit_status = exit_status;
-
-        Finish();
-    }
-
-
-    ////////////////////////// Helper functions ///////////////////////////
-    private int GetFreePCB()
-    {
-        for (int i = 0; i < pcbs.Length; i++)
+        private void ControlReturn(byte interface_function, byte exit_status,
+                                    InterfaceData response = default(InterfaceData),
+                                    InterfaceData request = default(InterfaceData))
         {
-            if (pcbs[i].state == (byte)PCB_STATE.CLOSED)
+            interfaceControlBus.valid = true;
+            interfaceControlBus.interface_function = interface_function;
+            interfaceControlBus.response = response;
+            interfaceControlBus.request = request;
+            interfaceControlBus.exit_status = exit_status;
+
+            Finish();
+        }
+
+
+        ////////////////////////// Helper functions ///////////////////////////
+        private int GetFreePCB()
+        {
+            for (int i = 0; i < pcbs.Length; i++)
             {
-                return i;
+                if (pcbs[i].state == (byte)PCB_STATE.CLOSED)
+                {
+                    return i;
+                }
+                return -1;
             }
             return -1;
         }
-        return -1;
-    }
 
 
-    private void ResetPCB(int socket)
-    {
-        if (socket < 0 || socket > pcbs.Length)
+        private void ResetPCB(int socket)
         {
-            return;
+            if (socket < 0 || socket > pcbs.Length)
+            {
+                return;
+            }
+
+            pcbs[socket].bytes_received = 0;
+            pcbs[socket].checksum_acc = 0;
+            pcbs[socket].f_address = 0;
+            pcbs[socket].f_port = 0;
+            pcbs[socket].l_address = 0;
+            pcbs[socket].l_port = 0;
+            pcbs[socket].protocol = 0;
+            pcbs[socket].state = 0;
         }
 
-        pcbs[socket].bytes_received = 0;
-        pcbs[socket].checksum_acc = 0;
-        pcbs[socket].f_address = 0;
-        pcbs[socket].f_port = 0;
-        pcbs[socket].l_address = 0;
-        pcbs[socket].l_port = 0;
-        pcbs[socket].protocol = 0;
-        pcbs[socket].state = 0;
+        private void ResetAllBusses()
+        {
+            // PacketIn
+            packetInBufferConsumerControlBusOut.ready = false;
+
+            // DataOut
+            dataOutBufferConsumerControlBusOut.ready = false;
+
+            // DataIn
+            dataInComputeProducerControlBusOut.valid = false;
+
+            // Interface
+            interfaceControlBus.valid = false;
+
+            // PacketOut
+            packetOutComputeProducerControlBusOut.valid = false;
+        }
     }
-
-    private void ResetAllBusses()
-    {
-        // PacketIn
-        packetInBufferConsumerControlBusOut.ready = false;
-
-        // DataOut
-        dataOutBufferConsumerControlBusOut.ready = false;
-
-        // DataIn
-        dataInComputeProducerControlBusOut.valid = false;
-
-        // Interface
-        interfaceControlBus.valid = false;
-
-        // PacketOut
-        packetOutComputeProducerControlBusOut.valid = false;
-    }
-}
 }

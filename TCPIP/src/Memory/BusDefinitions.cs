@@ -40,7 +40,7 @@ namespace TCPIP
             long frame_number { get; set; } // Increments so we can distinguish between new packages
 
             [InitialValue(0x00)]
-            byte ip_protocol { get; set; }
+            byte protocol { get; set; }
 
             [InitialValue(0x00)]
             ulong ip_dst_addr_0 { get; set; }
@@ -75,7 +75,7 @@ namespace TCPIP
             long frame_number { get; set; } // Increments so we can distinguish between new packages
 
             [InitialValue(0x00)]
-            byte ip_protocol { get; set; }
+            byte protocol { get; set; }
 
             [InitialValue(0x00)]
             ulong ip_dst_addr_0 { get; set; }
