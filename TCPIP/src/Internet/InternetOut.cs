@@ -65,7 +65,7 @@ namespace TCPIP
             }
 
             // Get primary information about the packet
-            protocol = packetOutWriteBus.ip_protocol;
+            protocol = packetOutWriteBus.protocol;
             dst_ip = (uint)packetOutWriteBus.ip_dst_addr_0;
 
             // Pass data while packetOut has valid data

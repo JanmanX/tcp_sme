@@ -45,7 +45,7 @@ namespace TCPIP
 
 
         public struct TempData{
-            public byte ip_protocol;
+            public byte protocol;
             public long frame_number; // Increments so we can distinguish between new packages
             public uint ip_id;
             public ushort total_len;
@@ -108,7 +108,7 @@ namespace TCPIP
                     tmp_ip_info.ip_dst_addr_1 = packetInBus.ip_dst_addr_1;
                     tmp_ip_info.ip_src_addr_0 = packetInBus.ip_src_addr_0;
                     tmp_ip_info.ip_src_addr_1 = packetInBus.ip_src_addr_1;
-                    tmp_ip_info.ip_protocol = packetInBus.ip_protocol;
+                    tmp_ip_info.protocol = packetInBus.protocol;
                     tmp_ip_info.ip_id = packetInBus.ip_id;
                     tmp_ip_info.frame_number = packetInBus.frame_number;
                     // Save the struct in the memory structure
@@ -147,7 +147,7 @@ namespace TCPIP
                 packetOutBus.ip_dst_addr_1 = temp_data.ip_dst_addr_1;
                 packetOutBus.ip_src_addr_0 = temp_data.ip_src_addr_0;
                 packetOutBus.ip_src_addr_1 = temp_data.ip_src_addr_1;
-                packetOutBus.ip_protocol = temp_data.ip_protocol;
+                packetOutBus.protocol = temp_data.protocol;
                 packetOutBus.frame_number = temp_data.frame_number;
                 packetOutBus.ip_id = temp_data.ip_id;
                 //packetOut.frame_number = XXX;

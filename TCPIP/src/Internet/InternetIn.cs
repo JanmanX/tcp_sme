@@ -234,7 +234,7 @@ namespace TCPIP
             // Pass values
             packetInBus.ip_id = cur_segment_data.ip.id;
             packetInBus.fragment_offset = cur_segment_data.ip.fragment_offset;
-            packetInBus.ip_protocol = cur_segment_data.ip.protocol;
+            packetInBus.protocol = cur_segment_data.ip.protocol;
             packetInBus.ip_src_addr_0 = cur_segment_data.ip.src_addr_0;
             packetInBus.ip_src_addr_1 = cur_segment_data.ip.src_addr_1;
             packetInBus.ip_dst_addr_0 = cur_segment_data.ip.dst_addr_0;

@@ -45,7 +45,7 @@ namespace TCPIP
 
 
         public struct TempData{
-            public byte ip_protocol;
+            public byte protocol;
             public long frame_number; // Increments so we can distinguish between new packages
             public uint ip_id;
             public ulong ip_src_addr_0; // Lower 8 bytes of IP addr (lower 4 bytes used in this field on IPv4)
@@ -126,7 +126,7 @@ namespace TCPIP
                     tmp_ip_info.ip_dst_addr_1 = packetIn.ip_dst_addr_1;
                     tmp_ip_info.ip_src_addr_0 = packetIn.ip_src_addr_0;
                     tmp_ip_info.ip_src_addr_1 = packetIn.ip_src_addr_1;
-                    tmp_ip_info.ip_protocol = packetIn.ip_protocol;
+                    tmp_ip_info.protocol = packetIn.protocol;
                     tmp_ip_info.ip_id = packetIn.ip_id;
                     tmp_ip_info.frame_number = packetIn.frame_number;
                     // Mark the last segment as filled
@@ -217,7 +217,7 @@ namespace TCPIP
                 // XXX: fragmenttation for us?
                 packetOut.fragment_offset = 0;
                 packetOut.ip_id = buf.tempData.ip_id;
-                packetOut.ip_protocol = buf.tempData.ip_protocol;
+                packetOut.protocol = buf.tempData.protocol;
                 // Increment the memory index by one
                 send_buffer_write_index = (send_buffer_write_index + 1) % send_buffer_max;
             }

@@ -29,12 +29,15 @@ namespace TCPIP
 
         public override async Task Run()
         {
+            while(true)
+            {
+                await ClockAsync();
+            }
             // Init
             await ClockAsync();
             await ClockAsync();
             await ClockAsync();
             await ClockAsync();
-
 
             bufferProducerControlBus.available = true;
 
@@ -55,10 +58,9 @@ namespace TCPIP
                         bufferProducerControlBus.bytes_left = bytes_left--;
                         bufferProducerControlBus.valid = true;
 
-                        // Data bus
                         packetInBus.frame_number = frame_number;
                         packetInBus.ip_id = ip_id;
-                        packetInBus.ip_protocol = (byte)IPv4.Protocol.UDP;
+                        packetInBus.protocol = (byte)IPv4.Protocol.UDP;
                         packetInBus.data = b;
 
                         await ClockAsync();
