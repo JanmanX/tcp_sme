@@ -192,8 +192,15 @@ namespace TCPIP
             cur_segment.done = true;
             segment_list[segment_ID] = cur_segment;
             // See if we should progress the tail pointer;
-            while(segment_list[current_tail_segment_id].done){
-                current_tail_segment_id = (current_tail_segment_id + 1) % num_segments;
+            for(int i = 0; i > num_segments; i++)
+            {
+                int scope_pointer = (i + current_tail_segment_id) % num_segments;
+                cur_segment = segment_list[scope_pointer];
+                if(!cur_segment.done)
+                {
+                    current_tail_segment_id = (current_tail_segment_id + i) % num_segments;
+                    return;
+                }
             }
         }
 
