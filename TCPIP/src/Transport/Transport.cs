@@ -207,7 +207,9 @@ namespace TCPIP
                     // End of header, start parsing
                     if (idx_in == TCP.HEADER_SIZE)
                     {
+
                         Logging.log.Warn("TCP CURRENTLY NOT SUPPORTED!");
+
                         // ParseTCP();
                     }
                     break;
@@ -222,6 +224,9 @@ namespace TCPIP
                 case (byte)IPv4.Protocol.ICMP:
                     if (idx_in == ICMP.HEADER_SIZE)
                     {
+
+                        // LOGGER.WARN("TCP CURRENTLY NOT SUPPORTED!");
+
                         Logging.log.Warn("TCP CURRENTLY NOT SUPPORTED!");
                         // ParseUDP();
                     }
