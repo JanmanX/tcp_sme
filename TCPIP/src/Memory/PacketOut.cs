@@ -65,7 +65,7 @@ namespace TCPIP
 
 
         // Information about the send buffer. The send buffer contains
-        // The history of the packets in an ordred fasion, from the
+        // The history of the packets in an ordred fashion, from the
         // send_buffer_new_index being the newest index, and counting down,
         // being the one before etc. the buffer circles around,
         // so if the buffer is 4 big, and the newest index is 2,
@@ -108,6 +108,7 @@ namespace TCPIP
 
         protected override void OnTick()
         {
+            return;
             Send();
             Write();
         }
@@ -145,6 +146,7 @@ namespace TCPIP
         }
         private void Send()
         {
+
             // Reset until they are needed
             controlB.Enabled = false;
             packetOutBufferProducerControlBusOut.available = false;

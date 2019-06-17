@@ -32,10 +32,10 @@ namespace TCPIP
 
         public override async Task Run()
         {
-            while(true)
-            {
-                await ClockAsync();
-            }
+            // while(true)
+            // {
+            //     await ClockAsync();
+            // }
 
             // Init
             uint idx = 0;

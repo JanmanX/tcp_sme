@@ -175,7 +175,7 @@ namespace TCPIP
         }
 
 
-        public IEnumerable<(ushort type,byte b)> IterateOverPacketToSend(){
+        public IEnumerable<(ushort type,byte data,uint bytes_left)> IterateOverPacketToSend(){
             // Get all packets that we have to send currently, and test if they are ready
             var toSend = packetPointers.Where(
                 x => (packetList[x].info & PacketInfo.ToSend) > 0 &&
@@ -187,10 +187,14 @@ namespace TCPIP
             Packet p = packetList[pid];
 
             // Start after ethernet header
-            foreach(byte b in p.data.Skip((int)EthernetIIFrame.HEADER_SIZE)){
-                //Logging.log.Trace($"Yielding {(p.type,b)}");
-                yield return (p.type,b);
+            List<byte> packetBytes = new List<Byte>(p.data.Skip((int)EthernetIIFrame.HEADER_SIZE));
+
+
+            for (int i = 0; i < packetBytes.Count; i++)
+            {
+                yield return (p.type,packetBytes[i],(uint)(packetBytes.Count-i-1));
             }
+
 
             // Mark as valid
             packetList[pid].info |= PacketInfo.Valid;

@@ -42,12 +42,14 @@ namespace TCPIP
 
         public override async Task Run()
         {
-            uint frame_number = 0x00;
-            for(int i = 0; i < 10000; i++)
+            uint frame_number = 0;
+            for(int i = 0; i < 200; i++)
             {
-                    // Wait for the initial reset to propagate
+                // Wait for the initial reset to propagate
                 await ClockAsync();
 
+                datagramBusInComputeProducerControlBusOut.valid = false;
+                datagramBusInComputeProducerControlBusOut.available = false;
 
                 while(packetGraph.HasPackagesToSend())
                 { // Are there anything to send? if not, spinloop dat shizz
@@ -56,16 +58,20 @@ namespace TCPIP
                     datagramBusInComputeProducerControlBusOut.available = true;
                     // If the consumer is not ready, skip
                     if (!datagramBusInComputeConsumerControlBusIn.ready){
-                        Logging.log.Error("The datagramBusIn was not ready!");
+                        Logging.log.Info("The datagramBusIn was not ready");
+                        break;
                     }
 
                     foreach (var data in packetGraph.IterateOverPacketToSend())
                     {
-
+                        // Data is now valid
+                        datagramBusInComputeProducerControlBusOut.valid = true;
+                        datagramBusInComputeProducerControlBusOut.bytes_left = data.bytes_left;
                         // Send to Network
                         datagramBusIn.frame_number = frame_number;
-                        datagramBusIn.data = data.b;
+                        datagramBusIn.data = data.data;
                         datagramBusIn.type = data.type;
+                        //Logging.log.Info($"data:{data.data:X2} bytes_left:{data.bytes_left}");
                         await ClockAsync();
 
                     }
