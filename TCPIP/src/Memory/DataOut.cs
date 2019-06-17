@@ -56,7 +56,7 @@ namespace TCPIP
 
         protected override void OnTick()
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public DataOut(TrueDualPortMemory<byte> memory, int memory_size){

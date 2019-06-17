@@ -66,19 +66,22 @@ namespace TCPIP
         public int SaveData(int index)
         {
             SegmentEntry current = segment_list[save_segment_id];
-
+            Logging.log.Info($"Savedata(index): active:{current.active} fill:{current.filling} read:{current.reading} index:{index}");
             // If the current block is active, but filling mode have not been enabled, we set the
             // stop byte to look at the last segment, and set the filling byte
             if(current.active && !current.filling && !current.reading)
             {
+                Logging.log.Error($"New non active block! ");
                 // find the last segment id, and tset the start byte to the stop byte of the last
                 int last_save_segment_id = save_segment_id - 1 < 0 ? this.num_segments - 1: save_segment_id - 1;
                 SegmentEntry last = segment_list[last_save_segment_id];
                 current.start = last.stop;
                 current.stop = last.stop;
                 current.filling = true;
-                Logging.log.Info($"Is filling");
+                segment_list[save_segment_id] = current;
             }
+
+            current = segment_list[save_segment_id];
             // The segment is not in filling mode! something went wrong
             if(!current.filling)
             {
@@ -105,15 +108,17 @@ namespace TCPIP
             if(ret != -1){
                 current = segment_list[save_segment_id];
                 current.current++;
+                segment_list[save_segment_id] = current;
             }
-            segment_list[save_segment_id] = current;
+            Logging.log.Warn($"Savedata() x:{x} ret:{ret} save_segment:{save_segment_id}");
             return ret;
-
         }
 
         public int LoadData(int index)
         {
             SegmentEntry current = segment_list[load_segment_id];
+            Logging.log.Info($"LoadData(index): active:{current.active} fill:{current.filling} read:{current.reading} index:{index}");
+
             if(!current.reading)
             {
                 //Logging.log.Warn($"The segment {load_segment_id} is not in reading mode! we cannot load from it");
@@ -138,8 +143,9 @@ namespace TCPIP
             if(ret != -1){
                 current = segment_list[load_segment_id];
                 current.current++;
+                segment_list[load_segment_id] = current;
             }
-            segment_list[load_segment_id] = current;
+            Logging.log.Warn($"LoadData() x:{x} ret:{ret} load_segment:{load_segment_id}");
             return ret;
         }
 
@@ -154,6 +160,7 @@ namespace TCPIP
 
         public bool NextSegment(MetaData metadata)
         {
+            Logging.log.Trace($"NextSegment: next_segment_id:{next_segment_id}");
             // test if the next segment is good, else return false
             SegmentEntry next = segment_list[next_segment_id];
             // The segment is being filled or read from, return error
@@ -194,6 +201,7 @@ namespace TCPIP
 
         public void FinishReadingCurrentLoadSegment()
         {
+            Logging.log.Info($"FinishReadingCurrentLoadSegment : load_segment_id:{load_segment_id}");
             // We have now filled and read the segment, mark it as inactive
             SegmentEntry current = segment_list[load_segment_id];
             current.reading = false;
@@ -204,13 +212,14 @@ namespace TCPIP
             load_segment_id = (load_segment_id + 1) % num_segments;
             // Indicate that the next block is ready to be loaded
             // XXX : Maybe test if we can do this?
-            SegmentEntry next = segment_list[load_segment_id];
-            next.reading = true;
-            segment_list[load_segment_id] = next;
+            // SegmentEntry next = segment_list[load_segment_id];
+            // next.reading = true;
+            // segment_list[load_segment_id] = next;
         }
 
         public void FinishFillingCurrentSaveSegment()
         {
+            Logging.log.Info($"FinishFillingCurrentSaveSegment : save_segment_id:{save_segment_id}");
             SegmentEntry current = segment_list[save_segment_id];
             current.filling = false;
             current.reading = true;
@@ -220,9 +229,9 @@ namespace TCPIP
             save_segment_id = (save_segment_id + 1) % num_segments;
             // Indicate that the next block is ready to be filled
             // XXX : Maybe test if we can do this?
-            SegmentEntry next = segment_list[save_segment_id];
-            next.filling = true;
-            segment_list[save_segment_id] = next;
+            // SegmentEntry next = segment_list[save_segment_id];
+            // next.filling = true;
+            // segment_list[save_segment_id] = next;
         }
 
         public MetaData MetadataCurrentSaveSegment()

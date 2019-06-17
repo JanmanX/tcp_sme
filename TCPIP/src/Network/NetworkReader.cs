@@ -53,7 +53,7 @@ namespace TCPIP
                 datagramBusIn.frame_number = cur_frame_number;
                 datagramBusIn.type = type;
 
-                LOGGER.DEBUG($"Propagating control to Internet with type: '0x{type:X}'");
+                Logging.log.Debug($"Propagating control to Internet with type: '0x{type:X}'");
             }
 
 

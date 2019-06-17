@@ -71,7 +71,7 @@ namespace TCPIP
             Pass,
             Finish, // Transition state
         };
-        private InternetInState state = InternetInState.Read;
+        private InternetInState state = InternetInState.Idle;
 
         private const uint BUFFER_IN_SIZE = 100;
         private byte[] buffer_in = new byte[BUFFER_IN_SIZE]; // XXX: Set fixed size to longest header. Currently IPv4 without opt..
@@ -86,7 +86,7 @@ namespace TCPIP
         public InternetIn()
         {
             // Initialize
-            cur_segment_data.frame_number = long.MinValue;
+            //cur_segment_data.frame_number = long.MinValue;
         }
 
 
@@ -96,7 +96,7 @@ namespace TCPIP
             {
                 case InternetInState.Finish:
                     StartIdle();
-                    // Csharp do not permit fall through.. but can be forced with goto. clever language desing!
+                    // Csharp do not permit fall through.. but can be forced with goto. clever language design!
                     goto case InternetInState.Idle;
                 // Fall through!
                 case InternetInState.Idle:
@@ -199,24 +199,32 @@ namespace TCPIP
 
         private void Read()
         {
+            if(datagramBusInComputeProducerControlBusIn.valid == false)
+            {
+                Logging.log.Warn("Stuff not ready on reading bus");
+                StartIdle();
+                return;
+            }
             if (idx_in < buffer_in.Length)
             {
                 buffer_in[idx_in++] = datagramInBus.data;
-
+                cur_segment_data.frame_number = datagramInBus.frame_number;
+                //Logging.log.Info($"frame:{datagramInBus.frame_number} data:{datagramInBus.data:X2}");
                 // Processing
-                switch (cur_segment_data.type)
+                switch (datagramInBus.type)
                 {
                     case (ushort)EthernetIIFrame.EtherType.IPv4:
                         // End of header, start parsing
                         if (idx_in == IPv4.HEADER_SIZE)
                         {
                             // Parse the ip packet
+                            Logging.log.Info("Parsing IPv4 packet");
                             ParseIPv4();
                         }
                         break;
 
                     default:
-                        Logging.log.Error($"Segment type not defined: {cur_segment_data.type}");
+                        Logging.log.Error($"Segment type not defined: {datagramInBus.type}");
                         break;
                 }
             }
@@ -226,10 +234,12 @@ namespace TCPIP
         {
             if (datagramBusInComputeProducerControlBusIn.valid == false)
             {
+                Logging.log.Error("Passing stopped prematurely!");
                 StartIdle();
+                return;
             }
 
-            Logging.log.Info("Passing");
+
 
             // Pass values
             packetInBus.ip_id = cur_segment_data.ip.id;
@@ -250,8 +260,10 @@ namespace TCPIP
 
             // Increment number of bytes sent, and mark last byte if necessary
             cur_segment_data.offset++;
+            Logging.log.Info($"offset:{cur_segment_data.offset} total:{cur_segment_data.size} data:{datagramInBus.data}");
             if (cur_segment_data.offset == cur_segment_data.size)
             {
+                Logging.log.Info("Passing done!");
                 packetInComputeProducerControlBusOut.bytes_left = 0;
                 Finish();
             }
@@ -278,6 +290,7 @@ namespace TCPIP
             cur_segment_data.ip.src_addr_0 = src_addr_0;
             cur_segment_data.ip.src_addr_1 = src_addr_1;
 
+            Logging.log.Info("Passing started!");
 
             ResetAllBusses();
         }
