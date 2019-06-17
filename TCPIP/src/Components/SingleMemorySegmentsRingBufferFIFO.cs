@@ -66,12 +66,12 @@ namespace TCPIP
         public int SaveData(int index)
         {
             SegmentEntry current = segment_list[save_segment_id];
-            Logging.log.Info($"Savedata(index): active:{current.active} fill:{current.filling} read:{current.reading} index:{index}");
+            Logging.log.Trace($"Savedata(index): active:{current.active} fill:{current.filling} read:{current.reading} index:{index}");
             // If the current block is active, but filling mode have not been enabled, we set the
             // stop byte to look at the last segment, and set the filling byte
             if(current.active && !current.filling && !current.reading)
             {
-                Logging.log.Error($"New non active block! ");
+                Logging.log.Trace($"New non active block! ");
                 // find the last segment id, and tset the start byte to the stop byte of the last
                 int last_save_segment_id = save_segment_id - 1 < 0 ? this.num_segments - 1: save_segment_id - 1;
                 SegmentEntry last = segment_list[last_save_segment_id];
@@ -110,14 +110,14 @@ namespace TCPIP
                 current.current++;
                 segment_list[save_segment_id] = current;
             }
-            Logging.log.Warn($"Savedata() x:{x} ret:{ret} save_segment:{save_segment_id}");
+            Logging.log.Trace($"Savedata() x:{x} ret:{ret} save_segment:{save_segment_id}");
             return ret;
         }
 
         public int LoadData(int index)
         {
             SegmentEntry current = segment_list[load_segment_id];
-            Logging.log.Info($"LoadData(index): active:{current.active} fill:{current.filling} read:{current.reading} index:{index}");
+            Logging.log.Trace($"LoadData(index): active:{current.active} fill:{current.filling} read:{current.reading} index:{index}");
 
             if(!current.reading)
             {
@@ -145,7 +145,7 @@ namespace TCPIP
                 current.current++;
                 segment_list[load_segment_id] = current;
             }
-            Logging.log.Warn($"LoadData() x:{x} ret:{ret} load_segment:{load_segment_id}");
+            Logging.log.Trace($"LoadData() x:{x} ret:{ret} load_segment:{load_segment_id}");
             return ret;
         }
 
@@ -201,7 +201,7 @@ namespace TCPIP
 
         public void FinishReadingCurrentLoadSegment()
         {
-            Logging.log.Info($"FinishReadingCurrentLoadSegment : load_segment_id:{load_segment_id}");
+            Logging.log.Trace($"FinishReadingCurrentLoadSegment : load_segment_id:{load_segment_id}");
             // We have now filled and read the segment, mark it as inactive
             SegmentEntry current = segment_list[load_segment_id];
             current.reading = false;
@@ -219,7 +219,7 @@ namespace TCPIP
 
         public void FinishFillingCurrentSaveSegment()
         {
-            Logging.log.Info($"FinishFillingCurrentSaveSegment : save_segment_id:{save_segment_id}");
+            Logging.log.Trace($"FinishFillingCurrentSaveSegment : save_segment_id:{save_segment_id}");
             SegmentEntry current = segment_list[save_segment_id];
             current.filling = false;
             current.reading = true;
