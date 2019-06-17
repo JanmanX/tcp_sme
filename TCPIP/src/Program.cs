@@ -22,7 +22,7 @@ namespace TCPIP
                 // * InternetIn should signal if the packet is fragmented
 
                 // Graph simulator
-                var simulator = new GraphFileSimulator("data/icmp_data/");
+                var simulator = new GraphFileSimulator("data/graphsimulation/icmp_data/");
                 // Allocate memory blocks
                 int packet_out_mem_size = 8192;
                 var packet_out_mem = new TrueDualPortMemory<byte>(packet_out_mem_size);
