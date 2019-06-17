@@ -29,13 +29,22 @@ namespace TCPIP
         // Get the next segment
         bool NextSegment(MetaData metadata);
 
+        // Test if the We can make a new segment
+        bool NextSegmentReady();
+
         // Test if the load segment is ready
         bool LoadSegmentReady();
 
+        // Test if the save segment is ready
+        bool SaveSegmentReady();
+
         // Finish the current save or load segment, this will close of the data, set the size, and
         // make the next segment return correctly.
-        bool FinishReadingCurrentLoadSegment();
-        bool FinishFillingCurrentSaveSegment();
+        // If for example, a save segment is finished, then the next block is automatically used when saving.
+        // This assumes that the correct metadata is saved in the nextSegment pointer. If there are no nextSegment
+        // Return false
+        void FinishReadingCurrentLoadSegment();
+        void FinishFillingCurrentSaveSegment();
 
         // Get the current meta data for loading and saving segments
         MetaData MetadataCurrentSaveSegment();
