@@ -69,12 +69,11 @@ namespace TCPIP
                             | (uint)(buffer_in[IPv4.SRC_ADDRESS_OFFSET_2] << 0x08)
                             | (uint)(buffer_in[IPv4.SRC_ADDRESS_OFFSET_3]);
 
-            Logging.log.Info(
-$@"Received packet for: \
-{buffer_in[IPv4.SRC_ADDRESS_OFFSET_0]}.\
-{buffer_in[IPv4.SRC_ADDRESS_OFFSET_1]}.\
-{buffer_in[IPv4.SRC_ADDRESS_OFFSET_2]}.\
-{buffer_in[IPv4.SRC_ADDRESS_OFFSET_3]}"
+            Logging.log.Info($"Received packet for:"+
+                              $"{buffer_in[IPv4.SRC_ADDRESS_OFFSET_0]}."+
+                              $"{buffer_in[IPv4.SRC_ADDRESS_OFFSET_1]}."+
+                              $"{buffer_in[IPv4.SRC_ADDRESS_OFFSET_2]}."+
+                              $"{buffer_in[IPv4.SRC_ADDRESS_OFFSET_3]}"
             );
 
             // Calculate pseudoheader checksum
