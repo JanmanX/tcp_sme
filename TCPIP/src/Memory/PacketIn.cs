@@ -70,7 +70,7 @@ namespace TCPIP
 
 
         // little ringbuffer for the data out
-        private const int send_buffer_size = 6;
+        private const int send_buffer_size = 4;
         private byte[] send_buffer = new byte[send_buffer_size];
         private SingleMemorySegmentsRingBufferFIFO<TempData> buffer_calc;
 
@@ -141,7 +141,10 @@ namespace TCPIP
                 controlA.IsWriting = true;
                 int addr = mem_calc.SaveData(cur_write_block_id);
                 controlA.Address = addr;
-                Logging.log.Trace($"Receiving: data: {packetInBus.data:X2} addr: {addr} in memory block: {cur_write_block_id}");
+                Logging.log.Trace($"Receiving: data: {packetInBus.data:X2} "+
+                                  $"addr: {addr} "+
+                                  $"in memory block: {cur_write_block_id} "+
+                                  $"data left: {packetInComputeProducerControlBusIn.bytes_left}");
                 controlA.Data = packetInBus.data;
 
             }
@@ -174,7 +177,7 @@ namespace TCPIP
                 int buffer = buffer_calc.SaveData();
                 byte data = readResultB.Data;
                 send_buffer[buffer] = data;
-                Logging.log.Debug($"got dat mem! buffer:{buffer} data:{data:X2}");
+                Logging.log.Trace($"Got memory. goes to buffer:{buffer} data:{data:X2}");
                 buffer_calc.FinishFillingCurrentSaveSegment();
                 memory_receiving = false;
             }
@@ -197,7 +200,7 @@ namespace TCPIP
                 // If we actually can get the address(If buffer empty etc)
                 if(addr != -1)
                 {
-                    Logging.log.Debug($"requesting dat mem dat mem! addr:{addr}");
+                    Logging.log.Trace($"requesting memory from addr:{addr}");
                     // Request the data
                     controlB.Enabled = true;
                     controlB.IsWriting = false;
@@ -210,6 +213,7 @@ namespace TCPIP
                     buffer_calc.NextSegment(mem_calc.LoadMetaData(mem_calc.FocusSegment()));
                 }
             }
+
 
             // If the load segment is ready, we have avaliable data in the buffer
             if(buffer_calc.LoadSegmentReady())
@@ -238,7 +242,7 @@ namespace TCPIP
                 byte data = send_buffer[addr];
                 packetOutBus.data = data;
                 buffer_calc.FinishReadingCurrentLoadSegment();
-                Logging.log.Trace($"------------------------------------------------------Sending: data: {data:X2} buffer_addr: {addr} frame_number: {frame_number}");
+                Logging.log.Trace($"Sending: data: {data:X2} buffer_addr: {addr} frame_number: {frame_number}");
 
             }
 

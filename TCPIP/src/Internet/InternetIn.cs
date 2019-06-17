@@ -260,7 +260,7 @@ namespace TCPIP
 
             // Increment number of bytes sent, and mark last byte if necessary
             cur_segment_data.offset++;
-            Logging.log.Info($"offset:{cur_segment_data.offset} total:{cur_segment_data.size} data:{datagramInBus.data}");
+            Logging.log.Trace($"offset:{cur_segment_data.offset} total:{cur_segment_data.size} data:{datagramInBus.data:X2}");
             if (cur_segment_data.offset == cur_segment_data.size)
             {
                 Logging.log.Info("Passing done!");
