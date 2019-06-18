@@ -71,7 +71,7 @@ namespace TCPIP
             // stop byte to look at the last segment, and set the filling byte
             if(current.active && !current.filling && !current.reading)
             {
-                Logging.log.Trace($"New non active block! ");
+                Logging.log.Trace($"New non active Save block! ");
                 // find the last segment id, and tset the start byte to the stop byte of the last
                 int last_save_segment_id = save_segment_id - 1 < 0 ? this.num_segments - 1: save_segment_id - 1;
                 SegmentEntry last = segment_list[last_save_segment_id];
