@@ -43,7 +43,7 @@ namespace TCPIP
         public override async Task Run()
         {
             uint frame_number = 0;
-            for(int i = 0; i < 200; i++)
+            for(int i = 0; i < 3; i++)
             {
                 // Wait for the initial reset to propagate
                 await ClockAsync();
@@ -58,7 +58,7 @@ namespace TCPIP
                     datagramBusInComputeProducerControlBusOut.available = true;
                     // If the consumer is not ready, skip
                     if (!datagramBusInComputeConsumerControlBusIn.ready){
-                        Logging.log.Info("The datagramBusIn was not ready");
+                        Logging.log.Error("The datagramBusIn was not ready");
                         break;
                     }
 
