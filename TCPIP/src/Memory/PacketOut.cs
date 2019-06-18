@@ -149,7 +149,7 @@ namespace TCPIP
 
             // Reset until they are needed
             controlB.Enabled = false;
-            packetOutBufferProducerControlBusOut.available = false;
+            //packetOutBufferProducerControlBusOut.available = false;
 
 
             ////////////// BUFFER code
@@ -201,12 +201,12 @@ namespace TCPIP
             // The indexes are not the same, therefore there must be data on the pipeline
             if(send_buffer_memory_index != send_buffer_write_index)
             {
-                packetOutBufferProducerControlBusOut.available = true;
+                //packetOutBufferProducerControlBusOut.available = true;
             }
 
             ///////////// Sending code
             // They are ready, we submit stuff
-            if(packetOutBufferConsumerControlBusIn.ready && packetOutBufferProducerControlBusOut.available)
+            if(packetOutBufferConsumerControlBusIn.ready /* && packetOutBufferProducerControlBusOut.available*/)
             {
                 SendBufferData buf = send_buffer[send_buffer_write_index];
                 packetOut.data = buf.data;

@@ -50,8 +50,8 @@ namespace TCPIP
                 //var interface = new Interface();
 
                 // Wire L(Simulator) to Internet_in
-                simulator.datagramBusInComputeConsumerControlBusIn = internet_in.datagramBusInComputeConsumerControlBusOut;
-                internet_in.datagramBusInComputeProducerControlBusIn = simulator.datagramBusInComputeProducerControlBusOut;
+                simulator.datagramBusInBufferConsumerControlBusIn = internet_in.datagramBusInBufferConsumerControlBusOut;
+                internet_in.datagramBusInBufferProducerControlBusIn = simulator.datagramBusInBufferProducerControlBusOut;
                 internet_in.datagramInBus = simulator.datagramBusIn;
 
                 // Wire Internet_in to packet_in
