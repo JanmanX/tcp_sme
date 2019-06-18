@@ -181,6 +181,10 @@ namespace TCPIP
 
         void Receive()
         {
+            Logging.log.Error($"In receive mode "+
+                              $"valid:{packetInBufferProducerControlBusIn.valid} "+
+                              $"avaliable:{packetInBufferProducerControlBusIn.available} "+
+                              $"Databus: {packetInBus.data:X2}");
             // If invalid, reset
             if (packetInBufferProducerControlBusIn.valid == false)
             {
@@ -199,6 +203,7 @@ namespace TCPIP
             if (idx_in < buffer_in.Length)
             {
                 buffer_in[idx_in++] = packetInBus.data;
+                Logging.log.Fatal($"data:{packetInBus.data:X2} ip_id:{packetInBus.ip_id}");
             }
             // Processing
             switch (packetInBus.protocol)
@@ -217,6 +222,7 @@ namespace TCPIP
                 case (byte)IPv4.Protocol.UDP:
                     if (idx_in == UDP.HEADER_SIZE - 1)
                     {
+                        Logging.log.Fatal("Parsing udp");
                         ParseUDP();
                     }
                     break;
