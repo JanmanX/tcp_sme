@@ -12,9 +12,9 @@ namespace TCPIP
         [InputBus]
         public Internet.DatagramBusIn datagramInBus;
         [InputBus]
-        public ComputeProducerControlBus datagramBusInComputeProducerControlBusIn;
+        public BufferProducerControlBus datagramBusInBufferProducerControlBusIn;
         [OutputBus]
-        public ConsumerControlBus datagramBusInComputeConsumerControlBusOut = Scope.CreateBus<ConsumerControlBus>();
+        public ConsumerControlBus datagramBusInBufferConsumerControlBusOut = Scope.CreateBus<ConsumerControlBus>();
 
 
         //////////// IP packet to packet in
@@ -132,7 +132,7 @@ namespace TCPIP
 
         private void Idle()
         {
-            if (datagramBusInComputeProducerControlBusIn.available)
+            if (datagramBusInBufferProducerControlBusIn.valid)
             {
                 StartReading();
             }
@@ -170,6 +170,7 @@ namespace TCPIP
             {
                 Finish();
             }
+
         }
 
         void StartReading()
@@ -189,27 +190,28 @@ namespace TCPIP
             cur_segment_data.ip.dst_addr_0 = 0;
             cur_segment_data.ip.dst_addr_1 = 0;
 
-
             ResetAllBusses();
-
-            // We are ready to receive data
-            datagramBusInComputeConsumerControlBusOut.ready = true;
         }
 
 
         private void Read()
         {
-            if(datagramBusInComputeProducerControlBusIn.valid == false)
+            // If the data is not valid, we are not ready
+            if(datagramBusInBufferProducerControlBusIn.valid == false)
             {
                 Logging.log.Warn("Stuff not ready on reading bus");
+                datagramBusInBufferConsumerControlBusOut.ready = false;
                 StartIdle();
                 return;
             }
+
             if (idx_in < buffer_in.Length)
             {
+                datagramBusInBufferConsumerControlBusOut.ready = true;
+
                 buffer_in[idx_in++] = datagramInBus.data;
                 cur_segment_data.frame_number = datagramInBus.frame_number;
-                //Logging.log.Info($"frame:{datagramInBus.frame_number} data:{datagramInBus.data:X2}");
+                Logging.log.Trace($"frame:{datagramInBus.frame_number} data:{datagramInBus.data:X2}");
                 // Processing
                 switch (datagramInBus.type)
                 {
@@ -227,12 +229,13 @@ namespace TCPIP
                         Logging.log.Error($"Segment type not defined: {datagramInBus.type}");
                         break;
                 }
+
             }
         }
 
         private void Pass()
         {
-            if (datagramBusInComputeProducerControlBusIn.valid == false)
+            if (datagramBusInBufferProducerControlBusIn.valid == false)
             {
                 Logging.log.Error("Passing stopped prematurely!");
                 StartIdle();
@@ -264,6 +267,7 @@ namespace TCPIP
             if (cur_segment_data.offset == cur_segment_data.size)
             {
                 Logging.log.Info("Passing done!");
+                datagramBusInBufferConsumerControlBusOut.ready = false;
                 packetInComputeProducerControlBusOut.bytes_left = 0;
                 Finish();
             }
@@ -293,6 +297,9 @@ namespace TCPIP
             Logging.log.Info("Passing started!");
 
             ResetAllBusses();
+
+            // We know that the next byte is for passing so to limit interrupts, we set it here already
+            datagramBusInBufferConsumerControlBusOut.ready = true;
         }
 
 
@@ -321,13 +328,13 @@ namespace TCPIP
 
         private void ResetAllBusses()
         {
-            datagramBusInComputeConsumerControlBusOut.ready = false;
+            datagramBusInBufferConsumerControlBusOut.ready = false;
 
             packetInComputeProducerControlBusOut.valid = false;
-            packetInComputeProducerControlBusOut.available = false;
+            //packetInComputeProducerControlBusOut.available = false;
 
             packetOutComputeProducerControlBusOut.valid = false;
-            packetOutComputeProducerControlBusOut.available = false;
+            //packetOutComputeProducerControlBusOut.available = false;
         }
 
     }

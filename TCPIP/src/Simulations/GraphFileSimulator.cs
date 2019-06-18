@@ -9,13 +9,13 @@ namespace TCPIP
 {
     public class GraphFileSimulator : SimulationProcess
     {
-        //////// INTERNET IN (Sending to thus)
+        //////// INTERNET IN (Sending to this)
         [OutputBus]
         public Internet.DatagramBusIn datagramBusIn = Scope.CreateBus<Internet.DatagramBusIn>();
         [OutputBus]
-        public ComputeProducerControlBus datagramBusInComputeProducerControlBusOut = Scope.CreateBus<ComputeProducerControlBus>();
+        public BufferProducerControlBus datagramBusInBufferProducerControlBusOut = Scope.CreateBus<BufferProducerControlBus>();
         [InputBus]
-        public ConsumerControlBus datagramBusInComputeConsumerControlBusIn;
+        public ConsumerControlBus datagramBusInBufferConsumerControlBusIn;
 
 
         //////// INTERNET OUT (Receiving from this)
@@ -48,31 +48,37 @@ namespace TCPIP
                 // Wait for the initial reset to propagate
                 await ClockAsync();
 
-                datagramBusInComputeProducerControlBusOut.valid = false;
-                //datagramBusInComputeProducerControlBusOut.available = false;
+                datagramBusInBufferProducerControlBusOut.valid = false;
+                //datagramBusInBufferProducerControlBusOut.available = false;
 
                 while(packetGraph.HasPackagesToSend())
                 { // Are there anything to send? if not, spinloop dat shizz
-                    Logging.log.Info("At frame number " + frame_number);
-                    // Show us as avaliable
-                    //datagramBusInComputeProducerControlBusOut.available = true;
-                    // If the consumer is not ready, skip
-                    if (!datagramBusInComputeConsumerControlBusIn.ready){
-                        Logging.log.Error("The datagramBusIn was not ready");
-                        break;
-                    }
+                    Logging.log.Info($"Sending frame: {frame_number}");
+
 
                     foreach (var data in packetGraph.IterateOverPacketToSend())
                     {
                         // Data is now valid
-                        datagramBusInComputeProducerControlBusOut.valid = true;
-                        datagramBusInComputeProducerControlBusOut.bytes_left = data.bytes_left;
+                        datagramBusInBufferProducerControlBusOut.valid = true;
+                        datagramBusInBufferProducerControlBusOut.bytes_left = data.bytes_left;
                         // Send to Network
                         datagramBusIn.frame_number = frame_number;
                         datagramBusIn.data = data.data;
                         datagramBusIn.type = data.type;
-                        //Logging.log.Info($"data:{data.data:X2} bytes_left:{data.bytes_left}");
-                        await ClockAsync();
+
+                        // If the consumer is not ready, we no not increase the data
+                        bool datagramReady = true;
+                        while (!datagramBusInBufferConsumerControlBusIn.ready)
+                        {
+                            //Logging.log.Trace("The datagramBusIn was not ready");
+                            datagramReady = false;
+                            await ClockAsync();
+                        }
+                        if(datagramReady){
+                            await ClockAsync();
+                        }
+                        Logging.log.Trace($"data:{data.data:X2} bytes_left:{data.bytes_left}");
+
 
                     }
 
