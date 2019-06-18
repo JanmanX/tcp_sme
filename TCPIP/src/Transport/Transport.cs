@@ -143,7 +143,7 @@ namespace TCPIP
         private void Idle()
         {
             // Check control busses for work to do
-            if (packetInBufferProducerControlBusIn.available)
+            if (packetInBufferProducerControlBusIn.valid)
             {
                 StartReceive();
             }
@@ -151,7 +151,7 @@ namespace TCPIP
             //     {
             //         StartControl();
             //     }
-            else if (dataOutBufferProducerControlBusIn.available)
+            else if (dataOutBufferProducerControlBusIn.valid)
             {
                 Console.WriteLine("dataOutProducerControlBus.available!");
                 StartSend();
@@ -183,7 +183,7 @@ namespace TCPIP
         {
             Logging.log.Error($"In receive mode "+
                               $"valid:{packetInBufferProducerControlBusIn.valid} "+
-                              $"avaliable:{packetInBufferProducerControlBusIn.available} "+
+                              //$"avaliable:{packetInBufferProducerControlBusIn.available} "+
                               $"Databus: {packetInBus.data:X2}");
             // If invalid, reset
             if (packetInBufferProducerControlBusIn.valid == false)

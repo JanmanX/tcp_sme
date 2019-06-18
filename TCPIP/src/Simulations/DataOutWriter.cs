@@ -46,7 +46,7 @@ namespace TCPIP
                 {
                     // Control bus
                     bufferProducerControlBus.bytes_left = 10;
-                    bufferProducerControlBus.available = true;
+                    //bufferProducerControlBus.available = true;
                     bufferProducerControlBus.valid = true;
                     if (buffer[idx] == (byte)'\n')
                     {

@@ -135,7 +135,7 @@ namespace TCPIP
                 // If there are no first keys, indicate that no data is avaliable and loop
                 if(tmp == -1)
                 {
-                    dataOutBufferProducerControlBusOut.available = false;
+                    //dataOutBufferProducerControlBusOut.available = false;
                     dataOutBufferProducerControlBusOut.valid = false;
                     return;
                 }
@@ -146,7 +146,7 @@ namespace TCPIP
             {
                 this.dict.Free((int)cur_read_socket);
                 // Indicate that there are no avaliable data,
-                dataOutBufferProducerControlBusOut.available = false;
+                //dataOutBufferProducerControlBusOut.available = false;
                 dataOutBufferProducerControlBusOut.valid = false;
                 return;
             }
@@ -185,9 +185,9 @@ namespace TCPIP
 
             // We have a full segment ready, we can send it
             if (mem_calc.IsSegmentFull(cur_read_block_id)){
-                dataOutBufferProducerControlBusOut.available = true;
+                //dataOutBufferProducerControlBusOut.available = true;
             }else{
-                dataOutBufferProducerControlBusOut.available = false;
+                //dataOutBufferProducerControlBusOut.available = false;
             }
 
             // The consumer are ready, ask memory and mark that we requested memory

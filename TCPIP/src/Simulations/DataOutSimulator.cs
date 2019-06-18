@@ -34,7 +34,7 @@ namespace TCPIP
             await ClockAsync();
             await ClockAsync();
 
-            bufferProducerControlBus.available = true;
+            //bufferProducerControlBus.available = true;
 
 
             while (i < bytes.Length)
@@ -52,7 +52,7 @@ namespace TCPIP
 
             await ClockAsync();
 
-            bufferProducerControlBus.available = false;
+            //bufferProducerControlBus.available = false;
             bufferProducerControlBus.valid = false;
 
 

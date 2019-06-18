@@ -167,10 +167,6 @@ namespace TCPIP
 
             // Reset until they are needed
             controlB.Enabled = false;
-            packetOutBufferProducerControlBusOut.available = false;
-            //packetOutBufferProducerControlBusOut.valid = false;
-
-
 
             ////////////// BUFFER code
             // if we are receiving stuff from the memory, save it to the buffer
@@ -218,9 +214,9 @@ namespace TCPIP
 
 
             // If the load segment is ready, we have avaliable data in the buffer
-            if(buffer_calc.LoadSegmentReady())
+            if(!buffer_calc.LoadSegmentReady())
             {
-                packetOutBufferProducerControlBusOut.available = true;
+                packetOutBufferProducerControlBusOut.valid = false;
             }
 
 
@@ -246,9 +242,6 @@ namespace TCPIP
                 packetOutBufferProducerControlBusOut.valid = true;
                 Logging.log.Error($"Sending: data: {data:X2} buffer_addr: {addr} frame_number: {frame_number}");
 
-            }else{
-                //Logging.log.Error($"--------------------Not valid any more!!! ready:{packetOutBufferConsumerControlBusIn.ready}");
-                packetOutBufferProducerControlBusOut.valid = false;
             }
             Logging.log.Warn($"The load segment status: {buffer_calc.LoadSegmentReady()} ready: {packetOutBufferConsumerControlBusIn.ready}");
 

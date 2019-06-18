@@ -35,7 +35,7 @@ namespace TCPIP
             await ClockAsync();
             await ClockAsync();
 
-            bufferProducerControlBus.available = true;
+            //bufferProducerControlBus.available = true;
 
 
             int frame_number = 0;

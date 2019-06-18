@@ -49,13 +49,13 @@ namespace TCPIP
                 await ClockAsync();
 
                 datagramBusInComputeProducerControlBusOut.valid = false;
-                datagramBusInComputeProducerControlBusOut.available = false;
+                //datagramBusInComputeProducerControlBusOut.available = false;
 
                 while(packetGraph.HasPackagesToSend())
                 { // Are there anything to send? if not, spinloop dat shizz
                     Logging.log.Info("At frame number " + frame_number);
                     // Show us as avaliable
-                    datagramBusInComputeProducerControlBusOut.available = true;
+                    //datagramBusInComputeProducerControlBusOut.available = true;
                     // If the consumer is not ready, skip
                     if (!datagramBusInComputeConsumerControlBusIn.ready){
                         Logging.log.Error("The datagramBusIn was not ready");

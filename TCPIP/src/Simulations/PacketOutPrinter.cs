@@ -20,7 +20,7 @@ namespace TCPIP
         protected override void OnTick()
         {
             return;
-            packetBusComputeConsumerControlBusOut.ready = true;
+            //packetBusComputeConsumerControlBusOut.ready = true;
 
             if(packetBusComputeProducerControlBusIn.valid && idx < buffer.Length)
             {

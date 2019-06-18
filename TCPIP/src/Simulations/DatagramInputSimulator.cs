@@ -45,7 +45,7 @@ namespace TCPIP
                 for(int i = 0; i < bytes.Length; i++)
                 {
                     // Control
-                    computeProducerControlBus.available = true;
+                    //computeProducerControlBus.available = true;
                     computeProducerControlBus.valid = true;
                     computeProducerControlBus.bytes_left = 1;
                     if(i-1 == bytes.Length) {

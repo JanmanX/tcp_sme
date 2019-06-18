@@ -15,9 +15,6 @@ namespace TCPIP
     public interface ComputeProducerControlBus : IBus
     {
         [InitialValue(false)]
-        bool available { get; set; }
-
-        [InitialValue(false)]
         bool valid { get; set; }
 
         // Optional
@@ -27,9 +24,6 @@ namespace TCPIP
 
     public interface BufferProducerControlBus : IBus
     {
-        [InitialValue(false)]
-        bool available { get; set; }
-
         [InitialValue(false)]
         bool valid { get; set; }
 
