@@ -97,8 +97,9 @@ namespace TCPIP
 
         protected override void OnTick()
         {
-            Send();
             Write();
+            Send();
+
         }
         private void Write()
         {
@@ -167,7 +168,8 @@ namespace TCPIP
             // Reset until they are needed
             controlB.Enabled = false;
             packetOutBufferProducerControlBusOut.available = false;
-            packetOutBufferProducerControlBusOut.valid = false;
+            //packetOutBufferProducerControlBusOut.valid = false;
+
 
 
             ////////////// BUFFER code
@@ -221,13 +223,11 @@ namespace TCPIP
                 packetOutBufferProducerControlBusOut.available = true;
             }
 
+
              ///////////// Sending code
             // They are ready, we submit stuff
             if(packetOutBufferConsumerControlBusIn.ready && buffer_calc.LoadSegmentReady())
             {
-
-                packetOutBufferProducerControlBusOut.valid = true;
-
                 packetOutBus.data_length = buffer_calc.MetadataCurrentLoadSegment().total_len;
                 packetOutBus.ip_dst_addr_0 = buffer_calc.MetadataCurrentLoadSegment().ip_dst_addr_0;
                 packetOutBus.ip_dst_addr_1 = buffer_calc.MetadataCurrentLoadSegment().ip_dst_addr_1;
@@ -242,9 +242,15 @@ namespace TCPIP
                 byte data = send_buffer[addr];
                 packetOutBus.data = data;
                 buffer_calc.FinishReadingCurrentLoadSegment();
-                Logging.log.Trace($"Sending: data: {data:X2} buffer_addr: {addr} frame_number: {frame_number}");
 
+                packetOutBufferProducerControlBusOut.valid = true;
+                Logging.log.Error($"Sending: data: {data:X2} buffer_addr: {addr} frame_number: {frame_number}");
+
+            }else{
+                //Logging.log.Error($"--------------------Not valid any more!!! ready:{packetOutBufferConsumerControlBusIn.ready}");
+                packetOutBufferProducerControlBusOut.valid = false;
             }
+            Logging.log.Warn($"The load segment status: {buffer_calc.LoadSegmentReady()} ready: {packetOutBufferConsumerControlBusIn.ready}");
 
         }
     }
