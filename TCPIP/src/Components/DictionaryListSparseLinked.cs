@@ -337,7 +337,7 @@ namespace TCPIP
         {
             int count = 0;
             // Limit to checking all keys only once
-            while(count++ > links_length){
+            while(count++ < links_length){
                 last_link_index = (last_link_index + 1 ) % links_length;
                 // Test if the current pointer is not used
                 if(!links[last_link_index].used){
