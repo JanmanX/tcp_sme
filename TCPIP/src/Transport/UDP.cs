@@ -48,8 +48,8 @@ namespace TCPIP
                                  | buffer_in[UDP.LENGTH_OFFSET_1])
                                  - UDP.HEADER_SIZE);
 
-            // Logging.log.Debug($"Parsed UDP: src_port: {src_port}, dst_port: {dst_port}, length: {data_length + UDP.HEADER_SIZE}, checksum: 0x{checksum:X}");
-            Console.WriteLine($"Parsed UDP: src_port: {src_port}, dst_port: {dst_port}, length: {data_length + UDP.HEADER_SIZE}, checksum: 0x{checksum:X}");
+            Logging.log.Debug($"Parsed UDP: src_port: {src_port} , dst_port: {dst_port} , length: {data_length + UDP.HEADER_SIZE} , checksum: 0x{checksum:X}");
+            //Console.WriteLine($"Parsed UDP: src_port: {src_port}, dst_port: {dst_port}, length: {data_length + UDP.HEADER_SIZE}, checksum: 0x{checksum:X}");
 
 
             // Start passing
