@@ -48,7 +48,7 @@ namespace TCPIP
         public override async Task Run()
         {
             linkOutComputeProducerControlBusOut.valid = false;
-            linkOutComputeProducerControlBusOut.available = false;
+            //linkOutComputeProducerControlBusOut.available = false;
 
             // Set/Reset all values
             uint bytes_passed = 0;
@@ -59,7 +59,7 @@ namespace TCPIP
 
             // Set ready and wait for first byte
             packetOutBufferConsumerControlBusOut.ready = true;
-            while(packetOutBufferProducerControlBusIn.available == false || packetOutBufferProducerControlBusIn.valid == false)
+            while( packetOutBufferProducerControlBusIn.valid == false)
             {
                 await ClockAsync();
             }
@@ -70,7 +70,7 @@ namespace TCPIP
 
             // Pass data while packetOut has valid data
             while(packetOutBufferProducerControlBusIn.valid) {
-                linkOutComputeProducerControlBusOut.available = true;
+                //linkOutComputeProducerControlBusOut.available = true;
                 linkOutComputeProducerControlBusOut.valid = true;
                 linkOutComputeProducerControlBusOut.bytes_left = 1;
                 linkOutWriteBus.data = packetOutWriteBus.data;
@@ -90,7 +90,7 @@ namespace TCPIP
             // Send the header
             while(idx < header_size)
             {
-                linkOutComputeProducerControlBusOut.available = true;
+                //linkOutComputeProducerControlBusOut.available = true;
                 linkOutComputeProducerControlBusOut.valid = true;
                 linkOutComputeProducerControlBusOut.bytes_left = 1;
 
