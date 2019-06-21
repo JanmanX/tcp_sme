@@ -93,8 +93,10 @@ namespace TCPIP
         private void Write(){
             // Disable the write bus, enable if there is stuff in the packet
             controlA.Enabled = false;
-
+            // XXX datain ready should be stopped when there is no more good data
+            dataInComputeConsumerControlBusOut.ready = true;
             // Data on the bus is currently valid
+
 
             if(dataInComputeProducerControlBusIn.valid){
                 // This is a new packet
