@@ -49,14 +49,14 @@ namespace TCPIP
             public long frame_number; // Increments so we can distinguish between new packages
             public uint ip_id;
             public ushort total_len;
+            public ushort accum_len; // Accumulator for the length.
             public ulong ip_src_addr_0; // Lower 8 bytes of IP addr (lower 4 bytes used in this field on IPv4)
             public ulong ip_src_addr_1; // Upper 8 bytes of IP addr
             public ulong ip_dst_addr_0; // Lower 8 bytes of IP addr (lower 4 bytes used in this field on IPv4)
             public ulong ip_dst_addr_1; // Upper 8 bytes of IP addr
         }
         private TempData tmp_write_info;
-
-        private int cur_ip_id;
+        private TempData tmp_send_info;
 
         private DictionaryListSparseLinked segment_lookup;
 
@@ -70,14 +70,19 @@ namespace TCPIP
 
 
         // little ringbuffer for the data out
+        public struct SendRingBuffer{
+            public byte data;
+            public ushort length;
+        }
+        SendRingBuffer tempSendRingBuffer;
         private const int send_buffer_size = 4;
-        private byte[] send_buffer = new byte[send_buffer_size];
+        private SendRingBuffer[] send_buffer = new SendRingBuffer[send_buffer_size];
         private SingleMemorySegmentsRingBufferFIFO<TempData> buffer_calc;
 
         private bool memory_requested = false;
         private bool memory_receiving = false;
 
-        private bool send_buffer_ready = true;
+        private bool send_preload = true;
 
         public PacketIn(TrueDualPortMemory<byte> memory, int memory_size){
             // Set up the header information
@@ -97,6 +102,7 @@ namespace TCPIP
 
         protected override void OnTick()
         {
+            //return;
             Write();
             Send();
 
@@ -126,6 +132,9 @@ namespace TCPIP
                     tmp_write_info.protocol = packetInBus.protocol;
                     tmp_write_info.ip_id = packetInBus.ip_id;
                     tmp_write_info.frame_number = packetInBus.frame_number;
+                    tmp_write_info.total_len = (ushort)packetInBus.data_length;
+                    // Set the accumulator length to the same as the total lenth, since this is a new "pristine" packet
+                    tmp_write_info.accum_len = (ushort)(packetInBus.data_length - 1);
                     // Get the new block we write to, and save the metadata
                     cur_write_block_id = mem_calc.AllocateSegment(packetInBus.data_length);
                     mem_calc.SaveMetaData(cur_write_block_id,tmp_write_info);
@@ -133,16 +142,16 @@ namespace TCPIP
                     // We have made the new packet, set the flag to false
                     write_next_packet = false;
 
-                    Logging.log.Info($"New packet! frame_number:{packetInBus.frame_number} " +
-                                     $"write_mem_id:{cur_write_block_id} " +
-                                     $"segment_length:{packetInBus.data_length} ");
+                    Logging.log.Info($"New packet! frame_number: {packetInBus.frame_number} " +
+                                     $"write_mem_id: {cur_write_block_id} " +
+                                     $"segment_length: {packetInBus.data_length} ");
                 }
                 // Submit the data
                 controlA.Enabled = true;
                 controlA.IsWriting = true;
                 int addr = mem_calc.SaveData(cur_write_block_id);
                 controlA.Address = addr;
-                Logging.log.Trace($"Receiving: data: {packetInBus.data:X2} "+
+                Logging.log.Trace($"Receiving: data: 0x{packetInBus.data:X2} "+
                                   $"addr: {addr} "+
                                   $"in memory block: {cur_write_block_id} "+
                                   $"data left: {packetInComputeProducerControlBusIn.bytes_left}");
@@ -174,8 +183,10 @@ namespace TCPIP
             {
                 int buffer = buffer_calc.SaveData();
                 byte data = readResultB.Data;
-                send_buffer[buffer] = data;
-                Logging.log.Trace($"Got memory. goes to buffer:{buffer} data:{data:X2}");
+                tempSendRingBuffer.data = data;
+                tempSendRingBuffer.length = buffer_calc.MetadataCurrentSaveSegment().accum_len;
+                send_buffer[buffer] = tempSendRingBuffer;
+                Logging.log.Trace($"Got memory. goes to buffer:{buffer} data:0x{data:X2}");
                 buffer_calc.FinishFillingCurrentSaveSegment();
                 memory_receiving = false;
             }
@@ -207,22 +218,36 @@ namespace TCPIP
                     // we now have an request from memory
                     memory_requested = true;
 
+                    // Get the metadata from the memory calculator, subtract the total by one, and
+                    // Push it into the segment. This makes it possible to detect the last byte in the loaded data
+                    tmp_send_info = mem_calc.LoadMetaData(mem_calc.FocusSegment());
+                    tmp_send_info.accum_len -= 1;
+                    mem_calc.SaveMetaData(mem_calc.FocusSegment(),tmp_send_info);
+
                     // We save the metadata onto the buffer
                     buffer_calc.NextSegment(mem_calc.LoadMetaData(mem_calc.FocusSegment()));
+                }else{
+                    if(buffer_calc.LoadSegmentReady() && packetOutBufferConsumerControlBusIn.ready)
+                    {
+                        Logging.log.Fatal("Not viable address");
+                    }
+
                 }
             }
 
+            ///////////// Sending code
+            // They are ready, we submit stuff
 
-            // If the load segment is ready, we have avaliable data in the buffer
-            if(!buffer_calc.LoadSegmentReady())
-            {
-                packetOutBufferProducerControlBusOut.valid = false;
+            Logging.log.Warn($"The load segment status: {buffer_calc.LoadSegmentReady()} ready: {packetOutBufferConsumerControlBusIn.ready}");
+
+
+            packetOutBufferProducerControlBusOut.valid = buffer_calc.LoadSegmentReady();
+
+            if(packetOutBufferConsumerControlBusIn.ready){
+                send_preload = true;
             }
 
-
-             ///////////// Sending code
-            // They are ready, we submit stuff
-            if(packetOutBufferConsumerControlBusIn.ready && buffer_calc.LoadSegmentReady())
+            if(send_preload && buffer_calc.LoadSegmentReady())
             {
                 packetOutBus.data_length = buffer_calc.MetadataCurrentLoadSegment().total_len;
                 packetOutBus.ip_dst_addr_0 = buffer_calc.MetadataCurrentLoadSegment().ip_dst_addr_0;
@@ -235,16 +260,19 @@ namespace TCPIP
                 packetOutBus.ip_id = buffer_calc.MetadataCurrentLoadSegment().ip_id;
                 packetOutBus.protocol = buffer_calc.MetadataCurrentLoadSegment().protocol;
                 int addr = buffer_calc.LoadData();
-                byte data = send_buffer[addr];
+                byte data = send_buffer[addr].data;
                 packetOutBus.data = data;
-                buffer_calc.FinishReadingCurrentLoadSegment();
 
                 packetOutBufferProducerControlBusOut.valid = true;
-                Logging.log.Error($"Sending: data: {data:X2} buffer_addr: {addr} frame_number: {frame_number}");
+                packetOutBufferProducerControlBusOut.bytes_left = send_buffer[addr].length;
+
+                buffer_calc.FinishReadingCurrentLoadSegment();
+
+                send_preload = false;
+
+                Logging.log.Info($"Sending: data: 0x{data:X2} buffer_addr: {addr} frame_number: {frame_number}");
 
             }
-            Logging.log.Warn($"The load segment status: {buffer_calc.LoadSegmentReady()} ready: {packetOutBufferConsumerControlBusIn.ready}");
-
         }
     }
 }
