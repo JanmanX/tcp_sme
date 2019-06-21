@@ -71,7 +71,7 @@ namespace TCPIP
 
                 // Wire Transport to Data_in
                 data_in.dataInComputeProducerControlBusIn = transport.dataInComputeProducerControlBusOut;
-                transport.dataOutBufferProducerControlBusIn = data_in.dataOutBufferProducerControlBusOut;
+                transport.dataInComputeConsumerControlBusIn = data_in.dataInComputeConsumerControlBusOut;
                 data_in.dataIn = transport.dataInWriteBus;
 
                 // Wire Transport to Packet_out
