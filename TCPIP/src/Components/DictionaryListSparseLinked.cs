@@ -179,9 +179,9 @@ namespace TCPIP
                 throw new System.Exception("Key does not exist");
             }
             KeyTranslation k = keys[key_pointer];
-            // The pointer in the key table is negative, therefore we need a new module.
+            // The pointer in the key table is negative 1, therefore we need a new module.
             // We create this and returns and saves the pointer
-            if(k.index != -1)
+            if(k.index == -1)
             {
                 link_index_new = GetFreeLinkAndReserve();
                 if(link_index_new == -1)
