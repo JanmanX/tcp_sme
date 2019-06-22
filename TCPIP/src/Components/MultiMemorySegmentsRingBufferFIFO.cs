@@ -120,7 +120,7 @@ namespace TCPIP
             int ret = (cur_segment.start + cur_segment.current) % memory_size;
             cur_segment.current++;
             // If the next byte is the last, we mark the segment as full, and reset counters
-            if (cur_segment.current % memory_size == cur_segment.stop){
+            if ((cur_segment.start + cur_segment.current) % memory_size == cur_segment.stop){
                 Logging.log.Info($"Segment:{segment_ID} is fully loaded based on counter, Marking it done");
                 SegmentDone(segment_ID);
                 cur_segment = segment_list[segment_ID];
