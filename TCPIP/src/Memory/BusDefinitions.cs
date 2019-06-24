@@ -20,6 +20,7 @@ namespace TCPIP
         public interface WriteBus : IBus
         {
             int socket { get; set; }
+            uint packet_number { get; set; }
             uint tcp_seq { get; set; }
             byte data { get; set; }
             bool invalidate { get; set; }
