@@ -224,6 +224,11 @@ namespace TCPIP
                      isReady(x)
             ).ToList();
 
+            // If there are no elements in the packets to send
+            if(toSend.Count == 0){
+                yield break;
+            }
+
             int pid = packetPointers.First();
             Logging.log.Trace("PacketID: " + pid + " iterator started");
             Packet p = packetList[pid];
@@ -249,8 +254,9 @@ namespace TCPIP
         }
 
         public bool HasPackagesToSend(){
-            bool ret = packetPointers.Where(x => (packetList[x].info & PacketInfo.Send) > 0 ).Count() > 0;
-            return ret;
+            return packetPointers.Where(x => (packetList[x].info & PacketInfo.Send) > 0 &&
+                     isReady(x) ).Count() > 0;
+
         }
 
         ///////////////////////////////////////////////////
