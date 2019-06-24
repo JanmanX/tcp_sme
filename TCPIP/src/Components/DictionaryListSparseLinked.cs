@@ -25,12 +25,10 @@ namespace TCPIP
         }
 
         private LinkEntry[] links;
-        private int links_length;
         // Contains the last link pointer used
         private int last_link_index = 0;
 
         private KeyTranslation[] keys;
-        private int keys_length;
 
         // Contains the last key pointer allocated to a key
         private int last_key_pointer = 0;
@@ -41,14 +39,11 @@ namespace TCPIP
 
         public DictionaryListSparseLinked(int key_list_length,int total_list_length)
         {
-            this.keys_length = key_list_length;
-            this.keys = new KeyTranslation[this.keys_length];
-
-            this.links_length = total_list_length;
-            this.links = new LinkEntry[this.links_length];
+            this.keys = new KeyTranslation[key_list_length];
+            this.links = new LinkEntry[total_list_length];
 
             // Reset initial data
-            for (int i = 0; i < this.links_length; i++)
+            for (int i = 0; i < this.links.Length; i++)
             {
                 LinkEntry x = links[i];
                 x.next = -1;
@@ -57,7 +52,7 @@ namespace TCPIP
                 links[i] = x;
             }
             // Reset initial data
-            for (int i = 0; i < this.keys_length; i++)
+            for (int i = 0; i < this.keys.Length; i++)
             {
                 KeyTranslation x = keys[i];
                 x.used = false;
@@ -70,7 +65,7 @@ namespace TCPIP
         public int ValueSpaceLeft()
         {
             int ret = 0;
-            for (int i = 0; i < this.links_length; i++)
+            for (int i = 0; i < this.links.Length; i++)
             {
                 ret += !links[i].used ? 1 : 0;
             }
@@ -81,7 +76,7 @@ namespace TCPIP
         public int KeySpaceLeft()
         {
             int ret = 0;
-            for (int i = 0; i < this.keys_length; i++)
+            for (int i = 0; i < this.keys.Length; i++)
             {
                 ret += !keys[i].used ? 1 : 0;
             }
@@ -92,8 +87,8 @@ namespace TCPIP
         {
             int count = 0;
             // Limit to checking all keys only once
-            while(count++ > keys_length){
-                last_key_pointer = (last_key_pointer + 1 ) % keys_length;
+            while(count++ > this.keys.Length){
+                last_key_pointer = (last_key_pointer + 1 ) % keys.Length;
                 // Test if the current free pointer is free
                 if(keys[last_key_pointer].used){
                     KeyTranslation x = keys[last_key_pointer];
@@ -131,7 +126,7 @@ namespace TCPIP
 
         public int GetFirstKey()
         {
-            for (int i = 0; i < this.keys_length; i++)
+            for (int i = 0; i < this.keys.Length; i++)
             {
                 if(keys[i].used)
                 {
@@ -337,8 +332,8 @@ namespace TCPIP
         {
             int count = 0;
             // Limit to checking all keys only once
-            while(count++ < links_length){
-                last_link_index = (last_link_index + 1 ) % links_length;
+            while(count++ < links.Length){
+                last_link_index = (last_link_index + 1 ) % links.Length;
                 // Test if the current pointer is not used
                 if(!links[last_link_index].used){
                     // Set it to used, reset stuff and return link pointer
@@ -355,7 +350,7 @@ namespace TCPIP
         // Get the index form the key table
         private int GetKeyPointer(int key)
         {
-            for (int i = 0; i < this.keys_length; i++)
+            for (int i = 0; i < this.keys.Length; i++)
             {
                 if(keys[i].key == key)
                 {
@@ -450,14 +445,17 @@ namespace TCPIP
         // Returns the last linkpointer in a chain
         private int TraverseLinkPointerToEnd(int index)
         {
-            LinkEntry x = links[index];
-            if(x.next != -1 ){
-                return TraverseLinkPointerToEnd(x.next);
-            }
-            else{
-                return index;
+            for(int i = 0; i < links.Length; i++)
+            {
+                LinkEntry x = links[index];
+                if(x.next == -1) {
+                    break;
+                }
+
+                index = x.next;
             }
 
+            return index;
         }
 
         // calculate the spacing from node a to node b(with offset calculations).
@@ -465,12 +463,22 @@ namespace TCPIP
         // the indexes must exist(not sparse elements)
         private int DistancebetweenLinks(int index_a, int index_b)
         {
-            if (index_a == index_b)
+            int acc = 0;
+            for(uint i = 0; i < links.Length; i++)
             {
-                return 0;
+                if (index_a == index_b)
+                {
+                    break;
+                }
+
+                LinkEntry x = links[index_a];
+                
+                acc += x.offset;
+
+                index_a = x.next;
             }
-            LinkEntry x = links[index_a];
-            return x.offset + DistancebetweenLinks(x.next,index_b);
+
+            return acc;
         }
     }
 }
