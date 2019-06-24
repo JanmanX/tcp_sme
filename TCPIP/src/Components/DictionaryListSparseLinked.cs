@@ -431,15 +431,19 @@ namespace TCPIP
         // Used for cleaning up after key removal
         private void TraverseLinkPointerAndFree(int index)
         {
-            LinkEntry x = links[index];
-            x.used = false;
-            x.next = -1;
-            x.offset = 0;
-            links[index] = x;
-            if(x.next != -1 ){
-                TraverseLinkPointerAndFree(x.next);
+            for(int i = 0; i < links.Length; i++)
+            {
+                LinkEntry x = links[i];
+                x.used = false;
+                x.next = -1;
+                x.offset = 0;
+                links[i] = x;
+                if(x.next == -1 ){
+                    break; 
+                }
             }
-        }
+
+       }
 
 
         // Returns the last linkpointer in a chain
