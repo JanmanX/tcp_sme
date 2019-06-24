@@ -148,13 +148,6 @@ namespace TCPIP
                 controlA.IsWriting = true;
                 int addr = mem_calc.SaveData(cur_write_block_id);
                 controlA.Address = addr;
-<<<<<<< HEAD
-=======
-                Logging.log.Trace($"Receiving: data: 0x{packetInBus.data:X2} "+
-                                  $"addr: {addr} "+
-                                  $"in memory block: {cur_write_block_id} "+
-                                  $"data left: {packetInComputeProducerControlBusIn.bytes_left}");
->>>>>>> master
                 controlA.Data = packetInBus.data;
 
             }
@@ -204,7 +197,6 @@ namespace TCPIP
                 // XXX: Use list of ip segment sinstead of focus segment
                 int addr = mem_calc.LoadData(mem_calc.FocusSegment());
 
-<<<<<<< HEAD
 
                 if(addr == 44){
                 }
@@ -212,12 +204,6 @@ namespace TCPIP
                 // If we actually can get the address(If buffer empty etc)
                 if(addr != -1)
                 {
-=======
-                // If we actually can get the address(If buffer empty etc)
-                if(addr != -1)
-                {
-                    Logging.log.Trace($"Requesting memory from addr: {addr} on segment: {mem_calc.FocusSegment()}");
->>>>>>> master
                     // Request the data
                     controlB.Enabled = true;
                     controlB.IsWriting = false;
@@ -234,24 +220,17 @@ namespace TCPIP
 
                     // We save the metadata onto the buffer
                     buffer_calc.NextSegment(mem_calc.LoadMetaData(mem_calc.FocusSegment()));
-<<<<<<< HEAD
                 }else{
                     if(buffer_calc.LoadSegmentReady() && packetOutBufferConsumerControlBusIn.ready)
                     {
                     }
 
-=======
->>>>>>> master
                 }
             }
 
             ///////////// Sending code
             // They are ready, we submit stuff
 
-<<<<<<< HEAD
-=======
-            Logging.log.Trace($"The load segment status: {buffer_calc.LoadSegmentReady()} ready: {packetOutBufferConsumerControlBusIn.ready}");
->>>>>>> master
 
 
             packetOutBufferProducerControlBusOut.valid = buffer_calc.LoadSegmentReady();
