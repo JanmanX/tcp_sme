@@ -283,6 +283,7 @@ namespace TCPIP
             dataInWriteBus.socket = passData.socket;
             dataInWriteBus.tcp_seq = passData.tcp_seq;
             dataInWriteBus.data = packetInBus.data;
+            dataInWriteBus.data_length = (int)passData.length;
             dataInWriteBus.invalidate = false;
             dataInWriteBus.packet_number = pcbs[passData.socket].packet_number;
             passData.bytes_passed++;
