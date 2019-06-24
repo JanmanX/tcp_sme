@@ -16,7 +16,7 @@ namespace TCPIP
         // Add more 
     }
 
-    unsafe struct PCB
+    struct PCB
     {
         // Connection state
         public byte state; 
@@ -38,8 +38,11 @@ namespace TCPIP
         // Counts the bytes received for the current packet
         public uint bytes_received;
 
-        // data for protocol-specific data
-        private const int DATA_SIZE = 64;
-        public fixed byte data[DATA_SIZE];
+        // Packet number
+        public uint packet_number;
+
+        // // data for protocol-specific data
+        // private const int DATA_SIZE = 64;
+        // public fixed byte data[DATA_SIZE];
     }
 }

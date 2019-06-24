@@ -212,9 +212,7 @@ namespace TCPIP
                     // End of header, start parsing
                     if (idx_in == TCP.HEADER_SIZE)
                     {
-
                         Logging.log.Warn("TCP CURRENTLY NOT SUPPORTED!");
-
                         // ParseTCP();
                     }
                     break;
@@ -230,11 +228,7 @@ namespace TCPIP
                 case (byte)IPv4.Protocol.ICMP:
                     if (idx_in == ICMP.HEADER_SIZE)
                     {
-
-                        // LOGGER.WARN("TCP CURRENTLY NOT SUPPORTED!");
-
-                        Logging.log.Warn("TCP CURRENTLY NOT SUPPORTED!");
-                        // ParseUDP();
+                        Logging.log.Warn("ICMP CURRENTLY NOT SUPPORTED!");
                     }
                     break;
             }
@@ -290,6 +284,7 @@ namespace TCPIP
             dataInWriteBus.tcp_seq = passData.tcp_seq;
             dataInWriteBus.data = packetInBus.data;
             dataInWriteBus.invalidate = false;
+            dataInWriteBus.packet_number = pcbs[passData.socket].packet_number;
             passData.bytes_passed++;
 
 
@@ -306,6 +301,8 @@ namespace TCPIP
                 //                    Console.WriteLine($"Checksum failed: 0x{pcbs[passData.socket].checksum_acc:X}");
                 //                    dataInWriteBus.invalidate = true;
                 //                }
+
+                pcbs[passData.socket].packet_number++;
 
                 // Go to idle
                 Finish();
@@ -474,6 +471,7 @@ namespace TCPIP
                         pcbs[socket].state = (byte)PCB_STATE.LISTENING;
                         pcbs[socket].protocol = interfaceBus.request.protocol;
                         pcbs[socket].l_port = interfaceBus.request.port;
+                        pcbs[socket].packet_number = 0;
 
                         // Do protocol-based operations here
                         switch (pcbs[socket].protocol)
@@ -518,6 +516,7 @@ namespace TCPIP
                         pcbs[socket].protocol = interfaceBus.request.protocol;
                         pcbs[socket].l_port = interfaceBus.request.port;
                         pcbs[socket].f_address = interfaceBus.request.ip;
+                        pcbs[socket].packet_number = 0;
 
                         // Do protocol-based operations here
                         switch (pcbs[socket].protocol)
