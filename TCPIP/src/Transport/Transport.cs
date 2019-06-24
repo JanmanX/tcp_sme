@@ -310,6 +310,10 @@ namespace TCPIP
                 pcbs[passData.socket].packet_number++;
 
                 // Go to idle
+<<<<<<< HEAD
+=======
+                Logging.log.Trace("Passing done");
+>>>>>>> master
                 Finish();
             }
         }

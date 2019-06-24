@@ -186,7 +186,7 @@ namespace TCPIP
 
         public void SegmentDone(int segment_ID)
         {
-            Logging.log.Error($"Marking Segment_ID:{segment_ID} done");
+            Logging.log.Trace($"Marking Segment_ID:{segment_ID} done");
             SegmentEntry cur_segment = segment_list[segment_ID];
             if (!cur_segment.full){
                 throw new System.Exception($@"Segment ID:{segment_ID} Cannot mark as done, when it is not full first");
@@ -208,7 +208,7 @@ namespace TCPIP
 
         public void SegmentFull(int segment_ID)
         {
-            Logging.log.Error($"Marking Segment_ID:{segment_ID} full");
+            Logging.log.Trace($"Marking Segment_ID:{segment_ID} full");
             SegmentEntry cur_segment = segment_list[segment_ID];
             cur_segment.full = true;
             segment_list[segment_ID] = cur_segment;
