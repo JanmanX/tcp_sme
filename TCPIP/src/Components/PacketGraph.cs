@@ -6,17 +6,40 @@ using System.Text.RegularExpressions;
 
 namespace TCPIP
 {
+    // The packet graph file uses specific files that indicate in what order
+    // a packet needs to be received or sent.
+    //
+    // It is seen as an acrylic graph, where the first node is an "event" (send, receive etc).
+    // To propegate to the next node, we need to fulfill the node, and go to the next.
+    // If there are a split , these tasks are done independently of each other, in no specific order
+    //
+
+    // events:
+    //  * receive:
+    //      A packet that we should receive from the stack.
+    //  * send:
+    //      A packet that we should send into the stack.
+    //  * datain:
+    //      Data from the stack to the user application
+    //  * dataout:
+    //      Data from the user application that goes into the stack
+    //  * command:
+    //      Defines a command as sent by the application to the stack
+    //  * wait:
+    //      wait N clockcycles before the node is ready.
     public class PacketGraph  {
-        public enum PacketType{
-            ICMP
-        }
         [Flags]
         public enum PacketInfo{
-            ToSend = 1 << 0, // this packet has to be sent.
-            ToReceive= 1 << 1, // This packet has to be received.
-            Initial = 1 << 2, // Is this an beginning packet?
-            End = 1 << 3, // Is this an end packet?
-            Valid = 1 << 4, // Has this packet been sent or received?
+            Send = 1 << 0, // this packet has to be sent.
+            Receive = 1 << 1, // This packet has to be received.
+            DataIn = 1 << 2,
+            DataOut = 1 << 3,
+            Command = 1 << 4,
+            Wait = 1 << 5,
+            Initial = 1 << 6, // Is this an beginning packet?
+            End = 1 << 7, // Is this an end packet?
+            Valid = 1 << 8, // Has this packet been sent, received or its action done??
+            Active = 1 << 9, //  The packet is currently being worked on
         }
 
         // class defining the nodes in an directed acyclic graph
@@ -81,9 +104,6 @@ namespace TCPIP
             int maxDepends = 0;
             foreach(var x in packetList.OrderBy(a => a.Key))
             {
-                string depends = String.Join(",",x.Value.dependsOn);
-                string required = String.Join(",",x.Value.requiredBy);
-                Logging.log.Info($"PacketID: {x.Key,5} Depends: {depends,7} Required: {required,7} Flags:" + x.Value.info);
                 // Get the max dependency for each node
                 if(x.Value.dependsOn.Count > maxDepends){
                     maxDepends = x.Value.dependsOn.Count;
@@ -124,10 +144,22 @@ namespace TCPIP
             switch(metainfo)
             {
                 case "send":
-                    info |= PacketInfo.ToSend;
+                    info |= PacketInfo.Send;
                     break;
                 case "receive":
-                    info |= PacketInfo.ToReceive;
+                    info |= PacketInfo.Receive;
+                    break;
+                case "datain":
+                    info |= PacketInfo.DataIn;
+                    break;
+                case "dataout":
+                    info |= PacketInfo.DataOut;
+                    break;
+                case "command":
+                    info |= PacketInfo.Command;
+                    break;
+                case "wait":
+                    info |= PacketInfo.Wait;
                     break;
                 default:
                     Logging.log.Fatal("Packet metainfo not detected: " + fileName);
@@ -137,14 +169,19 @@ namespace TCPIP
             Packet pack = new Packet();
             pack.id = id;
             pack.info = info;
-            pack.data = File.ReadAllBytes(filePath);
-            // Set the packet type based on the byte value
-            pack.type = (ushort)(pack.data[EthernetIIFrame.ETHERTYPE_OFFSET_0] << 0x08);
-            pack.type |= (ushort)(pack.data[EthernetIIFrame.ETHERTYPE_OFFSET_1]);
+            // if this packet can be sent or received, load the data
+            if((pack.info & (PacketInfo.Send | PacketInfo.Receive)) > 0)
+            {
+                pack.data = File.ReadAllBytes(filePath);
+                // Set the packet type based on the byte value
+                pack.type = (ushort)(pack.data[EthernetIIFrame.ETHERTYPE_OFFSET_0] << 0x08);
+                pack.type |= (ushort)(pack.data[EthernetIIFrame.ETHERTYPE_OFFSET_1]);
+            }
             pack.dataPath = filePath;
             pack.dependsOn = dependsOn;
             return pack;
         }
+
         // Iterate over packet structure, and detect if it is a valid packet
         private bool isReady(int i, bool start){
             var packet =  packetList[i];
@@ -175,10 +212,15 @@ namespace TCPIP
         }
 
 
+
+
+
+        ///////////////////////////////////////////////////
+        // Public Functions
         public IEnumerable<(ushort type,byte data,uint bytes_left)> IterateOverPacketToSend(){
             // Get all packets that we have to send currently, and test if they are ready
             var toSend = packetPointers.Where(
-                x => (packetList[x].info & PacketInfo.ToSend) > 0 &&
+                x => (packetList[x].info & PacketInfo.Send) > 0 &&
                      isReady(x)
             ).ToList();
 
@@ -189,12 +231,10 @@ namespace TCPIP
             // Start after ethernet header
             List<byte> packetBytes = new List<Byte>(p.data.Skip((int)EthernetIIFrame.HEADER_SIZE));
 
-
             for (int i = 0; i < packetBytes.Count; i++)
             {
                 yield return (p.type,packetBytes[i],(uint)(packetBytes.Count-i-1));
             }
-
 
             // Mark as valid
             packetList[pid].info |= PacketInfo.Valid;
@@ -209,15 +249,74 @@ namespace TCPIP
         }
 
         public bool HasPackagesToSend(){
-            bool ret = packetPointers.Where(x => (packetList[x].info & PacketInfo.ToSend) > 0 ).Count() > 0;
+            bool ret = packetPointers.Where(x => (packetList[x].info & PacketInfo.Send) > 0 ).Count() > 0;
             return ret;
         }
 
-        private void Debug(){
+        ///////////////////////////////////////////////////
+        // Helper Functions
+        public void Info(){
             foreach(var x in packetList.OrderBy(a => a.Key))
             {
-                Logging.log.Warn("Is ready " + x.Key + " " + isReady(x.Key));
+                string depends = String.Join(",",x.Value.dependsOn);
+                string required = String.Join(",",x.Value.requiredBy);
+                Logging.log.Info($"PacketID: {x.Key,5} Depends: {depends,7} Required: {required,7} Flags:" + x.Value.info);
             }
+
+
+            foreach(var x in packetList.OrderBy(a => a.Key))
+            {
+                Logging.log.Info("Is ready " + x.Key + " " + isReady(x.Key));
+            }
+        }
+        // Dumps the current state as a graphwiz string
+        public string GraphwizState(){
+            string ret = "digraph G{\n";
+            foreach(KeyValuePair<int,Packet> x in packetList.OrderBy(a => a.Key))
+            {
+                bool typeSet = false;
+                // Set the graph types
+                if((x.Value.info & PacketInfo.Initial) > 0 && !typeSet)
+                {
+                    ret += $"{x.Key} [shape=Mdiamond];\n";
+                    typeSet = true;
+                }
+                if((x.Value.info & PacketInfo.End) > 0 && !typeSet)
+                {
+                    ret += $"{x.Key} [shape=Msquare];\n";
+                    typeSet = true;
+                }
+                if((x.Value.info & PacketInfo.Send) > 0 && !typeSet)
+                {
+                    ret += $"{x.Key} [shape=triangle];\n";
+                    typeSet = true;
+                }
+                if((x.Value.info & PacketInfo.Receive) > 0 && !typeSet)
+                {
+                    ret += $"{x.Key} [shape=invtriangle];\n";
+                    typeSet = true;
+                }
+                if((x.Value.info & PacketInfo.DataIn) > 0 && !typeSet)
+                {
+                    ret += $"{x.Key} [shape=house];\n";
+                    typeSet = true;
+                }
+                if((x.Value.info & PacketInfo.DataOut) > 0 && !typeSet)
+                {
+                    ret += $"{x.Key} [shape=unvhouse];\n";
+                    typeSet = true;
+                }
+
+
+                // Define the paths
+                foreach(int y in x.Value.requiredBy){
+
+                    ret += $"   {x.Key} -> {y};\n";
+                }
+
+            }
+            ret += "}\n";
+            return ret;
         }
     }
 }

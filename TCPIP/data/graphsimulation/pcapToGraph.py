@@ -47,14 +47,15 @@ for counter, packet in tqdm.tqdm(enumerate(packets)):
             with open(filename,"wb") as f:
                     f.write(data)
 
-    # Sends all packets in the pcap file
+    # Sends all packets in the pcap file give some leeway for other commands
+    # By using ids in the hundreds
     if (args.dumptype == "send_all"):
 
         if counter == 0:
             endstr = ""
         else:
-            endstr = "_" + str(counter-1)
-        filename = args.outputfolder + "/" + f"{counter}"+ endstr +"-send.bin"
+            endstr = "_" + str(counter-1) + "00"
+        filename = args.outputfolder + "/" + f"{counter}00"+ endstr +"-send.bin"
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         with open(filename,"wb") as f:
                 f.write(data)

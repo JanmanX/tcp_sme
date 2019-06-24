@@ -31,7 +31,7 @@ namespace TCPIP
             // Wait for the initial reset to propagate
             await ClockAsync();
 
-            // Initial setup 
+            // Initial setup
             controlA.Enabled = true;
             controlA.IsWriting = true;
 
@@ -46,7 +46,7 @@ namespace TCPIP
 
                 foreach (byte b in bytes)
                 {
-                    // Send to memory 
+                    // Send to memory
                     controlA.Address = addr;
                     controlA.Data = b;
 

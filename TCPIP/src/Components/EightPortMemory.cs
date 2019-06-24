@@ -179,13 +179,13 @@ namespace TCPIP
         {
             m_memory = new T[size];
             if (initial != null) {
-                Array.Copy(initial, 0, m_memory, 0, Math.Min(initial.Length, size));                        
+                Array.Copy(initial, 0, m_memory, 0, Math.Min(initial.Length, size));
             }
 
             SimulationOnly(() =>
             {
                 Console.WriteLine("Partial implementation of EightPortMemory!\nRead/Write on same addresses not checked!");
-	
+
             });
         }
 
@@ -194,7 +194,7 @@ namespace TCPIP
         /// </summary>
         protected override void OnTick()
         {
- /* 
+ /*
             SimulationOnly(() =>
             {
                 if (ControlA.Enabled && ControlB.Enabled && ControlA.Address == ControlB.Address)
@@ -221,7 +221,7 @@ namespace TCPIP
                     m_memory[ControlB.Address] = ControlB.Data;
             }
 
-            /* 
+            /*
             if (ControlC.Enabled)
             {
                 ReadResultC.Data = m_memory[ControlC.Address];

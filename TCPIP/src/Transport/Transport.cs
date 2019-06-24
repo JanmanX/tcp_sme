@@ -92,6 +92,8 @@ namespace TCPIP
         private uint idx_out = 0x00;
         private bool sending_header = false;
 
+        private bool offset_received = false;
+
         public Transport()
         {
             // ...
@@ -143,6 +145,7 @@ namespace TCPIP
         private void Idle()
         {
             // Check control busses for work to do
+            //Logging.log.Info($"packet in valid? {packetInBufferProducerControlBusIn.valid}");
             if (packetInBufferProducerControlBusIn.valid)
             {
                 StartReceive();
@@ -170,7 +173,7 @@ namespace TCPIP
             ResetAllBusses();
 
             state = TransportProcessState.Receive;
-
+            Logging.log.Info("Start receive");
             // Ready
             packetInBufferConsumerControlBusOut.ready = true;
 
@@ -181,10 +184,10 @@ namespace TCPIP
 
         void Receive()
         {
-            Logging.log.Error($"In receive mode "+
-                              $"valid:{packetInBufferProducerControlBusIn.valid} "+
-                              //$"avaliable:{packetInBufferProducerControlBusIn.available} "+
-                              $"Databus: {packetInBus.data:X2}");
+            // Logging.log.Info($"In receive mode "+
+            //                  $"valid:{packetInBufferProducerControlBusIn.valid} "+
+            //                  //$"avaliable:{packetInBufferProducerControlBusIn.available} "+
+            //                  $"Databus: {packetInBus.data:X2}");
             // If invalid, reset
             if (packetInBufferProducerControlBusIn.valid == false)
             {
@@ -200,10 +203,13 @@ namespace TCPIP
                 idx_in = 0;
             }
 
+            Logging.log.Info($"Got receive data: 0x{packetInBus.data:X2} ip_id: {packetInBus.ip_id}");
+
             if (idx_in < buffer_in.Length)
             {
+                packetInBufferConsumerControlBusOut.ready = true;
                 buffer_in[idx_in++] = packetInBus.data;
-                Logging.log.Fatal($"data:{packetInBus.data:X2} ip_id:{packetInBus.ip_id}");
+
             }
             // Processing
             switch (packetInBus.protocol)
@@ -218,9 +224,9 @@ namespace TCPIP
                     break;
 
                 case (byte)IPv4.Protocol.UDP:
-                    if (idx_in == UDP.HEADER_SIZE - 1)
+                    if (idx_in == UDP.HEADER_SIZE)
                     {
-                        Logging.log.Fatal("Parsing udp");
+                        Logging.log.Info("Parsing udp");
                         ParseUDP();
                     }
                     break;
@@ -250,6 +256,10 @@ namespace TCPIP
 
         void Pass()
         {
+            Logging.log.Info($"Passing packetIn valid: {packetInBufferProducerControlBusIn.valid} " +
+                             $"dataIn ready: {dataInComputeConsumerControlBusIn.ready} " +
+                             $"bytes left packetIn: {packetInBufferProducerControlBusIn.bytes_left} " +
+                             $"data in bus: 0x{packetInBus.data:X2}");
             // If packetIn suddenly invalid, start idle
             if (packetInBufferProducerControlBusIn.valid == false)
             {
@@ -263,6 +273,9 @@ namespace TCPIP
                 StartIdle();
                 return;
             }
+
+            // First ready value is ignored, since we are getting data from
+            // an buffer.
 
             // calculate partial checksum
             if (passData.bytes_passed % 2 == 0)
@@ -306,6 +319,7 @@ namespace TCPIP
                 pcbs[passData.socket].packet_number++;
 
                 // Go to idle
+                Logging.log.Fatal("--------------------------------------------Passing done");
                 Finish();
             }
         }

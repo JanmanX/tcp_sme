@@ -133,6 +133,7 @@ namespace TCPIP
 
         public int AllocateSegment(int size)
         {
+
             int last_segment_id = next_head_segment_id - 1 < 0 ? num_segments -1 : next_head_segment_id - 1;
             int new_segment_id = next_head_segment_id;
             // int last_segment_id = head_segment_id;
@@ -163,6 +164,7 @@ namespace TCPIP
             segment_list[new_segment_id] = new_segment;
             // set the head segment to a new segment
             next_head_segment_id = (new_segment_id + 1) % num_segments;
+            Logging.log.Trace($"Allocating segment of size {size}. Segment id {new_segment_id}");
             return new_segment_id;
         }
 
@@ -184,7 +186,7 @@ namespace TCPIP
 
         public void SegmentDone(int segment_ID)
         {
-            Logging.log.Info($"Marking Segment_ID:{segment_ID} done");
+            Logging.log.Error($"Marking Segment_ID:{segment_ID} done");
             SegmentEntry cur_segment = segment_list[segment_ID];
             if (!cur_segment.full){
                 throw new System.Exception($@"Segment ID:{segment_ID} Cannot mark as done, when it is not full first");
@@ -206,7 +208,7 @@ namespace TCPIP
 
         public void SegmentFull(int segment_ID)
         {
-            Logging.log.Info($"Marking Segment_ID:{segment_ID} full");
+            Logging.log.Error($"Marking Segment_ID:{segment_ID} full");
             SegmentEntry cur_segment = segment_list[segment_ID];
             cur_segment.full = true;
             segment_list[segment_ID] = cur_segment;
