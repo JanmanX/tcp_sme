@@ -319,7 +319,7 @@ namespace TCPIP
                 pcbs[passData.socket].packet_number++;
 
                 // Go to idle
-                Logging.log.Fatal("--------------------------------------------Passing done");
+                Logging.log.Trace("Passing done");
                 Finish();
             }
         }
