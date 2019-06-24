@@ -191,6 +191,8 @@ namespace TCPIP
             cur_segment_data.ip.dst_addr_1 = 0;
 
             ResetAllBusses();
+
+            //datagramBusInBufferConsumerControlBusOut.ready = true;
         }
 
 
@@ -211,7 +213,7 @@ namespace TCPIP
 
                 buffer_in[idx_in++] = datagramInBus.data;
                 cur_segment_data.frame_number = datagramInBus.frame_number;
-                Logging.log.Trace($"frame:{datagramInBus.frame_number} data:{datagramInBus.data:X2}");
+                Logging.log.Trace($"Receiving frame: {datagramInBus.frame_number} data: 0x{datagramInBus.data:X2} idx_in: {idx_in}");
                 // Processing
                 switch (datagramInBus.type)
                 {
@@ -255,19 +257,20 @@ namespace TCPIP
             packetInBus.data_length = (int)cur_segment_data.size;
             packetInBus.frame_number = cur_segment_data.frame_number;
             packetInBus.data = datagramInBus.data;
-
+            datagramBusInBufferConsumerControlBusOut.ready = true;
             // go go go
             cur_segment_data.valid = true;
             packetInComputeProducerControlBusOut.valid = true;
             packetInComputeProducerControlBusOut.bytes_left = 1;
 
+
             // Increment number of bytes sent, and mark last byte if necessary
             cur_segment_data.offset++;
-            Logging.log.Trace($"offset:{cur_segment_data.offset} total:{cur_segment_data.size} data:{datagramInBus.data:X2}");
+            Logging.log.Trace($"Passing offset: {cur_segment_data.offset} total: {cur_segment_data.size} data: 0x{datagramInBus.data:X2}");
             if (cur_segment_data.offset == cur_segment_data.size)
             {
                 Logging.log.Info("Passing done!");
-                datagramBusInBufferConsumerControlBusOut.ready = false;
+                datagramBusInBufferConsumerControlBusOut.ready = true;
                 packetInComputeProducerControlBusOut.bytes_left = 0;
                 Finish();
             }

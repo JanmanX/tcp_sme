@@ -14,16 +14,16 @@ namespace TCPIP
         private TrueDualPortMemory<byte> memory;
 
         [OutputBus]
-        private readonly SME.Components.TrueDualPortMemory<byte>.IControlA controlA;
+        private readonly TrueDualPortMemory<byte>.IControlA controlA;
 
         [InputBus]
-        private readonly SME.Components.TrueDualPortMemory<byte>.IReadResultA readResultA;
+        private readonly TrueDualPortMemory<byte>.IReadResultA readResultA;
 
         [OutputBus]
-        private readonly SME.Components.TrueDualPortMemory<byte>.IControlB controlB;
+        private readonly TrueDualPortMemory<byte>.IControlB controlB;
 
         [InputBus]
-        private readonly SME.Components.TrueDualPortMemory<byte>.IReadResultB readResultB;
+        private readonly TrueDualPortMemory<byte>.IReadResultB readResultB;
         private readonly int memory_size;
 
         ////////// Packet in from producer of packets

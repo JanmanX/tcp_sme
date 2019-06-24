@@ -13,16 +13,16 @@ namespace TCPIP
         private TrueDualPortMemory<byte> memory;
 
         [OutputBus]
-        private readonly SME.Components.TrueDualPortMemory<byte>.IControlA controlA;
+        private readonly TrueDualPortMemory<byte>.IControlA controlA;
 
         [InputBus]
-        private readonly SME.Components.TrueDualPortMemory<byte>.IReadResultA readResultA;
+        private readonly TrueDualPortMemory<byte>.IReadResultA readResultA;
 
         [OutputBus]
-        private readonly SME.Components.TrueDualPortMemory<byte>.IControlB controlB;
+        private readonly TrueDualPortMemory<byte>.IControlB controlB;
 
         [InputBus]
-        private readonly SME.Components.TrueDualPortMemory<byte>.IReadResultB readResultB;
+        private readonly TrueDualPortMemory<byte>.IReadResultB readResultB;
         private readonly int memory_size;
 
 
@@ -151,7 +151,7 @@ namespace TCPIP
                 controlA.IsWriting = true;
                 int addr = mem_calc.SaveData(cur_write_block_id);
                 controlA.Address = addr;
-                Logging.log.Trace($"Receiving: data: 0x{packetInBus.data:X2} "+
+                Logging.log.Error($"Receiving: data: 0x{packetInBus.data:X2} "+
                                   $"addr: {addr} "+
                                   $"in memory block: {cur_write_block_id} "+
                                   $"data left: {packetInComputeProducerControlBusIn.bytes_left}");
@@ -206,10 +206,14 @@ namespace TCPIP
                 int addr = mem_calc.LoadData(mem_calc.FocusSegment());
 
 
+                if(addr == 44){
+                    Logging.log.Fatal("44 address Break");
+                }
+
                 // If we actually can get the address(If buffer empty etc)
                 if(addr != -1)
                 {
-                    Logging.log.Trace($"requesting memory from addr:{addr}");
+                    Logging.log.Error($"Requesting memory from addr: {addr} on segment: {mem_calc.FocusSegment()}");
                     // Request the data
                     controlB.Enabled = true;
                     controlB.IsWriting = false;

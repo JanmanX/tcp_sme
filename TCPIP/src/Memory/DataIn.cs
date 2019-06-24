@@ -13,16 +13,16 @@ namespace TCPIP
         private TrueDualPortMemory<byte> memory;
 
         [OutputBus]
-        private readonly SME.Components.TrueDualPortMemory<byte>.IControlA controlA;
+        private readonly TrueDualPortMemory<byte>.IControlA controlA;
 
         [InputBus]
-        private readonly SME.Components.TrueDualPortMemory<byte>.IReadResultA readResultA;
+        private readonly TrueDualPortMemory<byte>.IReadResultA readResultA;
 
         [OutputBus]
-        private readonly SME.Components.TrueDualPortMemory<byte>.IControlB controlB;
+        private readonly TrueDualPortMemory<byte>.IControlB controlB;
 
         [InputBus]
-        private readonly SME.Components.TrueDualPortMemory<byte>.IReadResultB readResultB;
+        private readonly TrueDualPortMemory<byte>.IReadResultB readResultB;
         private readonly int memory_size;
 
 
@@ -120,10 +120,13 @@ namespace TCPIP
                 // Submit the data
                 controlA.Enabled = true;
                 controlA.IsWriting = true;
+                Logging.log.Info($"Received data 0x{dataIn.data:X2} socket: {dataIn.socket}  tcp_seq: {dataIn.tcp_seq}");
                 controlA.Address = mem_calc.SaveData(cur_write_block_id);
                 controlA.Data = dataIn.data;
+
                 /// XXX reset if it is not valid any more
             }
+
         }
         private void Send()
         {
