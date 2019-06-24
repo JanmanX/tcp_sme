@@ -142,7 +142,6 @@ namespace TCPIP
         {
             StartIdle();
 
-            Logging.log.Warn($"WRITING CURRENTLY NOT SUPPORTED ON INTERNET_IN");
             state = InternetInState.Write;
 
             idx_out = cur_segment_data.offset;
@@ -154,7 +153,6 @@ namespace TCPIP
 
         private void Write()
         {
-            Logging.log.Info($"Writing from {idx_out} data: {buffer_in[idx_out]:X2}");
 
             // Send the general data to the buffer
             packetOutComputeProducerControlBusOut.valid = true;
@@ -201,7 +199,6 @@ namespace TCPIP
             // If the data is not valid, we are not ready
             if(datagramBusInBufferProducerControlBusIn.valid == false)
             {
-                Logging.log.Warn("Stuff not ready on reading bus");
                 datagramBusInBufferConsumerControlBusOut.ready = false;
                 StartIdle();
                 return;
@@ -213,7 +210,6 @@ namespace TCPIP
 
                 buffer_in[idx_in++] = datagramInBus.data;
                 cur_segment_data.frame_number = datagramInBus.frame_number;
-                Logging.log.Trace($"Receiving frame: {datagramInBus.frame_number} data: 0x{datagramInBus.data:X2} idx_in: {idx_in}");
                 // Processing
                 switch (datagramInBus.type)
                 {
@@ -222,13 +218,11 @@ namespace TCPIP
                         if (idx_in == IPv4.HEADER_SIZE)
                         {
                             // Parse the ip packet
-                            Logging.log.Info("Parsing IPv4 packet");
                             ParseIPv4();
                         }
                         break;
 
                     default:
-                        Logging.log.Error($"Segment type not defined: {datagramInBus.type}");
                         break;
                 }
 
@@ -239,7 +233,6 @@ namespace TCPIP
         {
             if (datagramBusInBufferProducerControlBusIn.valid == false)
             {
-                Logging.log.Error("Passing stopped prematurely!");
                 StartIdle();
                 return;
             }
@@ -266,10 +259,8 @@ namespace TCPIP
 
             // Increment number of bytes sent, and mark last byte if necessary
             cur_segment_data.offset++;
-            Logging.log.Trace($"Passing offset: {cur_segment_data.offset} total: {cur_segment_data.size} data: 0x{datagramInBus.data:X2}");
             if (cur_segment_data.offset == cur_segment_data.size)
             {
-                Logging.log.Info("Passing done!");
                 datagramBusInBufferConsumerControlBusOut.ready = true;
                 packetInComputeProducerControlBusOut.bytes_left = 0;
                 Finish();
@@ -297,7 +288,6 @@ namespace TCPIP
             cur_segment_data.ip.src_addr_0 = src_addr_0;
             cur_segment_data.ip.src_addr_1 = src_addr_1;
 
-            Logging.log.Info("Passing started!");
 
             ResetAllBusses();
 

@@ -173,7 +173,6 @@ namespace TCPIP
             ResetAllBusses();
 
             state = TransportProcessState.Receive;
-            Logging.log.Info("Start receive");
             // Ready
             packetInBufferConsumerControlBusOut.ready = true;
 
@@ -203,7 +202,6 @@ namespace TCPIP
                 idx_in = 0;
             }
 
-            Logging.log.Info($"Got receive data: 0x{packetInBus.data:X2} ip_id: {packetInBus.ip_id}");
 
             if (idx_in < buffer_in.Length)
             {
@@ -218,7 +216,6 @@ namespace TCPIP
                     // End of header, start parsing
                     if (idx_in == TCP.HEADER_SIZE)
                     {
-                        Logging.log.Warn("TCP CURRENTLY NOT SUPPORTED!");
                         // ParseTCP();
                     }
                     break;
@@ -226,7 +223,6 @@ namespace TCPIP
                 case (byte)IPv4.Protocol.UDP:
                     if (idx_in == UDP.HEADER_SIZE)
                     {
-                        Logging.log.Info("Parsing udp");
                         ParseUDP();
                     }
                     break;
@@ -234,7 +230,6 @@ namespace TCPIP
                 case (byte)IPv4.Protocol.ICMP:
                     if (idx_in == ICMP.HEADER_SIZE)
                     {
-                        Logging.log.Warn("ICMP CURRENTLY NOT SUPPORTED!");
                     }
                     break;
             }
@@ -256,10 +251,6 @@ namespace TCPIP
 
         void Pass()
         {
-            Logging.log.Info($"Passing packetIn valid: {packetInBufferProducerControlBusIn.valid} " +
-                             $"dataIn ready: {dataInComputeConsumerControlBusIn.ready} " +
-                             $"bytes left packetIn: {packetInBufferProducerControlBusIn.bytes_left} " +
-                             $"data in bus: 0x{packetInBus.data:X2}");
             // If packetIn suddenly invalid, start idle
             if (packetInBufferProducerControlBusIn.valid == false)
             {
@@ -319,7 +310,6 @@ namespace TCPIP
                 pcbs[passData.socket].packet_number++;
 
                 // Go to idle
-                Logging.log.Fatal("--------------------------------------------Passing done");
                 Finish();
             }
         }

@@ -104,7 +104,7 @@ namespace TCPIP
 
                 sim.AddTopLevelInputs(simulator.datagramBusIn)
                     .BuildCSVFile()
-                    //.BuildVHDL()
+                    .BuildVHDL()
                     .Run();
 
                 // After `Run()` has been invoked the folder

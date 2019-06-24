@@ -14,14 +14,6 @@ namespace TCPIP
         {
             using (var sim = new Simulation())
             {
-                // Notes:
-                // * implement reverse load and save in the MemorySegmentsRingBufferFiFo
-                // * Fix internet_out to use new standards
-                // * Make the databuffers ready with 2 bytes(request-respond) so
-                //   ready on consumers will give no latency
-                // * Make a first in first out ring buffer for the packet out classes
-                // * Use the frame number to distinguish between new packets, instead of
-
                 var simulator = new PacketInSimulator("data/transport/udp_25");
                 var transport = new Transport();
                 var dataIn = new DataInPrinter();
@@ -55,7 +47,7 @@ namespace TCPIP
 
                 sim.AddTopLevelInputs(simulator.packetInBus)
                     .BuildCSVFile()
-                    .BuildVHDL()
+                   // .BuildVHDL()
                     .Run();
            }
            return true;

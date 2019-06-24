@@ -142,19 +142,12 @@ namespace TCPIP
                     // We have made the new packet, set the flag to false
                     write_next_packet = false;
 
-                    Logging.log.Info($"New packet! frame_number: {packetInBus.frame_number} " +
-                                     $"write_mem_id: {cur_write_block_id} " +
-                                     $"segment_length: {packetInBus.data_length} ");
                 }
                 // Submit the data
                 controlA.Enabled = true;
                 controlA.IsWriting = true;
                 int addr = mem_calc.SaveData(cur_write_block_id);
                 controlA.Address = addr;
-                Logging.log.Error($"Receiving: data: 0x{packetInBus.data:X2} "+
-                                  $"addr: {addr} "+
-                                  $"in memory block: {cur_write_block_id} "+
-                                  $"data left: {packetInComputeProducerControlBusIn.bytes_left}");
                 controlA.Data = packetInBus.data;
 
             }
@@ -186,7 +179,6 @@ namespace TCPIP
                 tempSendRingBuffer.data = data;
                 tempSendRingBuffer.length = buffer_calc.MetadataCurrentSaveSegment().accum_len;
                 send_buffer[buffer] = tempSendRingBuffer;
-                Logging.log.Trace($"Got memory. goes to buffer:{buffer} data:0x{data:X2}");
                 buffer_calc.FinishFillingCurrentSaveSegment();
                 memory_receiving = false;
             }
@@ -207,13 +199,11 @@ namespace TCPIP
 
 
                 if(addr == 44){
-                    Logging.log.Fatal("44 address Break");
                 }
 
                 // If we actually can get the address(If buffer empty etc)
                 if(addr != -1)
                 {
-                    Logging.log.Error($"Requesting memory from addr: {addr} on segment: {mem_calc.FocusSegment()}");
                     // Request the data
                     controlB.Enabled = true;
                     controlB.IsWriting = false;
@@ -233,7 +223,6 @@ namespace TCPIP
                 }else{
                     if(buffer_calc.LoadSegmentReady() && packetOutBufferConsumerControlBusIn.ready)
                     {
-                        Logging.log.Fatal("Not viable address");
                     }
 
                 }
@@ -242,7 +231,6 @@ namespace TCPIP
             ///////////// Sending code
             // They are ready, we submit stuff
 
-            Logging.log.Warn($"The load segment status: {buffer_calc.LoadSegmentReady()} ready: {packetOutBufferConsumerControlBusIn.ready}");
 
 
             packetOutBufferProducerControlBusOut.valid = buffer_calc.LoadSegmentReady();
@@ -273,9 +261,6 @@ namespace TCPIP
                 buffer_calc.FinishReadingCurrentLoadSegment();
 
                 send_preload = false;
-
-                Logging.log.Info($"Sending: data: 0x{data:X2} buffer_addr: {addr} frame_number: {frame_number}");
-
             }
         }
     }
