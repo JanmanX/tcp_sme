@@ -360,37 +360,36 @@ namespace TCPIP
             return -1;
         }
 
-        // Recursively get the correct link pointer, and return -1 if error
+        // Get the correct link pointer, and return -1 if error
         // index is the initial index of the element, the depth is the traversal
         // steps of the element.
         // This function assumes that the index is correct
         private int TraverseLinkPointerExact(int index, int depth)
         {
-            // If the depth is 0, the link must be the same
-            if(depth == 0){
-                return index;
-            }
-            // if depth is deeper than 0 (-n), then we must have overshoot, and
-            // Link does not exist, or are sparse
-            if(depth < 0){
-                return -1;
-            }
-
-            LinkEntry x = links[index];
-            if(!x.used){
-                throw new System.Exception("Iterating over not used element, Something is wrong!");
-            }
-
-            // if the next element is not negative, we can traverse further
-            if(x.next != -1)
+            for(int j = 0; j < links.Length; j++)
             {
-                // Subtract with the offset, so we can detect sparseness
-                return TraverseLinkPointerExact(x.next,depth - x.offset);
+                // If the depth is 0, the link must be the same
+                if(depth == 0){
+                    return index;
+                }
+                // if depth is deeper than 0 (-n), then we must have overshoot, and
+                // Link does not exist, or are sparse
+                if(depth < 0){
+                    return -1;
+                }
+
+                LinkEntry x = links[index];
+                if(!x.used){
+                    throw new System.Exception("Iterating over not used element, Something is wrong!");
+                }
+
+                // if the next element is not negative, we can traverse further
+                index = x.next;
+                depth = depth - x.offset;
             }
 
-            // We are not at full depth, and there exist no more elements, return error
             return -1;
-        }
+       }
 
 
         // Overloaded operator for mapping of arguments
@@ -403,28 +402,32 @@ namespace TCPIP
         // Get the link pointer before the actual depth we want
         private int TraverseLinkPointerBefore(int index, int last_index, int depth)
         {
-            LinkEntry x = links[index];
-
-            // If the depth is 0 or below, the link must be the one before
-            if(depth <= 0){
-                return last_index;
-            }
-
-            if(!x.used){
-                throw new System.Exception("Iterating over not used element, Something is wrong!");
-            }
-
-            // if the next element is not negative, we can traverse further
-            if(x.next != -1)
+            for(int j = index; j < links.Length; j++)
             {
-                // Subtract with the offset, so we can detect sparseness
-               return TraverseLinkPointerBefore(x.next, index, depth - x.offset);
-            }
+                LinkEntry x = links[index];
 
-            // we are at positive depth, but there exist no more elements, this must be the before
-            // since we are overshooting into non existant element
-            return index;
-        }
+                // If the depth is 0 or below, the link must be the one before
+                if(depth <= 0){
+                    return last_index;
+                }
+
+                if(!x.used){
+                    throw new System.Exception("Iterating over not used element, Something is wrong!");
+                }
+
+                // if the next element is not negative, we can traverse further
+                if(x.next == -1)
+                {
+                    // we are at positive depth, but there exist no more elements, this must be the before
+                    // since we are overshooting into non existant element
+                    return index; 
+                }
+
+
+                depth = depth - x.offset;
+                index = x.next;
+            }
+       }
 
 
         // Traverse the linkpointer and free up all seen elements.
