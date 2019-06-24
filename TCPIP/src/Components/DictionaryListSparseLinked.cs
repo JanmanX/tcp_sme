@@ -383,6 +383,9 @@ namespace TCPIP
                     throw new System.Exception("Iterating over not used element, Something is wrong!");
                 }
 
+                if(x.next == -1){
+                    return -1;
+                }
                 // if the next element is not negative, we can traverse further
                 index = x.next;
                 depth = depth - x.offset;
@@ -420,13 +423,15 @@ namespace TCPIP
                 {
                     // we are at positive depth, but there exist no more elements, this must be the before
                     // since we are overshooting into non existant element
-                    return index; 
+                    return index;
                 }
 
 
                 depth = depth - x.offset;
+                last_index = index;
                 index = x.next;
             }
+            return -1;
        }
 
 
@@ -436,13 +441,13 @@ namespace TCPIP
         {
             for(int i = 0; i < links.Length; i++)
             {
-                LinkEntry x = links[i];
+                LinkEntry x = links[(i + index) % links.Length];
                 x.used = false;
                 x.next = -1;
                 x.offset = 0;
-                links[i] = x;
+                links[(i + index) % links.Length] = x;
                 if(x.next == -1 ){
-                    break; 
+                    break;
                 }
             }
 
@@ -479,7 +484,7 @@ namespace TCPIP
                 }
 
                 LinkEntry x = links[index_a];
-                
+
                 acc += x.offset;
 
                 index_a = x.next;
