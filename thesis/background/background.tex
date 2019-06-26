@@ -92,9 +92,50 @@ its fairly low-cost, and the compatibility with SME code-generators.
 
 \subsection{Field Programmable Gate Array (FPGA)}
 Field Programmable Gate Arrays, or FPGA for short, are devices containing 
-integrated circuits (ICs) consisting of arrays of logic blocks. These ICs can 
+integrated circuits (ICs) consisting of arrays of logic blocks. 
+These logic blocks can be programmed to form arbitrary logic circuit by simply 
+synthesizing a design and then loading it onto the board. This process alone 
+can save the manufacturer months by not having to fabricate a whole new IC. \\
+FPGAs can be used for any computational tasks without the need of any additional
+hardware. Usually, these devices are used for smaller, domain-specific tasks,
+where the control over the hardware yields significant performance increases.
+FPGAs are indeed very universal, and can be used in product-design, prototyping, 
+as well as in final products. Products like car driver assistance 
+systems\cite{xilinx_fpga_automotive}, audio decoders\cite{xilinx_fpga_audio}, 
+or even internet search engines\cite{bing_search_fpga}  all utilize FPGAs to 
+increase the performance, lower the electrical bill, and  boost the development 
+potential. 
+
+
+\subsubsection{Technical specifications}
+Field Programmable Gate Arrays consists of a vast number of ICs, which can 
 be reprogrammed at any time for a desired application or functionality\cite{ni_fpga},
 making the devices very flexible and extensible, even after manufacturing.\\
+These ICs are practically totally independent, and their logic within can be 
+programmed and combined in virtually any way with other ICs. This, however,
+poses a problem, as signals do not propagate through circuitry, immediately, but
+rather, they have a slight delay. 
+Sometimes, two events precede each other, while other times, events of distinct 
+timings must occur simultaneously.
+Since the order of events is critical for correct and expected execution in 
+digital circuits, a digital clock is used to ensure everything runs in sync.
+A clock in this context emits a series of pulses in a pre-determined and very 
+precise interval. These pulses are used to control the execution of various 
+elements in the circuitry.\\
+When synthesizing to a FPGA, the compiler finds the longest code-path, it finds
+the required circuitry to perform the calculation, and then it determines the 
+minimal required time for the signals to propagate through the path. In this 
+manner, the fastest possible clock can be found for that particular circuit.\footnote{
+    Although many modern FPGAs consist of multiple regions which can have individual 
+    clock-rates. While it is a demanding task to propagate signals across these
+    boundaries, a performance increases can be gained.
+}
+With innovations and steady improvements in modern FPGAs, the circuitries within
+the devices can be clocked at higher than 500 MHz\cite{xilinx_fpga}.   
+
+
+
+\subsubsection{Programming an FPGA}
 Unlike conventional processors with a very sequential nature, the logic blocks 
 in FPGAs are truly parallel in nature. Given the right programming, an FPGA can
 allocate dedicated sections of the chip for each independent subtask, enabling
@@ -102,15 +143,31 @@ the circuitry to perform numerous independent calculations at once\cite{ni_fpga}
 Unfortunately, this universality of FPGAs comes at a cost to their performance.
 Whereas conventional processors are heavily optimise based on the predetermined 
 circuitry, FPGAs programmers must ensure to utilize the parallel nature of the
-device in order to secure best possible performance.\\
-Still, with innovations and steady improvements in modern FPGAs, the devices 
-can easily reach a clock higher than 500 MHz\cite{xilinx_fpga}.   
+device in order to secure best possible performance. Even worse, the FPGA must 
+be programmed in such a way that all paths in the electrical wiring can be 
+in any time-frame.\\
+Due to this parallel nature of FPGAs, conventional programming languages are 
+next to impossible to use. To define the behavior of an FPGA, Hardware 
+Description Languages (HDL) are used instead. These programming languages are not easy
+to learn without a good grasp of electrical engineering. Even with prior 
+programming knowledge, the unusual approach to concurrency in these languages 
+can be hard to understand for average developers.\\
+To simplify the development process, most manufacturers offer predefined 
+circuits along their FPGAs. These predefined circuits are more commonly known
+as Intellectual Property (IP) cores, and can provide the hardware designers 
+with pre-made circuitry for a wide variety of functionality. While most IP cores
+provide the functionality of processors for testing on an FPGA, mp3 audio 
+decoding or PCI bus interconnect can be added as well\cite{fpga_for_dummies}.\\
+All these factors make it both hard, expensive, and time-consuming to program 
+FPGAs. Luckily, a new programming model for development of highly concurrent
+systems has been developed at Niels Bohr Institute at University of Copenhagen
+called Synchronous Message Exchange. In this thesis, the viability of this 
+model will be tested to implement the networking stack.
 
 
 
-
-
-\section{Synchronous Message Exchange} The Synchronous Message Exchange
+\section{Synchronous Message Exchange} 
+The Synchronous Message Exchange
 model (SME) is a messaging framework created in order to help model
 hardware descriptions\cite{sme_for_hardware_designs}.  It was conceived
 once the flaws of using Communicating Sequential Processes (CSP) was
