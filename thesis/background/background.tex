@@ -3,31 +3,9 @@
 
 % TODO: Rewrite
 In this chapter, we will introduce the basic concepts of the Internet Protocol
-Suite, briefly describe its origin, semantics, and its reference implementation
-in the early BSD systems.
-Furthermore, SME will be introduced as a basis for the implementation.
-
-
-
-
-
-\section{Field Programmable Gate Array (FPGA)}
-Field Programmable Gate Arrays, or FPGA for short, are devices containing 
-integrated circuits (ICs) consisting of arrays of logic blocks. These ICs can 
-be reprogrammed at any time for a desired application or functionality\cite{ni_fpga},
-making the devices very flexible and extensible, even after manufacturing.\\
-Unlike conventional processors with a very sequential nature, the logic blocks 
-in FPGAs are truly parallel in nature. Given the right programming, an FPGA can
-allocate dedicated sections of the chip for each independent subtask, enabling
-the circuitry to perform numerous independent calculations at once\cite{ni_fpga}.
-Unfortunately, this universality of FPGAs comes at a cost to their performance.
-Whereas conventional processors are heavily optimise based on the predetermined 
-circuitry, FPGAs programmers must ensure to utilize the parallel nature of the
-device in order to secure best possible performance.\\
-Still, with innovations and steady improvements in modern FPGAs, the devices 
-can easily reach a clock higher than 500 MHz\cite{xilinx_fpga}.   
-
-
+Suite, briefly describe its origin, semantics, and some of its protocols.
+Furthermore, SME and the hardware it will run on will be introduced as a basis 
+for the implementation.
 
 
 \section{Internet Protocol Suite (TCP/IP)}
@@ -39,7 +17,7 @@ on what would later become the Internet Protocol Suite began in the late 1960s
 by the Defense Advanced Research Project Agency (DARPA), and was being
 adopted by DARPA, as well as the public, since 1983\cite{DARPA_internet}.
 Although the Internet Protocol Suite predates the newer, arguably more
-refined Open Systems Interconnection model (OSI model), TCP/IP still
+refined Open Systems Interconnection (OSI) model, TCP/IP still
 remains the popular choice in modern systems.  As opposed to OSI 7-layer
 model\cite{X.200}, the collection of protocols in TCP/IP are organized
 into 4 abstraction layers, each related to their scope of networking
@@ -66,6 +44,7 @@ functions from the layer:
     \item Carrying data for various upper layer protocols
 \end{itemize}
 
+
 \subsection{Transport Layer}
 The transport layer establishes end-to-end data transfer between hosts.
 Protocols in the transport layer can provide additional services to the user,
@@ -74,7 +53,12 @@ such as reliability, ordering, error- and flow-control, application addressing
 While it is possible to bypass the protocols in this layer on most modern
 network stacks, the protocols in the transport layer provide such essential
 and useful services that it hardly ever makes sense to implement in the
-application layer.
+application layer.\\
+While there are numerous protocols defined in the Transport Layer, perhaps the 
+most well-known protocol in the stack is the Transmission Control Protocol (TCP).
+Being one of the most used transport protocol for its reliability and congestion 
+control systems, it is rightly justified to refer to the whole Internet Protocol
+Suite as simply "TCP/IP". 
 
 
 \subsection{Application Layer}
@@ -83,13 +67,107 @@ exchange information over the network. A few of the well-known application
 layer protocols are the Hypertext Transfer Protocol (HTTP)\cite{RFC1945},
 File Transfer Protocol (FTP)\cite{RFC0114}, and Simple Mail Transfer Protocol
 (SMTP)\cite{RFC0788}.\\
-This layer is usually implemented by the applications themselves, and therefore
-are not strictly required to actually run a TCP/IP network.
+This layer is usually implemented by the userspace applications themselves, and 
+therefore are not strictly required to actually run a TCP/IP network.
 
 
 
+\section{Hardware}
+The networking stack is intended to be flexible enough to run on just about any 
+configuration of hardware and software. However, this also means that it cannot 
+depend on any major external components, such as an existing memory, a processor,
+or any form of operating system. Fundamentally, not only the software-part of the
+networking stack has to be implemented, but the hardware needs to be defined 
+as well. This hardware should be self-contained enough to work well in combination 
+with any additional system, which the user incorporate for networking.\\
+A wide variety of hardware types exist for such independent system, such as 
+Application-specific Integrated Circuit (ASIC), Complex Programmable Logic 
+Device (CPLD), Socket on a Chip (SoC), and Field-Programmable Gate Array (FPGA).
+Each of these integrated circuits have their advantages and disadvantages; some
+of them are re-programmable, some are cheap and disposable, and some are excellent 
+for general-purpose applications.\\
+In this thesis, only FPGAs will be taken into consideration for its re-programmability,
+its fairly low-cost, and the compatibility with SME code-generators.
 
-\section{Synchronous Message Exchange} The Synchronous Message Exchange
+
+\subsection{Field Programmable Gate Array (FPGA)}
+Field Programmable Gate Arrays, or FPGA for short, are devices containing 
+integrated circuits (ICs) consisting of arrays of logic blocks. 
+These logic blocks can be programmed to form arbitrary logic circuit by simply 
+synthesizing a design and then loading it onto the board. This process alone 
+can save the manufacturer months by not having to fabricate a whole new IC. \\
+FPGAs can be used for any computational tasks without the need of any additional
+hardware. Usually, these devices are used for smaller, domain-specific tasks,
+where the control over the hardware yields significant performance increases.
+FPGAs are indeed very universal, and can be used in product-design, prototyping, 
+as well as in final products. Products like car driver assistance 
+systems\cite{xilinx_fpga_automotive}, audio decoders\cite{xilinx_fpga_audio}, 
+or even internet search engines\cite{bing_search_fpga}  all utilize FPGAs to 
+increase the performance, lower the electrical bill, and  boost the development 
+potential. 
+
+
+\subsubsection{Technical specifications}
+Field Programmable Gate Arrays consists of a vast number of ICs, which can 
+be reprogrammed at any time for a desired application or functionality\cite{ni_fpga},
+making the devices very flexible and extensible, even after manufacturing.\\
+These ICs are practically totally independent, and their logic within can be 
+programmed and combined in virtually any way with other ICs. This, however,
+poses a problem, as signals do not propagate through circuitry, immediately, but
+rather, they have a slight delay. 
+Sometimes, two events precede each other, while other times, events of distinct 
+timings must occur simultaneously.
+Since the order of events is critical for correct and expected execution in 
+digital circuits, a digital clock is used to ensure everything runs in sync.
+A clock in this context emits a series of pulses in a pre-determined and very 
+precise interval. These pulses are used to control the execution of various 
+elements in the circuitry.\\
+When synthesizing to a FPGA, the compiler finds the longest code-path, it finds
+the required circuitry to perform the calculation, and then it determines the 
+minimal required time for the signals to propagate through the path. In this 
+manner, the fastest possible clock can be found for that particular circuit.\footnote{
+    Although many modern FPGAs consist of multiple regions which can have individual 
+    clock-rates. While it is a demanding task to propagate signals across these
+    boundaries, a performance increases can be gained.
+}
+With innovations and steady improvements in modern FPGAs, the circuitries within
+the devices can be clocked at higher than 500 MHz\cite{xilinx_fpga}.   
+
+
+
+\subsubsection{Programming an FPGA}
+Unlike conventional processors with a very sequential nature, the logic blocks 
+in FPGAs are truly parallel in nature. Given the right programming, an FPGA can
+allocate dedicated sections of the chip for each independent subtask, enabling
+the circuitry to perform numerous independent calculations at once\cite{ni_fpga}.
+Unfortunately, this universality of FPGAs comes at a cost to their performance.
+Whereas conventional processors are heavily optimise based on the predetermined 
+circuitry, FPGAs programmers must ensure to utilize the parallel nature of the
+device in order to secure best possible performance. Even worse, the FPGA must 
+be programmed in such a way that all paths in the electrical wiring can be 
+in any time-frame.\\
+Due to this parallel nature of FPGAs, conventional programming languages are 
+next to impossible to use. To define the behavior of an FPGA, Hardware 
+Description Languages (HDL) are used instead. These programming languages are not easy
+to learn without a good grasp of electrical engineering. Even with prior 
+programming knowledge, the unusual approach to concurrency in these languages 
+can be hard to understand for average developers.\\
+To simplify the development process, most manufacturers offer predefined 
+circuits along their FPGAs. These predefined circuits are more commonly known
+as Intellectual Property (IP) cores, and can provide the hardware designers 
+with pre-made circuitry for a wide variety of functionality. While most IP cores
+provide the functionality of processors for testing on an FPGA, mp3 audio 
+decoding or PCI bus interconnect can be added as well\cite{fpga_for_dummies}.\\
+All these factors make it both hard, expensive, and time-consuming to program 
+FPGAs. Luckily, a new programming model for development of highly concurrent
+systems has been developed at Niels Bohr Institute at University of Copenhagen
+called Synchronous Message Exchange. In this thesis, the viability of this 
+model will be tested to implement the networking stack.
+
+
+
+\section{Synchronous Message Exchange} 
+The Synchronous Message Exchange
 model (SME) is a messaging framework created in order to help model
 hardware descriptions\cite{sme_for_hardware_designs}.  It was conceived
 once the flaws of using Communicating Sequential Processes (CSP) was

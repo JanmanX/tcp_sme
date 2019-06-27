@@ -98,13 +98,22 @@ namespace TCPIP
         {
             // ...
 
-            // DEBUG: Debug socket
+            // DEBUG: Debug sockets
             pcbs[0].state = (byte)PCB_STATE.CONNECTED;
             pcbs[0].protocol = (byte)IPv4.Protocol.UDP;
             pcbs[0].f_address = 0x11223344;
             pcbs[0].f_port = 0x5566;
             pcbs[0].l_address = 0x778899AA;
-            pcbs[0].l_port = 0xBBDD;
+            pcbs[0].l_port = 80;
+            pcbs[0].packet_number = 0;
+
+            pcbs[1].state = (byte)PCB_STATE.CONNECTED;
+            pcbs[1].protocol = (byte)IPv4.Protocol.UDP;
+            pcbs[1].f_address = 0x11223344;
+            pcbs[1].f_port = 0x5566;
+            pcbs[1].l_address = 0x778899AA;
+            pcbs[1].l_port = 81;
+            pcbs[1].packet_number = 0;
         }
 
 
