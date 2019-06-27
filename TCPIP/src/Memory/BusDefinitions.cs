@@ -21,7 +21,9 @@ namespace TCPIP
         {
             int socket { get; set; }
             uint packet_number { get; set; }
-            uint tcp_seq { get; set; }
+            uint sequence { get; set; }
+            [InitialValue(true)]
+            bool sequence_ready {get; set; }
             byte data { get; set; }
             bool invalidate { get; set; }
             int data_length { get; set; }

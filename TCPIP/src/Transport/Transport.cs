@@ -294,7 +294,7 @@ namespace TCPIP
 
             // data bus values
             dataInWriteBus.socket = passData.socket;
-            dataInWriteBus.tcp_seq = passData.tcp_seq;
+            dataInWriteBus.sequence = passData.tcp_seq;
             dataInWriteBus.data = packetInBus.data;
             dataInWriteBus.data_length = (int)passData.length;
             dataInWriteBus.invalidate = false;
