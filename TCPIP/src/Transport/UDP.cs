@@ -6,7 +6,7 @@ namespace TCPIP
 {
     public partial class Transport
     {
-        private uint udp_count = 0;
+        public uint udp_sequence = 0;
         public void ParseUDP()
         {
             // Ports
@@ -54,8 +54,8 @@ namespace TCPIP
 
 
             // Start passing
-            StartPass(pcb_idx, ip_id, udp_count, data_length);
-            udp_count++;
+            StartPass(pcb_idx, ip_id, udp_sequence, data_length);
+            udp_sequence++;
         }
 
 
