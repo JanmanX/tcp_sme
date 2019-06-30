@@ -170,13 +170,21 @@ namespace TCPIP
             pack.id = id;
             pack.info = info;
             // if this packet can be sent or received, load the data
-            if((pack.info & (PacketInfo.Send | PacketInfo.Receive)) > 0)
+            if((pack.info & (PacketInfo.Send |
+                             PacketInfo.Receive |
+                             PacketInfo.DataIn |
+                             PacketInfo.DataOut)) > 0)
             {
                 pack.data = File.ReadAllBytes(filePath);
+            }
+            if((pack.info & (PacketInfo.Send |
+                             PacketInfo.Receive)) > 0)
+            {
                 // Set the packet type based on the byte value
                 pack.type = (ushort)(pack.data[EthernetIIFrame.ETHERTYPE_OFFSET_0] << 0x08);
                 pack.type |= (ushort)(pack.data[EthernetIIFrame.ETHERTYPE_OFFSET_1]);
             }
+
             pack.dataPath = filePath;
             pack.dependsOn = dependsOn;
             return pack;
@@ -217,32 +225,97 @@ namespace TCPIP
 
         ///////////////////////////////////////////////////
         // Public Functions
-        public IEnumerable<(ushort type,byte data,uint bytes_left)> IterateOverPacketToSend(){
+        public IEnumerable<(ushort type,byte data,uint bytes_left)> IterateOverSend(){
+            var send = IterateOver(PacketInfo.Send,(int)EthernetIIFrame.HEADER_SIZE).GetEnumerator();
+            while(send.MoveNext())
+            {
+                yield return send.Current;
+            }
+            yield break;
+        }
+
+        public IEnumerable<(ushort type,byte data,uint bytes_left)> IterateOverDataOut(){
+            var dataOut = IterateOver(PacketInfo.DataOut,0).GetEnumerator();
+            while(dataOut.MoveNext())
+            {
+                yield return dataOut.Current;
+            }
+            yield break;
+        }
+
+        private IEnumerator<(ushort type,byte data,uint bytes_left)> dataIn;
+        public bool GatherDataIn(byte compare)
+        {
+            if (dataIn == null){
+                dataIn = IterateOver(PacketInfo.DataIn,0).GetEnumerator();
+                Logging.log.Fatal($"New iterator! {dataIn.Current.data}");
+            }
+
+            if(dataIn.MoveNext()){
+                byte excact = dataIn.Current.data;
+                if(excact == compare)
+                {
+                    return true;
+                }
+                else
+                {
+                    Logging.log.Error($"Wrong comparison of input data from datain. should be 0x{excact:X2} is 0x{compare:X2}");
+                    return false;
+                }
+
+            }else
+            {
+                if(ReadyDataIn()){
+                    dataIn = null;
+                    return GatherDataIn(compare);
+                }
+            }
+            Logging.log.Warn($"No packet found for GatherDataIn. compared to: 0x{compare:X2}");
+            return false;
+        }
+
+        public bool ReadySend(){return TestPacketReady(PacketInfo.Send);}
+        public bool ReadyReceive(){return TestPacketReady(PacketInfo.Receive);}
+        public bool ReadyDataIn(){return TestPacketReady(PacketInfo.DataIn);}
+        public bool ReadyDataOut(){return TestPacketReady(PacketInfo.DataOut);}
+        public bool ReadyWait(){return TestPacketReady(PacketInfo.Wait);}
+        public bool ReadyCommand(){return TestPacketReady(PacketInfo.Command);}
+
+
+
+        ///////////////////////////////////////////////////
+        // Helper Functions
+
+        private IEnumerable<(ushort type,byte data,uint bytes_left)> IterateOver(PacketInfo info, int offset){
             // Get all packets that we have to send currently, and test if they are ready
-            var toSend = packetPointers.Where(
-                x => (packetList[x].info & PacketInfo.Send) > 0 &&
+            var toIterate = packetPointers.Where(
+                x => (packetList[x].info & info) > 0 &&
                      isReady(x)
             ).ToList();
 
             // If there are no elements in the packets to send
-            if(toSend.Count == 0){
+            if(toIterate.Count == 0){
                 yield break;
             }
 
-            int pid = packetPointers.First();
+            int pid = toIterate.First();
             Logging.log.Trace("PacketID: " + pid + " iterator started");
             Packet p = packetList[pid];
 
             // Start after ethernet header
-            List<byte> packetBytes = new List<Byte>(p.data.Skip((int)EthernetIIFrame.HEADER_SIZE));
+            List<byte> packetBytes = new List<Byte>(p.data.Skip(offset));
+
+            // Mark as active
+            packetList[pid].info |= PacketInfo.Active;
 
             for (int i = 0; i < packetBytes.Count; i++)
             {
                 yield return (p.type,packetBytes[i],(uint)(packetBytes.Count-i-1));
             }
 
-            // Mark as valid
+            // Mark as valid, and remove it as active
             packetList[pid].info |= PacketInfo.Valid;
+            packetList[pid].info &= ~PacketInfo.Active;
 
             // Remove from queue
             packetPointers.Remove(pid);
@@ -253,14 +326,12 @@ namespace TCPIP
             yield break;
         }
 
-        public bool HasPackagesToSend(){
-            return packetPointers.Where(x => (packetList[x].info & PacketInfo.Send) > 0 &&
+        private bool TestPacketReady(PacketInfo info)
+        {
+           return packetPointers.Where(x => (packetList[x].info & info) > 0 &&
                      isReady(x) ).Count() > 0;
-
         }
 
-        ///////////////////////////////////////////////////
-        // Helper Functions
         public void Info(){
             foreach(var x in packetList.OrderBy(a => a.Key))
             {
@@ -268,8 +339,6 @@ namespace TCPIP
                 string required = String.Join(",",x.Value.requiredBy);
                 Logging.log.Info($"PacketID: {x.Key,5} Depends: {depends,7} Required: {required,7} Flags:" + x.Value.info);
             }
-
-
             foreach(var x in packetList.OrderBy(a => a.Key))
             {
                 Logging.log.Info("Is ready " + x.Key + " " + isReady(x.Key));
@@ -282,34 +351,34 @@ namespace TCPIP
             {
                 bool typeSet = false;
                 // Set the graph types
-                if((x.Value.info & PacketInfo.Initial) > 0 && !typeSet)
-                {
-                    ret += $"{x.Key} [shape=Mdiamond];\n";
-                    typeSet = true;
-                }
-                if((x.Value.info & PacketInfo.End) > 0 && !typeSet)
-                {
-                    ret += $"{x.Key} [shape=Msquare];\n";
-                    typeSet = true;
-                }
+                // if((x.Value.info & PacketInfo.Initial) > 0 && !typeSet)
+                // {
+                //     ret += $"{x.Key} [shape=Mdiamond];\n";
+                //     typeSet = true;
+                // }
+                // if((x.Value.info & PacketInfo.End) > 0 && !typeSet)
+                // {
+                //     ret += $"{x.Key} [shape=Msquare];\n";
+                //     typeSet = true;
+                // }
                 if((x.Value.info & PacketInfo.Send) > 0 && !typeSet)
                 {
-                    ret += $"{x.Key} [shape=triangle];\n";
+                    ret += $"   {x.Key} [shape=triangle];\n";
                     typeSet = true;
                 }
                 if((x.Value.info & PacketInfo.Receive) > 0 && !typeSet)
                 {
-                    ret += $"{x.Key} [shape=invtriangle];\n";
+                    ret += $"   {x.Key} [shape=invtriangle];\n";
                     typeSet = true;
                 }
                 if((x.Value.info & PacketInfo.DataIn) > 0 && !typeSet)
                 {
-                    ret += $"{x.Key} [shape=house];\n";
+                    ret += $"   {x.Key} [shape=house];\n";
                     typeSet = true;
                 }
                 if((x.Value.info & PacketInfo.DataOut) > 0 && !typeSet)
                 {
-                    ret += $"{x.Key} [shape=unvhouse];\n";
+                    ret += $"   {x.Key} [shape=invhouse];\n";
                     typeSet = true;
                 }
 
