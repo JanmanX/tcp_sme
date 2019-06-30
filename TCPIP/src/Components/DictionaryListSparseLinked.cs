@@ -379,7 +379,7 @@ namespace TCPIP
         {
             for (int i = 0; i < this.keys.Length; i++)
             {
-                if(keys[i].key == key)
+                if(keys[i].key == key && keys[i].used)
                 {
                     return i;
                 }
