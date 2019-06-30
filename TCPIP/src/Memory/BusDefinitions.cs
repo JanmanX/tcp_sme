@@ -11,6 +11,7 @@ namespace TCPIP
         }
         public interface WriteBus : IBus
         {
+            int socket { get; set; }
             int data { get; set; }
         }
     }
@@ -28,6 +29,7 @@ namespace TCPIP
         }
         public interface ReadBus : IBus
         {
+            int socket { get; set; }
             byte data { get; set; }
         }
     }
