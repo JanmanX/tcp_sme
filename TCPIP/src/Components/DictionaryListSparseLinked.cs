@@ -4,7 +4,7 @@ namespace TCPIP
     // There are also a list containing the actual addresses. This list contains multiple
     // linked lists, with possibility of sparseness via index offsetters.
     // If a address is requested from an sparse area, an error address (-1) is returned
-    public class DictionaryListSparseLinked : IDictionaryList {
+    public class DictionaryListSparseLinked<MetaData> : IDictionaryList<MetaData> where MetaData : struct {
         // Used to return link information
 
         // The key translation struct is used to look up where to start the pointer
@@ -14,6 +14,7 @@ namespace TCPIP
             public int index; // The pointer to the LinkEntry list, is it -1, then it is not allocated
             public int offset; // Initial offset for the root block
             public bool used; // is this currently used?
+            public MetaData meta_data;
         }
         // The link entry contains what to look at previous and next in the cain
         // The index itself in the LinkEntry list is the returned address
@@ -323,6 +324,24 @@ namespace TCPIP
             KeyTranslation k = keys[key_pointer];
             // With the pointer from the key lookup, we can traverse the link list
             return TraverseLinkPointerExact(k.index, index);
+        }
+
+        public void SaveMetaData(int key, MetaData meta_data){
+            int key_pointer = GetKeyPointer(key);
+            if(key_pointer == -1){
+                throw new System.Exception("Key does not exist");
+            }
+            KeyTranslation k = keys[key_pointer];
+            k.meta_data = meta_data;
+            keys[key_pointer] = k;
+        }
+        public MetaData LoadMetaData(int key){
+            int key_pointer = GetKeyPointer(key);
+            if(key_pointer == -1){
+                throw new System.Exception("Key does not exist");
+            }
+            KeyTranslation k = keys[key_pointer];
+            return k.meta_data;
         }
 
         ////////////// Helper functions

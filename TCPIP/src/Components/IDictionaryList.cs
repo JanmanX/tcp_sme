@@ -5,7 +5,7 @@ namespace TCPIP
     // The storage itself is not handled here, but pointers to the underlaying memory implementation
     // are returned
 
-    interface IDictionaryList
+    interface IDictionaryList<MetaData> where MetaData : struct
     {
         // How many Addresses are left we can save in?
         int ValueSpaceLeft();
@@ -43,6 +43,10 @@ namespace TCPIP
         // Observe returns the pointer of that specific index, and nothing else.
         // If the value does not exist, return -1 as value pointer
         int Observe(int key, int index);
+
+        // Meta data for that specific key
+        void SaveMetaData(int key, MetaData meta_data);
+        MetaData LoadMetaData(int key);
 
 
     }
