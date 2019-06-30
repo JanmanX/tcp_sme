@@ -276,6 +276,13 @@ namespace TCPIP
             }
             KeyTranslation k = keys[key_pointer];
 
+            // If the key is empty, we cant delete stuff
+            if(k.index == -1)
+            {
+                Logging.log.Warn($"The list is empty! key pointer: {key_pointer}");
+                return -1;
+            }
+
             // Get the exact link, if it is not -1, it is not sparse, and we must remove it
             int link_index_exact = TraverseLinkPointerExact(k.index,index - k.offset);
             // If it is not -1, then it must exist and be correct, therefore return
