@@ -88,10 +88,10 @@ namespace TCPIP
         {
             int count = 0;
             // Limit to checking all keys only once
-            while(count++ > this.keys.Length){
-                last_key_pointer = (last_key_pointer + 1 ) % keys.Length;
+            while(count++ < this.keys.Length){
+
                 // Test if the current free pointer is free
-                if(keys[last_key_pointer].used){
+                if(!keys[last_key_pointer].used){
                     KeyTranslation x = keys[last_key_pointer];
                     x.used = true;
                     x.key = key;
@@ -99,6 +99,7 @@ namespace TCPIP
                     keys[last_key_pointer] = x;
                     return true;
                 }
+                last_key_pointer = (last_key_pointer + 1 ) % keys.Length;
             }
             return false;
         }
