@@ -89,11 +89,10 @@ namespace TCPIP
                 internet_out.linkOutComputeConsumerControlBusIn = simulator.datagramBusOutComputeConsumerControlBusOut;
                 simulator.datagramBusOut = internet_out.linkOutWriteBus;
 
-
-                // var transport = new Transport(internetIn.segmentBusIn,
-                //                               packet_out.bus_in_transport,
-                //                               packet_out.bus_in_transport_control_consumer,
-                //                               packet_out.bus_in_transport_control_producer);
+                // Wire DataIn to L(Simulator)
+                simulator.dataIn = data_in.dataOut;
+                data_in.dataOutBufferConsumerControlBusIn = simulator.dataInBufferConsumerControlBusOut;
+                simulator.dataInBufferProducerControlBusIn = data_in.dataOutBufferProducerControlBusOut;
 
                 // Use fluent syntax to configure the simulator.
                 // The order does not matter, but `Run()` must be
