@@ -27,6 +27,17 @@ namespace TCPIP
         public ConsumerControlBus datagramBusOutComputeConsumerControlBusOut =  Scope.CreateBus<ConsumerControlBus>();
 
 
+        //////// DATA IN (Receiving from this)
+        [InputBus]
+        public DataIn.ReadBus dataIn;
+        [InputBus]
+        public BufferProducerControlBus dataInBufferProducerControlBusIn;
+        [OutputBus]
+        public ConsumerControlBus dataInBufferConsumerControlBusOut = Scope.CreateBus<ConsumerControlBus>();
+
+
+
+
         // Simulation fields
         private readonly String dir;
 
@@ -37,14 +48,17 @@ namespace TCPIP
         {
             this.dir = dir;
             this.packetGraph = new PacketGraph(this.dir);
+
             this.packetGraph.Info();
             Console.WriteLine(this.packetGraph.GraphwizState());
-            send_enumerator = packetGraph.IterateOverPacketToSend().GetEnumerator();
+
+            send_enumerator = packetGraph.IterateOverSend().GetEnumerator();
             send_enumerator.MoveNext();
         }
 
         public override async Task Run()
         {
+            //return;
             for(int i = 0; i < 1000; i++){
 
                 PacketSend();
@@ -54,57 +68,9 @@ namespace TCPIP
                 PacketWait();
                 PacketCommand();
                 await ClockAsync();
-                Logging.log.Trace("-----------------------CLOCK--------------------");
+                Logging.log.Warn("-----------------------CLOCK--------------------");
 
             }
-            uint frame_number = 0;
-            // for(int i = 0; i < 200; i++)
-            // {
-            //     //return;
-            //     // Wait for the initial reset to propagate
-            //     await ClockAsync();
-
-            //     datagramBusInBufferProducerControlBusOut.valid = false;
-            //     //datagramBusInBufferProducerControlBusOut.available = false;
-
-            //     while(packetGraph.HasPackagesToSend())
-            //     { // Are there anything to send? if not, spinloop dat shizz
-            //         Logging.log.Info($"Sending frame: {frame_number}");
-
-
-            //         foreach (var data in packetGraph.IterateOverPacketToSend())
-            //         {
-            //             // Data is now valid
-            //             datagramBusInBufferProducerControlBusOut.valid = true;
-            //             datagramBusInBufferProducerControlBusOut.bytes_left = data.bytes_left;
-            //             // Send to Network
-            //             datagramBusIn.frame_number = frame_number;
-            //             datagramBusIn.data = data.data;
-            //             datagramBusIn.type = data.type;
-
-            //             // If the consumer is not ready, we no not increase the data
-            //             bool datagramReady = true;
-            //             while (!datagramBusInBufferConsumerControlBusIn.ready)
-            //             {
-            //                 //Logging.log.Trace("The datagramBusIn was not ready");
-            //                 datagramReady = false;
-            //                 await ClockAsync();
-            //             }
-            //             if(datagramReady){
-            //                 await ClockAsync();
-            //             }
-            //             Logging.log.Trace($"GraphSimulator sending: data: 0x{data.data:X2} bytes_left: {data.bytes_left} frame: {frame_number}  ready: {datagramBusInBufferConsumerControlBusIn.ready}");
-
-
-
-            //         }
-
-            //         // Next packet
-            //         frame_number++;
-            //         Logging.log.Info("End of frame");
-            //     }
-            // }
-
             Logging.log.Info($"End of simulation with {frame_number} packets sent");
         }
 
@@ -113,7 +79,7 @@ namespace TCPIP
         private System.Collections.Generic.IEnumerator<(ushort type,byte data,uint bytes_left)>  send_enumerator;
         private void PacketSend()
         {
-            if(packetGraph.HasPackagesToSend())
+            if(packetGraph.ReadySend())
             {
                 var block = send_enumerator.Current;
                 // Set the busses
@@ -122,7 +88,7 @@ namespace TCPIP
                     if(!send_enumerator.MoveNext() || block.bytes_left == 0)
                     {
                         frame_number++;
-                        send_enumerator = packetGraph.IterateOverPacketToSend().GetEnumerator();
+                        send_enumerator = packetGraph.IterateOverSend().GetEnumerator();
                         send_enumerator.MoveNext();
                     }
                 }
@@ -147,9 +113,32 @@ namespace TCPIP
         {
 
         }
+        private bool dataInWait = true;
         private void PacketDataIn()
         {
-
+            dataInBufferConsumerControlBusOut.ready = false;
+            // if we got data ready to read
+            if(packetGraph.ReadyDataIn()){
+                // If we do not have to wait one clock
+                if(!dataInWait && dataInBufferProducerControlBusIn.valid)
+                {
+                    if(!packetGraph.GatherDataIn(dataIn.data))
+                    {
+                        throw new Exception("Wrong data, see log");
+                    }
+                    dataInWait = true;
+                }
+                if(dataInBufferProducerControlBusIn.valid)
+                {
+                    dataInBufferConsumerControlBusOut.ready = true;
+                    dataInWait = false;
+                }
+                else
+                {
+                    dataInBufferConsumerControlBusOut.ready = false;
+                    dataInWait = true;
+                }
+            }
         }
         private void PacketDataOut()
         {
