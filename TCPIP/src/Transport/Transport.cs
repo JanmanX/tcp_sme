@@ -74,7 +74,7 @@ namespace TCPIP
         private struct PassData
         {
             public int socket;
-            public uint tcp_seq;
+            public uint sequence;
             public uint length;
 
             // Local info
@@ -105,7 +105,6 @@ namespace TCPIP
             pcbs[0].f_port = 0x5566;
             pcbs[0].l_address = 0x778899AA;
             pcbs[0].l_port = 80;
-            pcbs[0].packet_number = 0;
 
             pcbs[1].state = (byte)PCB_STATE.CONNECTED;
             pcbs[1].protocol = (byte)IPv4.Protocol.UDP;
@@ -113,7 +112,6 @@ namespace TCPIP
             pcbs[1].f_port = 0x5566;
             pcbs[1].l_address = 0x778899AA;
             pcbs[1].l_port = 81;
-            pcbs[1].packet_number = 0;
         }
 
 
@@ -249,12 +247,12 @@ namespace TCPIP
             }
         }
 
-        private void StartPass(int pcb_idx, uint ip_id, uint tcp_seq, uint length)
+        private void StartPass(int pcb_idx, uint ip_id, uint sequence, uint length)
         {
             state = TransportProcessState.Pass;
 
             passData.socket = pcb_idx;
-            passData.tcp_seq = tcp_seq;
+            passData.sequence = sequence;
             passData.length = length;
             passData.bytes_passed = 0;
 
@@ -303,11 +301,12 @@ namespace TCPIP
 
             // data bus values
             dataInWriteBus.socket = passData.socket;
-            dataInWriteBus.sequence = passData.tcp_seq;
+            dataInWriteBus.sequence = passData.sequence;
             dataInWriteBus.data = packetInBus.data;
             dataInWriteBus.data_length = (int)passData.length;
             dataInWriteBus.invalidate = false;
-            dataInWriteBus.packet_number = pcbs[passData.socket].packet_number;
+            // XXX Should look up in the PCB for the last sequnece we can use
+            dataInWriteBus.highest_sequence_ready = passData.sequence;
             passData.bytes_passed++;
 
 
@@ -325,7 +324,7 @@ namespace TCPIP
                 //                    dataInWriteBus.invalidate = true;
                 //                }
 
-                pcbs[passData.socket].packet_number++;
+
 
                 // Go to idle
                 Logging.log.Trace("Passing done");
@@ -495,7 +494,7 @@ namespace TCPIP
                         pcbs[socket].state = (byte)PCB_STATE.LISTENING;
                         pcbs[socket].protocol = interfaceBus.request.protocol;
                         pcbs[socket].l_port = interfaceBus.request.port;
-                        pcbs[socket].packet_number = 0;
+
 
                         // Do protocol-based operations here
                         switch (pcbs[socket].protocol)
@@ -540,7 +539,7 @@ namespace TCPIP
                         pcbs[socket].protocol = interfaceBus.request.protocol;
                         pcbs[socket].l_port = interfaceBus.request.port;
                         pcbs[socket].f_address = interfaceBus.request.ip;
-                        pcbs[socket].packet_number = 0;
+
 
                         // Do protocol-based operations here
                         switch (pcbs[socket].protocol)

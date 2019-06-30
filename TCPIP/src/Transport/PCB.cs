@@ -11,18 +11,18 @@ namespace TCPIP
         CLOSED = 0,
         OPEN = 1,
         LISTENING = 2,
-        CONNECTED = 3, 
+        CONNECTED = 3,
         CONNECTING = 4, // (Trying to connect to remote. Handshakes and stuff)
-        // Add more 
+        // Add more
     }
 
     struct PCB
     {
         // Connection state
-        public byte state; 
+        public byte state;
 
         // Protocol
-        public byte protocol; 
+        public byte protocol;
 
         // Foreign address and port
         public uint f_address;
@@ -38,8 +38,8 @@ namespace TCPIP
         // Counts the bytes received for the current packet
         public uint bytes_received;
 
-        // Packet number
-        public uint packet_number;
+        // The current sequence number we safely can submit
+        public uint last_sequence_ready;
 
         // // data for protocol-specific data
         // private const int DATA_SIZE = 64;
