@@ -43,6 +43,10 @@ namespace TCPIP
         // underlaying implementation(returns correct order if FIFO implementation etc.)
         int FocusSegment();
 
+        // Like focus segment, this is implementation specific, in that it may change what focus
+        // segment returns , but is up to the underlaying structure (FIFO etc.)
+        bool DelaySegment(int segment_ID);
+
         // Get information from the segment, if it is full, done etc.
         bool IsSegmentDone(int segment_ID);
         bool IsSegmentFull(int segment_ID);

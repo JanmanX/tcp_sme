@@ -239,6 +239,28 @@ namespace TCPIP
             return current_tail_segment_id;
         }
 
+        // This function moves the segment to the top of the fifo queue
+        public bool DelaySegment(int segment_ID)
+        {
+            // Scope in the new segment, and test if it is ready
+            SegmentEntry new_segment = segment_list[next_head_segment_id];
+            if(!new_segment.done && !new_segment.full)
+            {
+               throw new System.Exception("The segment entry table is full!");
+               return false;
+            }
+            // Point the new element to the old
+            segment_list[next_head_segment_id] = segment_list[segment_ID];
+
+            //Mark the old as full and done, to free its space
+            if(!IsSegmentFull(segment_ID)){SegmentFull(segment_ID);}
+            if(!IsSegmentDone(segment_ID)){SegmentDone(segment_ID);}
+
+            // Increment the next header
+            next_head_segment_id = (next_head_segment_id + 1) % num_segments;
+            return true;
+        }
+
         /////// Helper functions
         // Get amount of memory between range
         private int MemoryRange(int start, int stop){
