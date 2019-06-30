@@ -290,7 +290,7 @@ namespace TCPIP
                 return link_index_exact;
             }
             // If it is the root node, we replace the lookup in keys
-            if(index == k.index){
+            if(index == k.offset){
 
                 // Delete the node
                 LinkEntry delete_node = links[index];
