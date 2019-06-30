@@ -36,7 +36,7 @@ namespace TCPIP
 
 
         //////////// Data_in to interface
-        //[OutputBus]
+        [OutputBus]
         public ReadBus dataOut = Scope.CreateBus<ReadBus>();
         [OutputBus]
         public BufferProducerControlBus dataOutBufferProducerControlBusOut = Scope.CreateBus<BufferProducerControlBus>();
@@ -44,29 +44,57 @@ namespace TCPIP
         public ConsumerControlBus dataOutBufferConsumerControlBusIn;
 
 
-        private MultiMemorySegmentsRingBufferFIFO<int> mem_calc;
+
+        public struct InputData{
+            public int socket;
+            public uint sequence;
+            public bool invalidate;
+            public int data_length;
+            public ushort accum_len; // Accumulator for the length.
+        }
+        private InputData tmp_write_inputdata;
+        private InputData tmp_send_inputdata;
+
+        private MultiMemorySegmentsRingBufferFIFO<InputData> mem_calc;
         private readonly int mem_calc_num_segments = 10;
 
 
         // The table for tcp lookups
-        private const int tcp_seq_lookup_size = 100;
-        private int[] tcp_seq_lookup = new int[tcp_seq_lookup_size];
+        private const int memory_lookup_size = 100;
+        private int[] memory_lookup = new int[memory_lookup_size];
 
-        private DictionaryListSparseLinked dict;
+
+        public struct SequenceInfo{
+            public int maximum_sequence;
+        }
+        private SequenceInfo tmp_sequenceinfo;
+        private DictionaryListSparseLinked<SequenceInfo> sequence_dict;
+
 
         private int cur_write_socket = int.MaxValue;
-        private uint cur_write_tcp_seq = int.MaxValue;
+        private uint cur_write_sequence = int.MaxValue;
         private int cur_write_block_id = int.MaxValue;
+
 
         private int cur_read_socket = int.MaxValue;
         private uint cur_read_tcp_seq = int.MaxValue;
         private int cur_read_block_id = int.MaxValue;
 
 
-        // Indicators for clock offsets when reading from memory
-        private bool send_requested = false;
-        private bool send_receiving = false;
-        private bool send_last_byte_requested = false;
+        // little ringbuffer for the data out
+        public struct SendRingBuffer{
+            public byte data;
+            public ushort length;
+        }
+        SendRingBuffer tempSendRingBuffer;
+        private const int send_buffer_size = 4;
+        private SendRingBuffer[] send_buffer = new SendRingBuffer[send_buffer_size];
+        private SingleMemorySegmentsRingBufferFIFO<InputData> buffer_calc;
+
+        private bool memory_requested = false;
+        private bool memory_receiving = false;
+
+        private bool send_preload = true;
 
 
         public DataIn(TrueDualPortMemory<byte> memory, int memory_size){
@@ -77,9 +105,11 @@ namespace TCPIP
             this.controlA = memory.ControlA;
             this.readResultA = memory.ReadResultA;
             this.readResultB = memory.ReadResultB;
-            this.mem_calc = new MultiMemorySegmentsRingBufferFIFO<int>(mem_calc_num_segments,memory_size);
+            this.mem_calc = new MultiMemorySegmentsRingBufferFIFO<InputData>(mem_calc_num_segments,memory_size);
             // XXX better magic numbers
-            this.dict = new DictionaryListSparseLinked(10,100);
+            this.sequence_dict = new DictionaryListSparseLinked<SequenceInfo>(100,100);
+            // Define the little ring buffer for the outgoing packets
+            this.buffer_calc = new SingleMemorySegmentsRingBufferFIFO<InputData>(send_buffer_size,send_buffer_size);
 
         }
         protected override void OnTick()
@@ -89,6 +119,7 @@ namespace TCPIP
             // Write to memory what we got from T
             Write();
         }
+
 
         private void Write(){
             // Disable the write bus, enable if there is stuff in the packet
@@ -100,109 +131,195 @@ namespace TCPIP
 
             if(dataInComputeProducerControlBusIn.valid){
                 // This is a new packet
-                if(dataIn.socket != cur_write_socket || dataIn.tcp_seq != cur_write_tcp_seq)
+                if(dataIn.socket != cur_write_socket ||
+                   dataIn.sequence != cur_write_sequence)
                 {
-                    // Set the current socket and tcp_seq
+                    // Set the current socket, sequence and packet number
                     cur_write_socket = dataIn.socket;
-                    cur_write_tcp_seq = dataIn.tcp_seq;
+                    cur_write_sequence = dataIn.sequence;
 
                     // get the new write id
                     cur_write_block_id = mem_calc.AllocateSegment(dataIn.data_length);
-                    // Check if we need to create key, if so make it
-                    if(!this.dict.ContainsKey((int)cur_write_socket))
+
+                    // Fist we test and fill the socket dict
+
+                    // Check if we need to create key in the socket, if so make it
+                    if(!this.sequence_dict.ContainsKey((int)cur_write_socket))
                     {
-                        this.dict.New((int)cur_write_socket);
+                        if(!this.sequence_dict.New((int)cur_write_socket))
+                        {
+                            Logging.log.Fatal($"Could not create new key for socket_dict key:{cur_write_socket}");
+                            throw new Exception($"Could not create new key for socket_dict key:{cur_write_socket}");
+                        }
+                        // Set the sequence to zero
+                        tmp_sequenceinfo.maximum_sequence = 0;
+                        this.sequence_dict.SaveMetaData(cur_write_socket,tmp_sequenceinfo);
                     }
-                    // This gets the correct address for the current socket and tec_Seq, and saves
-                    // the cur write block to that, so we can iterate over it when sending it to the user
-                    tcp_seq_lookup[this.dict.Insert((int)cur_write_socket,(int)cur_write_tcp_seq)] = cur_write_block_id;
+
+                    // We save information about the newly seen segment for that socket
+                    int test = this.sequence_dict.Insert(cur_write_socket,(int)cur_write_sequence);
+                    memory_lookup[test] = cur_write_block_id;
+
+                    // Test if we have gotten a new sequence that is higher
+                    tmp_sequenceinfo = this.sequence_dict.LoadMetaData(cur_write_socket);
+                    if(tmp_sequenceinfo.maximum_sequence < dataIn.highest_sequence_ready){
+                        tmp_sequenceinfo.maximum_sequence = (int)dataIn.highest_sequence_ready;
+                        this.sequence_dict.SaveMetaData(cur_write_socket,tmp_sequenceinfo);
+                    }
+
+                    // We create the struct for the address block
+                    tmp_write_inputdata.data_length = dataIn.data_length;
+                    tmp_write_inputdata.invalidate = dataIn.invalidate;
+                    tmp_write_inputdata.socket = dataIn.socket;
+                    tmp_write_inputdata.sequence = dataIn.sequence;
+                    mem_calc.SaveMetaData(cur_write_block_id,tmp_write_inputdata);
                 }
                 // Submit the data
                 controlA.Enabled = true;
                 controlA.IsWriting = true;
-                Logging.log.Info($"Received data 0x{dataIn.data:X2} socket: {dataIn.socket}  tcp_seq: {dataIn.tcp_seq}");
+                Logging.log.Warn($"Received data 0x{dataIn.data:X2} socket: {dataIn.socket} sequence number: {dataIn.sequence}");
                 controlA.Address = mem_calc.SaveData(cur_write_block_id);
                 controlA.Data = dataIn.data;
-
-                /// XXX reset if it is not valid any more
             }
-
         }
+
         private void Send()
         {
+            // Reset until they are needed
             controlB.Enabled = false;
 
-            // If the current key does not exist, Find a new one
-            if(!this.dict.ContainsKey((int)cur_read_socket)){
-                // Get the first existing key
-                int tmp = this.dict.GetFirstKey();
-                cur_read_socket = tmp;
-                // If there are no first keys, indicate that no data is avaliable and loop
-                if(tmp == -1)
+            ////////////// BUFFER code
+            // if we are receiving stuff from the memory, save it to the buffer
+            if(memory_receiving)
+            {
+                int buffer = buffer_calc.SaveData();
+                byte data = readResultB.Data;
+                tempSendRingBuffer.data = data;
+                tempSendRingBuffer.length = buffer_calc.MetadataCurrentSaveSegment().accum_len;
+                send_buffer[buffer] = tempSendRingBuffer;
+                Logging.log.Trace($"Got memory. goes to buffer:{buffer} data:0x{data:X2}");
+                buffer_calc.FinishFillingCurrentSaveSegment();
+                memory_receiving = false;
+            }
+
+            // If the last clock had an request, we know that the next clock has
+            // to be receiving stuff.
+            if(memory_requested){
+                memory_receiving = true;
+                memory_requested = false;
+            }
+
+            // If there are no avaliable next segments, we cannot save data
+            if(buffer_calc.NextSegmentReady())
+            {
+                bool invalid = false;
+                int addr = -1;
+                int socket = -1;
+                int sequence = -1;
+                // Get the current focus element, and test if it is ready
+                int focused_memory_block = mem_calc.FocusSegment();
+                if(mem_calc.IsSegmentDone(focused_memory_block)){
+                    Logging.log.Info($"memory segment is not ready, waiting. memory segment: {focused_memory_block}");
+                    invalid = true;
+                }
+
+                if(!invalid)
                 {
-                    //dataOutBufferProducerControlBusOut.available = false;
-                    dataOutBufferProducerControlBusOut.valid = false;
-                    return;
+                    // Get the socket and the sequence from the current memory block
+                    socket = mem_calc.LoadMetaData(focused_memory_block).socket;
+                    sequence = (int)mem_calc.LoadMetaData(focused_memory_block).sequence;
+                    int maximum_sequence = sequence_dict.LoadMetaData(socket).maximum_sequence;
+
+                    // Get the first sequence
+                    int sequence_pointer = sequence_dict.GetFirstValue(socket);
+
+                    int sequence_memory_block = memory_lookup[sequence_pointer];
+
+
+                    // If this segment is not the first, push the current segment to top and try again
+                    if (sequence_memory_block != focused_memory_block){
+                        Logging.log.Info("Segment is not the last one");
+                        mem_calc.DelaySegment(focused_memory_block);
+                        invalid = true;
+                    }
+
+                    // If the sequence is bigger than the max, we should not use it, as it is not in order
+                    if(sequence > maximum_sequence){
+                        Logging.log.Info("Segment is in front of sequence, must be missing blocks");
+                        mem_calc.DelaySegment(focused_memory_block);
+                        invalid = true;
+                    }
+                }
+
+                // Segment has been tested, and we can now load its data
+                if(invalid){
+                    addr = -1;
+                }else{
+                    addr = mem_calc.LoadData(focused_memory_block);
+                }
+
+                // If we actually can get the address(If buffer empty etc)
+                if(addr != -1)
+                {
+                    Logging.log.Trace($"Requesting memory from addr: {addr} on segment: {focused_memory_block}");
+                    // Request the data
+                    controlB.Enabled = true;
+                    controlB.IsWriting = false;
+                    controlB.Address = addr;
+
+                    // we now have an request from memory
+                    memory_requested = true;
+
+                    // Get the metadata from the memory calculator, subtract the total by one, and
+                    // Push it into the segment. This makes it possible to detect the last byte in the loaded data
+                    tmp_send_inputdata = mem_calc.LoadMetaData(focused_memory_block);
+                    tmp_send_inputdata.accum_len -= 1;
+                    mem_calc.SaveMetaData(focused_memory_block,tmp_send_inputdata);
+
+                    // We save the metadata onto the buffer
+                    buffer_calc.NextSegment(mem_calc.LoadMetaData(focused_memory_block));
+
+                    // If the segment is fully loaded, we remove it from the sequence dict.
+                    if(mem_calc.IsSegmentDone(focused_memory_block)){
+
+                        sequence_dict.Delete(socket,sequence);
+                    }
                 }
             }
 
-            // if the list in the dict have 0 elements, delete the key and return
-            if(this.dict.ListLength((int)cur_read_socket) >= 0)
-            {
-                this.dict.Free((int)cur_read_socket);
-                // Indicate that there are no avaliable data,
-                //dataOutBufferProducerControlBusOut.available = false;
-                dataOutBufferProducerControlBusOut.valid = false;
-                return;
-            }
+            ///////////// Sending code
+            // They are ready, we submit stuff
 
-            // We now know that we have an socket ready, with at least one element
-            // Get What segment to focus on
-            cur_read_block_id = tcp_seq_lookup[dict.GetFirstValue((int)cur_read_socket)];
+            Logging.log.Trace($"The load segment status: {buffer_calc.LoadSegmentReady()} ready: {dataOutBufferConsumerControlBusIn.ready}");
 
-            // If we are to receive stuff, but the request are false
-            // we can assume that we need to roll back the last counter by one
-            if(send_receiving && !send_requested && !send_last_byte_requested){
-                mem_calc.SegmentRollback(cur_read_block_id);
-            }
 
-            // We are now receiving stuff from memory, send to the consumer
-            // If we are not, say to T that the data is not valid
-            if(send_receiving){
-                dataOutBufferProducerControlBusOut.valid = true;
-                // XXX id_send can change to different segment that what we got from ram
-                dataOutBufferProducerControlBusOut.bytes_left = (uint)mem_calc.SegmentBytesLeft(cur_read_block_id);
-                dataOut.data = readResultB.Data;
+            dataOutBufferProducerControlBusOut.valid = buffer_calc.LoadSegmentReady();
 
-                // We reset receiving, since it needs to be set implicit
-                send_receiving = false;
-            }else{
-                dataOutBufferProducerControlBusOut.valid = false;
-            }
-
-            // If the last clock set the request to true, we must be
-            // receiving in the next, therefore set the send_receiving to true
-            // The request are set to false, since request must be set implicit
-            if(send_requested){
-                send_requested = false;
-                send_receiving = true;
-            }
-
-            // We have a full segment ready, we can send it
-            if (mem_calc.IsSegmentFull(cur_read_block_id)){
-                //dataOutBufferProducerControlBusOut.available = true;
-            }else{
-                //dataOutBufferProducerControlBusOut.available = false;
-            }
-
-            // The consumer are ready, ask memory and mark that we requested memory
             if(dataOutBufferConsumerControlBusIn.ready){
-                controlB.Enabled = true;
-                controlB.IsWriting = false;
-                controlB.Address = mem_calc.LoadData(cur_read_block_id);
-                send_requested = true;
-                // If we get a request for the last byte, we do not roll back
-                send_last_byte_requested = mem_calc.IsSegmentDone(cur_read_block_id);
+                send_preload = true;
+            }
+
+            // Logging.log.Warn($"ready:{dataOutBufferConsumerControlBusIn.ready} " +
+            //                  $"valid:{dataOutBufferProducerControlBusOut.valid} " +
+            //                  $"send_preload:{send_preload}");
+
+            if(send_preload && buffer_calc.LoadSegmentReady())
+            {
+                dataOut.socket = buffer_calc.MetadataCurrentLoadSegment().socket;
+                long sequence = buffer_calc.MetadataCurrentLoadSegment().sequence;
+                int addr = buffer_calc.LoadData();
+                byte data = send_buffer[addr].data;
+                dataOut.data = data;
+
+                dataOutBufferProducerControlBusOut.valid = true;
+                dataOutBufferProducerControlBusOut.bytes_left = send_buffer[addr].length;
+
+                buffer_calc.FinishReadingCurrentLoadSegment();
+
+                send_preload = false;
+
+                Logging.log.Warn($"Sending(or preloading valid): data: 0x{data:X2} buffer_addr: {addr} sequence number: {sequence}");
+
             }
         }
     }
