@@ -58,7 +58,7 @@ namespace TCPIP
         private TempData tmp_write_info;
         private TempData tmp_send_info;
 
-        private DictionaryListSparseLinked segment_lookup;
+        private DictionaryListSparseLinked<bool> segment_lookup;
 
         private MultiMemorySegmentsRingBufferFIFO<TempData> mem_calc;
         private readonly int mem_calc_num_segments = 10;
@@ -94,7 +94,7 @@ namespace TCPIP
             this.readResultB = memory.ReadResultB;
             this.mem_calc = new MultiMemorySegmentsRingBufferFIFO<TempData>(mem_calc_num_segments,memory_size);
             // XXX better magic numbers
-            this.segment_lookup = new DictionaryListSparseLinked(10,100);
+            this.segment_lookup = new DictionaryListSparseLinked<bool>(10,100);
             // Define the litte ring buffer for the outgoing packets
             this.buffer_calc = new SingleMemorySegmentsRingBufferFIFO<TempData>(send_buffer_size,send_buffer_size);
 
