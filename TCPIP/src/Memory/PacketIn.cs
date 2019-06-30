@@ -202,13 +202,13 @@ namespace TCPIP
             if(buffer_calc.NextSegmentReady())
             {
                 // Get the address for the current focus element
-                // XXX: Use list of ip segment sinstead of focus segment
-                int addr = mem_calc.LoadData(mem_calc.FocusSegment());
+                int focus_segment = mem_calc.FocusSegment();
+                int addr = mem_calc.LoadData(focus_segment);
 
                 // If we actually can get the address(If buffer empty etc)
                 if(addr != -1)
                 {
-                    Logging.log.Trace($"Requesting memory from addr: {addr} on segment: {mem_calc.FocusSegment()}");
+                    Logging.log.Trace($"Requesting memory from addr: {addr} on segment: {focus_segment}");
                     // Request the data
                     controlB.Enabled = true;
                     controlB.IsWriting = false;
@@ -219,12 +219,12 @@ namespace TCPIP
 
                     // Get the metadata from the memory calculator, subtract the total by one, and
                     // Push it into the segment. This makes it possible to detect the last byte in the loaded data
-                    tmp_send_info = mem_calc.LoadMetaData(mem_calc.FocusSegment());
+                    tmp_send_info = mem_calc.LoadMetaData(focus_segment);
                     tmp_send_info.accum_len -= 1;
-                    mem_calc.SaveMetaData(mem_calc.FocusSegment(),tmp_send_info);
+                    mem_calc.SaveMetaData(focus_segment,tmp_send_info);
 
                     // We save the metadata onto the buffer
-                    buffer_calc.NextSegment(mem_calc.LoadMetaData(mem_calc.FocusSegment()));
+                    buffer_calc.NextSegment(mem_calc.LoadMetaData(focus_segment));
                 }
             }
 
