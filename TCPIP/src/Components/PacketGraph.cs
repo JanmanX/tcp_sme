@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace TCPIP
@@ -49,11 +50,12 @@ namespace TCPIP
         // is marked as good.
         public class Packet
         {
-            public int id;
+            public int id; // Ihe identifier
             public PacketInfo info;
             public string dataPath;
             public byte[] data;
-            public ushort type;
+            public ushort ether_type;
+            public int last_clock_active; // The last clockcycle the packet was "active"
             public SortedSet<int> dependsOn;
             public SortedSet<int> requiredBy;
         }
@@ -63,7 +65,7 @@ namespace TCPIP
         private SortedSet<int> exitPackets = new SortedSet<int>();
         private SortedSet<int> packetPointers; // List of packet pointers waiting
 
-        private int clock = 0;
+        private int clock = -1;
         private string dir;
 
 
@@ -173,7 +175,8 @@ namespace TCPIP
             if((pack.info & (PacketInfo.Send |
                              PacketInfo.Receive |
                              PacketInfo.DataIn |
-                             PacketInfo.DataOut)) > 0)
+                             PacketInfo.DataOut |
+                             PacketInfo.Wait)) > 0)
             {
                 pack.data = File.ReadAllBytes(filePath);
             }
@@ -181,8 +184,8 @@ namespace TCPIP
                              PacketInfo.Receive)) > 0)
             {
                 // Set the packet type based on the byte value
-                pack.type = (ushort)(pack.data[EthernetIIFrame.ETHERTYPE_OFFSET_0] << 0x08);
-                pack.type |= (ushort)(pack.data[EthernetIIFrame.ETHERTYPE_OFFSET_1]);
+                pack.ether_type = (ushort)(pack.data[EthernetIIFrame.ETHERTYPE_OFFSET_0] << 0x08);
+                pack.ether_type |= (ushort)(pack.data[EthernetIIFrame.ETHERTYPE_OFFSET_1]);
             }
 
             pack.dataPath = filePath;
@@ -198,6 +201,7 @@ namespace TCPIP
             if((packet.info & PacketInfo.Initial) > 0 && start){
                 return true;
             }
+
             // If this is not the start node of the chain, test if it is valid
             if(start == false){
                 accum = (packet.info & PacketInfo.Valid) > 0;
@@ -231,6 +235,7 @@ namespace TCPIP
             while(send.MoveNext())
             {
                 lastSend = send.Current;
+                Logging.log.Trace($"Current iterator{send.Current} data: 0x{send.Current.data:X2}");
                 yield return send.Current;
             }
             yield break;
@@ -249,49 +254,98 @@ namespace TCPIP
 
         private IEnumerator<(ushort type,byte data,uint bytes_left)> dataIn;
         private (ushort type,byte data,uint bytes_left) lastDataIn;
-        public bool GatherDataIn(byte compare)
+        public bool GatherDataIn(byte compare, int byte_number)
         {
             if (dataIn == null){
                 dataIn = IterateOver(PacketInfo.DataIn,0).GetEnumerator();
-                Logging.log.Fatal($"New iterator! {dataIn.Current.data}");
             }
 
             if(dataIn.MoveNext()){
                 byte excact = dataIn.Current.data;
                 lastDataIn = dataIn.Current;
-                if(excact == compare)
+                if(excact == compare && byte_number == dataIn.Current.bytes_left)
                 {
+                    if(byte_number == 0)
+                    {
+                        dataIn.MoveNext();
+                    }
                     return true;
                 }
                 else
                 {
-                    Logging.log.Error($"Wrong comparison of input data from datain. should be 0x{excact:X2} is 0x{compare:X2}");
+                    Logging.log.Error($"Wrong comparison of input data from datain. " +
+                                      $"correct: 0x{excact:X2} index: {dataIn.Current.bytes_left} " +
+                                      $"observed: 0x{compare:X2} index: {byte_number}");
                     return false;
                 }
 
             }else
             {
                 if(ReadyDataIn()){
+                    dataIn.MoveNext();
                     dataIn = null;
-                    return GatherDataIn(compare);
+                    return GatherDataIn(compare, byte_number);
                 }
             }
             Logging.log.Warn($"No packet found for GatherDataIn. compared to: 0x{compare:X2}");
             return false;
         }
+        public bool StepWait()
+        {
+            var toWait = packetPointers.Where(
+                x => (packetList[x].info & PacketInfo.Wait) > 0 &&
+                     isReady(x)
+            ).ToList();
 
-        public bool ReadySend(){return TestPacketReady(PacketInfo.Send);}
-        public bool ReadyReceive(){return TestPacketReady(PacketInfo.Receive);}
-        public bool ReadyDataIn(){return TestPacketReady(PacketInfo.DataIn);}
-        public bool ReadyDataOut(){return TestPacketReady(PacketInfo.DataOut);}
-        public bool ReadyWait(){return TestPacketReady(PacketInfo.Wait);}
-        public bool ReadyCommand(){return TestPacketReady(PacketInfo.Command);}
+            // If there are no elements in the packets to wait
+            if(toWait.Count == 0){
+                return false;
+            }
+
+            int pid = toWait.First();
+
+            // Mark as active,  and update clock
+            packetList[pid].info |= PacketInfo.Active;
+            packetList[pid].last_clock_active = clock;
+            // Get the amount of wait time, and decrement and write back
+            int waitfor = Int32.Parse(Encoding.UTF8.GetString(packetList[pid].data, 0, packetList[pid].data.Length));
+
+
+            if(waitfor == 0)
+            {
+                // Mark as not active anymore
+                packetList[pid].info |= PacketInfo.Valid;
+                packetList[pid].info &= ~PacketInfo.Active;
+                // Remove from queue
+                packetPointers.Remove(pid);
+
+                // We add what is up next, so it is valid packet pointers
+                packetPointers.UnionWith(packetList[pid].requiredBy);
+            }else{
+                waitfor--;
+            }
+            packetList[pid].data = Encoding.UTF8.GetBytes(waitfor.ToString());
+
+            Logging.log.Trace($"PacketID: {pid} waiting for {waitfor} info: {packetList[pid].info}");
+            return true;
+        }
+
+        public bool ReadySend(){return TestPacketContains(PacketInfo.Send);}
+        public bool ReadyReceive(){return TestPacketContains(PacketInfo.Receive);}
+        public bool ReadyDataIn(){return TestPacketContains(PacketInfo.DataIn);}
+        public bool ReadyDataOut(){return TestPacketContains(PacketInfo.DataOut);}
+        public bool ReadyWait(){return TestPacketContains(PacketInfo.Wait);}
+        public bool ReadyCommand(){return TestPacketContains(PacketInfo.Command);}
 
         public void NextClock()
         {
             clock++;
         }
 
+        public int GetClock()
+        {
+            return clock;
+        }
 
 
         ///////////////////////////////////////////////////
@@ -311,20 +365,21 @@ namespace TCPIP
 
             int pid = toIterate.First();
             Logging.log.Trace("PacketID: " + pid + " iterator started");
-            Packet p = packetList[pid];
+            Packet pack = packetList[pid];
 
             // Start after ethernet header
-            List<byte> packetBytes = new List<Byte>(p.data.Skip(offset));
+            List<byte> packetBytes = new List<Byte>(pack.data.Skip(offset));
 
             // Mark as active
             packetList[pid].info |= PacketInfo.Active;
 
             for (int i = 0; i < packetBytes.Count; i++)
             {
-                yield return (p.type,packetBytes[i],(uint)(packetBytes.Count-i-1));
+                yield return (pack.ether_type,packetBytes[i],(uint)(packetBytes.Count-i-1));
+                packetList[pid].last_clock_active = clock;
             }
 
-            // Mark as valid, and remove it as active
+            // Mark as not active anymore
             packetList[pid].info |= PacketInfo.Valid;
             packetList[pid].info &= ~PacketInfo.Active;
 
@@ -333,13 +388,18 @@ namespace TCPIP
 
             // We add what is up next, so it is valid packet pointers
             packetPointers.UnionWith(packetList[pid].requiredBy);
-            Logging.log.Trace("PacketID: " + pid + " iterator ended");
-            yield break;
+            Logging.log.Warn("PacketID: " + pid + " iterator ended");
         }
 
-        private bool TestPacketReady(PacketInfo info)
+        private bool TestPacketContains(PacketInfo info)
         {
            return packetPointers.Where(x => (packetList[x].info & info) > 0 &&
+                     isReady(x) ).Count() > 0;
+        }
+
+        private bool TestPacketExact(PacketInfo info)
+        {
+           return packetPointers.Where(x => (packetList[x].info & info) == info &&
                      isReady(x) ).Count() > 0;
         }
 
@@ -381,17 +441,28 @@ namespace TCPIP
                 {
                     ret += $"shape=invhouse";
                 }
+                else if((x.Value.info & PacketInfo.Wait) > 0)
+                {
+                    ret += $"shape=octagon";
+                }
                 // Set the colors
 
                 // If the element is not active, but we can reach it
                 if((x.Value.info & PacketInfo.Active) == 0 && isReady(x.Key))
                 {
-                    ret += $",style=filled,fillcolor=coral2";
+                    ret += $",style=filled,fillcolor=cyan";
                 }
                 // The element is active
                 if((x.Value.info & PacketInfo.Active) > 0 )
                 {
-                    ret += $",style=filled,fillcolor=gold3";
+                    // If the element has not been used since last clock
+                    if(x.Value.last_clock_active == clock){
+                        ret += $",style=filled,fillcolor=gold3";
+                    }else
+                    {
+                        ret += $",style=filled,fillcolor=coral2";
+                    }
+
                 }
                 // The element is valid
                 if((x.Value.info & PacketInfo.Valid) > 0 )
@@ -402,7 +473,6 @@ namespace TCPIP
 
                 // Define the paths
                 foreach(int y in x.Value.requiredBy){
-
                     ret += $"   {x.Key} -> {y};\n";
                 }
 
@@ -418,7 +488,7 @@ namespace TCPIP
 
             string fullfilepath = System.IO.Path.Combine(path, $"{this.clock:D8}"  +  ".dot");
 
-            Logging.log.Warn($"Adding dot graph to: {fullfilepath}");
+            Logging.log.Trace($"Adding dot graph to: {fullfilepath}");
             using (StreamWriter writer = new StreamWriter(fullfilepath, true))
             {
                 writer.Write(this.GraphwizState());

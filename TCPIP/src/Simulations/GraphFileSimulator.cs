@@ -50,28 +50,27 @@ namespace TCPIP
             this.packetGraph = new PacketGraph(this.dir);
 
             this.packetGraph.Info();
-            Console.WriteLine(this.packetGraph.GraphwizState());
-
-            send_enumerator = packetGraph.IterateOverSend().GetEnumerator();
-            send_enumerator.MoveNext();
         }
 
         public override async Task Run()
         {
-            //return;
+            // Get initial conditions
+            packetGraph.dumpStateInFile("Test");
+            packetGraph.NextClock();
             for(int i = 0; i < 1000; i++){
                 //Warning! this will fill up your disk fast!
-                //packetGraph.dumpStateInFile("Test");
+
                 PacketSend();
                 PacketReceive();
                 PacketDataIn();
                 PacketDataOut();
                 PacketWait();
                 PacketCommand();
+                packetGraph.dumpStateInFile("Test");
+                Logging.log.Warn($"---------------------------------------------^^^^^-CLOCK {packetGraph.GetClock()}-^^^^^---------------------------------------");
                 packetGraph.NextClock();
-
                 await ClockAsync();
-                Logging.log.Warn("-----------------------CLOCK--------------------");
+
 
             }
             Logging.log.Info($"End of simulation with {frame_number} packets sent");
@@ -79,37 +78,45 @@ namespace TCPIP
 
 
         private int frame_number = 0;
-        private System.Collections.Generic.IEnumerator<(ushort type,byte data,uint bytes_left)>  send_enumerator;
+        private System.Collections.Generic.IEnumerator<(ushort type,byte data,uint bytes_left)> send_enumerator = null;
+        private bool dataExists = false;
         private void PacketSend()
         {
+
+            // There are no current enumerator, get it
+            if(send_enumerator == null)
+            {
+                send_enumerator = packetGraph.IterateOverSend().GetEnumerator();
+                dataExists = send_enumerator.MoveNext();
+                if(dataExists){
+                    frame_number++;
+                }
+            }
+            // If we are ready to send a packet
             if(packetGraph.ReadySend())
             {
-                var block = send_enumerator.Current;
-                // Set the busses
-                // If we get the ready signal, we can move to the next data
-                if(datagramBusInBufferConsumerControlBusIn.ready){
-                    if(!send_enumerator.MoveNext() || block.bytes_left == 0)
-                    {
-                        frame_number++;
-                        send_enumerator = packetGraph.IterateOverSend().GetEnumerator();
-                        send_enumerator.MoveNext();
-                    }
+                // If there exist data, and the consumer are ready, we load new data
+                if(datagramBusInBufferConsumerControlBusIn.ready && dataExists)
+                {
+                    dataExists = send_enumerator.MoveNext();
                 }
-                block = send_enumerator.Current;
-                // Set the busses
-                datagramBusInBufferProducerControlBusOut.valid = true;
-                datagramBusInBufferProducerControlBusOut.bytes_left = block.bytes_left;
 
-                datagramBusIn.frame_number = frame_number;
-                datagramBusIn.data = block.data;
-                datagramBusIn.type = block.type;
-                Logging.log.Trace($"GraphSimulator sending: data: 0x{block.data:X2} bytes_left: {block.bytes_left} frame: {frame_number}  ready: {datagramBusInBufferConsumerControlBusIn.ready}");
+                // if there exist data we insert it
+                if(dataExists){
 
-            }
-            else
-            {
-                // There are no data , set valid false
-                datagramBusInBufferProducerControlBusOut.valid = false;
+                    // Set the busses
+                    datagramBusInBufferProducerControlBusOut.valid = true;
+                    datagramBusInBufferProducerControlBusOut.bytes_left = send_enumerator.Current.bytes_left;
+                    // Set the data
+                    datagramBusIn.frame_number = frame_number;
+                    datagramBusIn.data = send_enumerator.Current.data;
+                    datagramBusIn.type = send_enumerator.Current.type;
+                }
+                else
+                {
+                    datagramBusInBufferProducerControlBusOut.valid = false;
+                    send_enumerator = null;
+                }
             }
         }
         private void PacketReceive()
@@ -125,7 +132,7 @@ namespace TCPIP
                 // If we do not have to wait one clock
                 if(!dataInWait && dataInBufferProducerControlBusIn.valid)
                 {
-                    if(!packetGraph.GatherDataIn(dataIn.data))
+                    if(!packetGraph.GatherDataIn(dataIn.data,(int)dataInBufferProducerControlBusIn.bytes_left))
                     {
                         throw new Exception("Wrong data, see log");
                     }
@@ -153,7 +160,9 @@ namespace TCPIP
         }
         private void PacketWait()
         {
-
+            if(packetGraph.ReadyWait()){
+                packetGraph.StepWait();
+            }
         }
     }
 }
