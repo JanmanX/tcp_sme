@@ -15,10 +15,20 @@ provide an alternative to the existing proprietary network offloading engines.
 While the main goal of this thesis is to research and study the suitability of 
 SME for implementing a TCP/IP stack on an FPGA, there are many other aspects of the 
 system to be studied.\\
-% TODO 
-% * support for various FPGAs
-% * extensible network stack (not locked to few protocols)
-% * Plug and play for Firewall
+The extensibility of the network stack are to be tested by studying the effects 
+of introducing new protocols to the stack. While the network stack should be 
+able to be refined with new and custom protocols, it is to be studied which 
+implications it has for the system. Mainly, it is to be seen how the addition 
+of new protocols affect the performance, scalability, and viability of the 
+system.\\
+In the same vein, the design should be as FPGA-agnostic as possible. While this is 
+mainly guaranteed by the SME framework used to develop the system, the underlying
+systems, operations, and features should be easily portable across FPGA manufacturers.\\
+Lastly, the design of the networking stack should be interoperable with other 
+systems on the FPGA, or even FPGAs. It is to be seen how easy it us to modify
+and extend the versatility of the system without any major modifications or 
+even extensible knowledge of the system. As an example, the networking stack 
+can be expanded with a firewall, developed alongside this project. 
 
 \subsection{Initial requirements}
 Following our design principles, initial requirements and goals for the 

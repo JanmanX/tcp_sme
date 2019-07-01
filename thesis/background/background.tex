@@ -148,21 +148,16 @@ be programmed in such a way that all paths in the electrical wiring can be
 in any time-frame.\\
 Due to this parallel nature of FPGAs, conventional programming languages are 
 next to impossible to use. To define the behavior of an FPGA, Hardware 
-Description Languages (HDL) are used instead. These programming languages are not easy
+Description Languages (HDL) are used. These programming languages are not easy
 to learn without a good grasp of electrical engineering. Even with prior 
 programming knowledge, the unusual approach to concurrency in these languages 
 can be hard to understand for average developers.\\
 To simplify the development process, most manufacturers offer predefined 
 circuits along their FPGAs. These predefined circuits are more commonly known
 as Intellectual Property (IP) cores, and can provide the hardware designers 
-with pre-made circuitry for a wide variety of functionality. While most IP cores
+with pre-made circuitry for a wide variety of functionality. While most IPs 
 provide the functionality of processors for testing on an FPGA, mp3 audio 
-decoding or PCI bus interconnect can be added as well\cite{fpga_for_dummies}.\\
-All these factors make it both hard, expensive, and time-consuming to program 
-FPGAs. Luckily, a new programming model for development of highly concurrent
-systems has been developed at Niels Bohr Institute at University of Copenhagen
-called Synchronous Message Exchange. In this thesis, the viability of this 
-model will be tested to implement the networking stack.
+decoding or PCI bus interconnect can be obtained as well\cite{fpga_for_dummies}.
 
 
 
@@ -213,7 +208,7 @@ efforts to unify these under a common intermediate domain-specific language
 SMEIL\cite{smeil}. The C\# version has exhibited various advantages over the 
 Python counterpart, such as the more error-prone strong typing system, which 
 better reflects the functionality of the hardware, as well as making the code
-more readable to the progrmamer. At the time of writing, the C\# implementation currently
-enjoys the most recent features of the SME model, as it is being the most activelly 
+more readable to the programmer. At the time of writing, the C\# implementation currently
+enjoys the most recent features of the SME model, as it is being the most actively 
 developed version. 
 
