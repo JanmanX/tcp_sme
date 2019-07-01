@@ -3,16 +3,27 @@ if [ -z "$1" ]; then
     echo "Supply path argument"
     exit 1
 fi
-for filename in "$1"*.dot; do
-    [ -e "$filename" ] || continue
-    echo $filename
-    if [[ ! -e "$filename.png" ]]
-    then
-        dot -Tpng $filename -o $filename.png;
-    fi
 
-done
+dotconvert () {
+    if [[ ! -e "$1.png" ]]
+    then
+        echo "Doing $1"
+        dot -Tpng $1 -o $1.png;
+    fi
+}
+
 pushd $1;
-echo ls;
-ffmpeg -r 10 -i %08d.dot.png out.mp4
+export -f dotconvert
+
+if [[ -e "out.mp4" ]]
+then
+    rm out.mp4
+fi
+
+SHELL=$(type -p bash) find . -name "*dot" | sort -n | parallel dotconvert
+ffmpeg -r 10 -i %*.dot.png -r 10  out.mp4;
+
+#rm -- *.dot
+#rm -- *.dot.png
+
 popd;
