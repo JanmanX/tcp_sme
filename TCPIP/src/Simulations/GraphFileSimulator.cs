@@ -60,13 +60,16 @@ namespace TCPIP
         {
             //return;
             for(int i = 0; i < 1000; i++){
-
+                //Warning! this will fill up your disk fast!
+                //packetGraph.dumpStateInFile("Test");
                 PacketSend();
                 PacketReceive();
                 PacketDataIn();
                 PacketDataOut();
                 PacketWait();
                 PacketCommand();
+                packetGraph.NextClock();
+
                 await ClockAsync();
                 Logging.log.Warn("-----------------------CLOCK--------------------");
 

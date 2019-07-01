@@ -62,16 +62,16 @@ namespace TCPIP
         private SortedSet<int> initPackets = new SortedSet<int>();
         private SortedSet<int> exitPackets = new SortedSet<int>();
         private SortedSet<int> packetPointers; // List of packet pointers waiting
-        private const int bufferSize = 100000;
-        private byte[] receiveBuffer = new byte[bufferSize];
-        private int receiveBufferSize = 0;
+
+        private int clock = 0;
+        private string dir;
 
 
         public PacketGraph(string dir){
             string[] filePaths = Directory.GetFiles(dir);
             var simPackets = from c in filePaths
                              select GenerateSimPacket(c);
-
+            this.dir = dir;
             // Find the end points in the graph
             var dependsOn = new HashSet<int>();
             var allNodes = new HashSet<int>();
@@ -225,25 +225,30 @@ namespace TCPIP
 
         ///////////////////////////////////////////////////
         // Public Functions
+        private (ushort type,byte data,uint bytes_left) lastSend;
         public IEnumerable<(ushort type,byte data,uint bytes_left)> IterateOverSend(){
             var send = IterateOver(PacketInfo.Send,(int)EthernetIIFrame.HEADER_SIZE).GetEnumerator();
             while(send.MoveNext())
             {
+                lastSend = send.Current;
                 yield return send.Current;
             }
             yield break;
         }
 
+        private (ushort type,byte data,uint bytes_left) lastDataOut;
         public IEnumerable<(ushort type,byte data,uint bytes_left)> IterateOverDataOut(){
             var dataOut = IterateOver(PacketInfo.DataOut,0).GetEnumerator();
             while(dataOut.MoveNext())
             {
+                lastDataOut = dataOut.Current;
                 yield return dataOut.Current;
             }
             yield break;
         }
 
         private IEnumerator<(ushort type,byte data,uint bytes_left)> dataIn;
+        private (ushort type,byte data,uint bytes_left) lastDataIn;
         public bool GatherDataIn(byte compare)
         {
             if (dataIn == null){
@@ -253,6 +258,7 @@ namespace TCPIP
 
             if(dataIn.MoveNext()){
                 byte excact = dataIn.Current.data;
+                lastDataIn = dataIn.Current;
                 if(excact == compare)
                 {
                     return true;
@@ -280,6 +286,11 @@ namespace TCPIP
         public bool ReadyDataOut(){return TestPacketReady(PacketInfo.DataOut);}
         public bool ReadyWait(){return TestPacketReady(PacketInfo.Wait);}
         public bool ReadyCommand(){return TestPacketReady(PacketInfo.Command);}
+
+        public void NextClock()
+        {
+            clock++;
+        }
 
 
 
@@ -347,41 +358,47 @@ namespace TCPIP
         // Dumps the current state as a graphwiz string
         public string GraphwizState(){
             string ret = "digraph G{\n";
+            ret += "labelloc=\"t\";\n";
+            ret += $"label=\"clock: {clock}\";\n";
+
             foreach(KeyValuePair<int,Packet> x in packetList.OrderBy(a => a.Key))
             {
-                bool typeSet = false;
-                // Set the graph types
-                // if((x.Value.info & PacketInfo.Initial) > 0 && !typeSet)
-                // {
-                //     ret += $"{x.Key} [shape=Mdiamond];\n";
-                //     typeSet = true;
-                // }
-                // if((x.Value.info & PacketInfo.End) > 0 && !typeSet)
-                // {
-                //     ret += $"{x.Key} [shape=Msquare];\n";
-                //     typeSet = true;
-                // }
-                if((x.Value.info & PacketInfo.Send) > 0 && !typeSet)
+                ret += $"   {x.Key}[";
+                // Set the shape
+                if((x.Value.info & PacketInfo.Send) > 0)
                 {
-                    ret += $"   {x.Key} [shape=triangle];\n";
-                    typeSet = true;
+                    ret += $"shape=triangle";
                 }
-                if((x.Value.info & PacketInfo.Receive) > 0 && !typeSet)
+                else if((x.Value.info & PacketInfo.Receive) > 0)
                 {
-                    ret += $"   {x.Key} [shape=invtriangle];\n";
-                    typeSet = true;
+                    ret += $"shape=invtriangle";
                 }
-                if((x.Value.info & PacketInfo.DataIn) > 0 && !typeSet)
+                else if((x.Value.info & PacketInfo.DataIn) > 0)
                 {
-                    ret += $"   {x.Key} [shape=house];\n";
-                    typeSet = true;
+                    ret += $"shape=house";
                 }
-                if((x.Value.info & PacketInfo.DataOut) > 0 && !typeSet)
+                else if((x.Value.info & PacketInfo.DataOut) > 0)
                 {
-                    ret += $"   {x.Key} [shape=invhouse];\n";
-                    typeSet = true;
+                    ret += $"shape=invhouse";
                 }
+                // Set the colors
 
+                // If the element is not active, but we can reach it
+                if((x.Value.info & PacketInfo.Active) == 0 && isReady(x.Key))
+                {
+                    ret += $",style=filled,fillcolor=coral2";
+                }
+                // The element is active
+                if((x.Value.info & PacketInfo.Active) > 0 )
+                {
+                    ret += $",style=filled,fillcolor=gold3";
+                }
+                // The element is valid
+                if((x.Value.info & PacketInfo.Valid) > 0 )
+                {
+                    ret += $",style=filled,fillcolor=chartreuse2";
+                }
+                ret +="];\n";
 
                 // Define the paths
                 foreach(int y in x.Value.requiredBy){
@@ -392,6 +409,20 @@ namespace TCPIP
             }
             ret += "}\n";
             return ret;
+        }
+        public void dumpStateInFile(string dir_inside_current_dir)
+        {
+            // Get the path and create the folder if needed
+            string path = System.IO.Path.Combine(this.dir, dir_inside_current_dir);
+            System.IO.Directory.CreateDirectory(path);
+
+            string fullfilepath = System.IO.Path.Combine(path, $"{this.clock:D8}"  +  ".dot");
+
+            Logging.log.Warn($"Adding dot graph to: {fullfilepath}");
+            using (StreamWriter writer = new StreamWriter(fullfilepath, true))
+            {
+                writer.Write(this.GraphwizState());
+            }
         }
     }
 }
