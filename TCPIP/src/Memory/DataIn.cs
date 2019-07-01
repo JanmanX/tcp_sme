@@ -172,6 +172,7 @@ namespace TCPIP
                     tmp_write_inputdata.invalidate = dataIn.invalidate;
                     tmp_write_inputdata.socket = dataIn.socket;
                     tmp_write_inputdata.sequence = dataIn.sequence;
+                    tmp_write_inputdata.accum_len = (ushort)dataIn.data_length;
                     mem_calc.SaveMetaData(cur_write_block_id,tmp_write_inputdata);
                 }
                 // Submit the data
