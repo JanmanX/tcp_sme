@@ -172,7 +172,6 @@ namespace TCPIP
                     tmp_write_inputdata.invalidate = dataIn.invalidate;
                     tmp_write_inputdata.socket = dataIn.socket;
                     tmp_write_inputdata.sequence = dataIn.sequence;
-                    tmp_write_inputdata.accum_len = (ushort)dataIn.data_length;
                     mem_calc.SaveMetaData(cur_write_block_id,tmp_write_inputdata);
                 }
                 // Submit the data
@@ -196,7 +195,7 @@ namespace TCPIP
                 int buffer = buffer_calc.SaveData();
                 byte data = readResultB.Data;
                 tempSendRingBuffer.data = data;
-                tempSendRingBuffer.length = buffer_calc.MetadataCurrentSaveSegment().accum_len;
+                tempSendRingBuffer.length = buffer_calc.MetadataCurrentLoadSegment().accum_len;
                 send_buffer[buffer] = tempSendRingBuffer;
                 Logging.log.Trace($"Got memory. goes to buffer:{buffer} data:0x{data:X2}");
                 buffer_calc.FinishFillingCurrentSaveSegment();
