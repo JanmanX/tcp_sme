@@ -1,0 +1,20 @@
+\chapter{Implementation}
+\label{chap:implementation}
+\subsection{Interface Signal protocols}
+\label{sec:interface_signal_protocol}
+With the introduction of buffers between each parsing processes, a clear pattern
+emerged. The layer-handling processes are responsible for numerous real-time tasks 
+(parsing, sending, protocol-specific tasks, etc), while also limited by their 
+fixed internal buffers. These processes are not always ready to receive input 
+from preceding processes, while they at the same time must be able to write their
+output to following processes immediatelly.\\
+The buffers are a stark opposite, as their large internal block memories enable
+them to buffer huge chunks of memory, while also being able to wait for the 
+succeeding process to start reading.\\
+With these two established scenarios, protocols for each can be proposed.  
+
+\subsection{Buffer-Producer data transfer}
+
+\subsection{Compute-Producer data transfer}
+
+\subsection{Interface Control}

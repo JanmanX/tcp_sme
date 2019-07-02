@@ -129,8 +129,6 @@ first, the Transport header would not be available to the Transport layer.
 Although IPv4 fragmentation is an increasingly rare phenomenon, the network 
 design is not able to handle the situation well.  
 
-\cofeAm{0.7}{0.75}{2}{80}{0}
-
 
 \item \textbf{TCP connection state sharing}\\
 With a clear separation between the "in" layers and the "out" layers, the 
@@ -181,6 +179,24 @@ Missing from the updated figure \ref{fig:revised_design} are the \texttt{Link In
 and \texttt{Link Out} processes, which, for now, are made by the ethernet 
 interface, which can easily parse and strip the first frame headers.
 
+\subsection{Busses}
+The busses in the revised pipelined design are devised such that communication 
+is only limited to the immediate neighbours in the logical network. This design
+is put in place so that the synchronization and the order of execution is much 
+easier to keep track of, so that fewer race-conditions occur, and so that blocks 
+in the network are easier to replace, remove, or modify, without having a large
+cascade effect on the whole network, as opposed to only the neighbours.\\
+Whereas in the previous design where the busses would simply write new data on
+every new clock-cycles regardless of the reading processes, now there must be 
+some logic to actually ensure that the reading process is ready to receive new 
+data. While the Data Buffers, as introduced in the next section \ref{sec:data_buffers},
+solve the issue of blocks reading and writing data at their own pace, the busses
+must support an interface for sharing the state of both processes. Thus, while 
+the busses are depicted as directional with arrows in figure \ref{fig:revised_design},
+there is naturally a need for a control signal in the opposite direction to 
+control the data-flow. This communication protocol will be discussed further in 
+the implementation section \ref{sec:interface_signal_protocol}.
+
 
 \subsection{Data buffers} \label{sec:data_buffers}
 Illustrated as cylinders on figure \ref{fig:revised_design}, First-In, First-Out (FIFO)
@@ -193,24 +209,53 @@ before leaving the buffer.
 However, introducing a new "type" of a process --- the buffers --- poses a new 
 challenge. While the buffers can be read from at any time, the layer-parsing
 processes do not have this luxury, as they do not have any significant internal
-buffer. Hence, a consistent handshake and data-exchange interface signal protocols
-are needed.
+buffer. Here again it becomes obvious that a handshake protocol needs to be used 
+in the bus-communication between the buffers and the processes.
 
-\subsection{Interface Signal protocols}
-With the introduction of buffers between each parsing processes, a clear pattern
-emerged. The layer-handling processes are responsible for numerous real-time tasks 
-(parsing, sending, protocol-specific tasks, etc), while also limited by their 
-fixed internal buffers. These processes are not always ready to receive input 
-from preceding processes, while they at the same time must be able to write their
-output to following processes immediatelly.\\
-The buffers are a stark opposite, as their large internal block memories enable
-them to buffer huge chunks of memory, while also being able to wait for the 
-succeeding process to start reading.\\
-With these two established scenarios, protocols for each can be proposed.  
 
-\subsection{Buffer-Producer data transfer}
+\subsection{Interface}
+Lastly, the Interface is designed so that the end users and system can utilize
+and use the network stack.\\
+The networking stack is controlled with 3 connections (consisting of bus-pairs): 
+the control-, the read-, and the write-connection. While the last two connections 
+are incredible simple and only transfer data from the \texttt{Data} buffers, 
+the last connection controls the whole network-stack.
 
-\subsection{Compute-Producer data transfer}
+\subsubsection{Read/Write interface}
+In conventional programming languages, the user would usually supply the a 
+function call with an array or a list on which the function can operate.
+However, in hardware, this is generally not the case, as arrays are costly to 
+transmit at once.\\
+Therefore, the two read and write interfaces would simply stream one byte at a 
+time, and it is up to the user to be prepared to read or write the data.
 
+
+\subsubsection{Interface Control Bus}
+The Interface Control Bus controls all the "business" logic of the network -- 
+maintaining the active connections, starting and closing connections, and various
+other protocol-specific control on each connection.\\ 
+Currently, all this can be handled by the \texttt{Transport} block which has all 
+the necessary information to handle the interface requests.\\
+The design of the Interface is based on the widely adopted Berkeley Sockets library,
+which saw the first implementation in 4.2BSD, and has been defacto a standard 
+component in the POSIX specification\cite{tcpip_illustrated_vol2}. There are 
+multiple reasons for this decision:
+\begin{itemize}
+\item The Interface will feel more familiar to users accustomed to the Berkely 
+Sockets API commonly found in mainstream systems such as Linux, OSX, and BSD 
+variants.
+
+\item The inner workings of the stack will be more transparent, and the API 
+exposes fairly fine-tuned control over the whole network stack.
+
+\item Even with the relatively few functions exposed, the API
+has thrived in the most used systems as of now. It would be an understatement to 
+say that the Berkeley Sockets API have stood the test of time, and therefore, it
+is a good basis for the interface used in the network stack.
+
+\end{itemize}
+
+The first version of the stack should support the following functions:
+% TODO: Table here
 % \cofeAm{0.7}{0.75}{2}{80}{0}
 
