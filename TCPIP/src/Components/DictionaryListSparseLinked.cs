@@ -18,7 +18,7 @@ namespace TCPIP
         }
         // The link entry contains what to look at previous and next in the cain
         // The index itself in the LinkEntry list is the returned address
-         public struct LinkEntry{
+        public struct LinkEntry{
             public int next; // Internal pointer to next element, is -1 when tail
             // The offset variable for sparse calculations. 0 offset means that the next block is 1 normal index away etc
             public int offset;
@@ -97,6 +97,7 @@ namespace TCPIP
                     x.key = key;
                     x.index = -1;
                     keys[last_key_pointer] = x;
+                    Logging.log.Info($"New key: {key} at key pointer: {last_key_pointer}");
                     return true;
                 }
                 last_key_pointer = (last_key_pointer + 1 ) % keys.Length;
@@ -270,6 +271,8 @@ namespace TCPIP
 
         public int Delete(int key, int index)
         {
+            // XXXXXX Possible edgecases
+            Logging.log.Fatal($"Delete called on: key: {key} index: {index}");
             int key_pointer = GetKeyPointer(key);
             if(key_pointer == -1){
                 throw new System.Exception("Key does not exist");
@@ -292,15 +295,19 @@ namespace TCPIP
             // If it is the root node, we replace the lookup in keys
             if(index == k.offset){
 
-                // Delete the node
-                LinkEntry delete_node = links[index];
-                delete_node.used = false;
-                links[index] = delete_node;
+                // Get the delete node
+                LinkEntry delete_node = links[link_index_exact];
 
                 // Set the key
                 k.index = delete_node.next;
-                k.offset = index + k.offset;
+                k.offset = index + k.offset; // delete_node.offset + k.offset;
                 keys[key_pointer] = k;
+
+                // Delete it
+                delete_node.used = false;
+                delete_node.next = -1;
+                delete_node.offset = 0;
+                links[link_index_exact] = delete_node;
                 return index;
             }
             // Is not an root node, it must have an before node, we scope that and shuffle around!
@@ -308,6 +315,8 @@ namespace TCPIP
                 // Delete the node
                 LinkEntry delete_node = links[index];
                 delete_node.used = false;
+                delete_node.next = -1;
+                delete_node.offset = 0;
                 links[index] = delete_node;
 
                 // the before node

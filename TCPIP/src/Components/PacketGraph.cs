@@ -64,6 +64,7 @@ namespace TCPIP
         private SortedSet<int> initPackets = new SortedSet<int>();
         private SortedSet<int> exitPackets = new SortedSet<int>();
         private SortedSet<int> packetPointers; // List of packet pointers waiting
+        private List<List<int>> clusterPackets = new List<List<int>>(); // List of best custer settings for the graphviz dump
 
         private int clock = -1;
         private string dir;
@@ -119,6 +120,9 @@ namespace TCPIP
             if(maxDepends > 1 || initPackets.Count > 1 || exitPackets.Count > 1){
                 Logging.log.Warn("The graph may have to guess which node it is receiving data to");
             }
+
+            // Calculate the clusters
+            CalculateClusters();
         }
 
         private Packet GenerateSimPacket(string filePath){
@@ -265,6 +269,9 @@ namespace TCPIP
                 lastDataIn = dataIn.Current;
                 if(excact == compare && byte_number == dataIn.Current.bytes_left)
                 {
+                    Logging.log.Info($"Good comparison of input data from datain. " +
+                                     $"correct: 0x{excact:X2} index: {dataIn.Current.bytes_left} " +
+                                     $"observed: 0x{compare:X2} index: {byte_number}");
                     if(byte_number == 0)
                     {
                         dataIn.MoveNext();
@@ -302,31 +309,32 @@ namespace TCPIP
                 return false;
             }
 
-            int pid = toWait.First();
-
-            // Mark as active,  and update clock
-            packetList[pid].info |= PacketInfo.Active;
-            packetList[pid].last_clock_active = clock;
-            // Get the amount of wait time, and decrement and write back
-            int waitfor = Int32.Parse(Encoding.UTF8.GetString(packetList[pid].data, 0, packetList[pid].data.Length));
-
-
-            if(waitfor == 0)
+            foreach(var pid in toWait)
             {
-                // Mark as not active anymore
-                packetList[pid].info |= PacketInfo.Valid;
-                packetList[pid].info &= ~PacketInfo.Active;
-                // Remove from queue
-                packetPointers.Remove(pid);
+                // Mark as active,  and update clock
+                packetList[pid].info |= PacketInfo.Active;
+                packetList[pid].last_clock_active = clock;
+                // Get the amount of wait time, and decrement and write back
+                int waitfor = Int32.Parse(Encoding.UTF8.GetString(packetList[pid].data, 0, packetList[pid].data.Length));
 
-                // We add what is up next, so it is valid packet pointers
-                packetPointers.UnionWith(packetList[pid].requiredBy);
-            }else{
-                waitfor--;
+
+                if(waitfor == 0)
+                {
+                    // Mark as not active anymore
+                    packetList[pid].info |= PacketInfo.Valid;
+                    packetList[pid].info &= ~PacketInfo.Active;
+                    // Remove from queue
+                    packetPointers.Remove(pid);
+
+                    // We add what is up next, so it is valid packet pointers
+                    packetPointers.UnionWith(packetList[pid].requiredBy);
+                }else{
+                    waitfor--;
+                }
+                packetList[pid].data = Encoding.UTF8.GetBytes(waitfor.ToString());
+
+                Logging.log.Trace($"PacketID: {pid} waiting for {waitfor} info: {packetList[pid].info}");
             }
-            packetList[pid].data = Encoding.UTF8.GetBytes(waitfor.ToString());
-
-            Logging.log.Trace($"PacketID: {pid} waiting for {waitfor} info: {packetList[pid].info}");
             return true;
         }
 
@@ -403,6 +411,68 @@ namespace TCPIP
                      isReady(x) ).Count() > 0;
         }
 
+        // Calculate which nodes to cluster together in case of long 1 to 1 paths
+        private void CalculateClusters(){
+            List<List<int>> clusterList = new List<List<int>>();
+            // Get a list of the keys to traverse
+            SortedSet<int> keysToTraverse = new SortedSet<int>(this.packetList.Keys);
+
+            // Iterate over all keys, and put in their respective bucket
+            foreach (int key in this.packetList.Keys)
+            {
+                var pack = this.packetList[key];
+                // Test if there is at most one out and one in, and it is not already traverse
+                if(pack.dependsOn.Count <= 1 && pack.requiredBy.Count <= 1 && keysToTraverse.Contains(key))
+                {
+                    List<int> observed = new List<int>();
+                    // Search down
+                    var downpack = pack;
+                    while(downpack.dependsOn.Count <= 1 && downpack.requiredBy.Count <= 1 && keysToTraverse.Contains(downpack.id)){
+                        if(downpack.id != pack.id)
+                        {
+                            observed.Reverse();
+                            observed.Add(downpack.id);
+                            observed.Reverse();
+                        }
+                        if(downpack.requiredBy.Count == 0){
+                            break;
+                        }
+                        downpack = packetList[downpack.requiredBy.First()];
+                    }
+                    // Search up
+                    var uppack = pack;
+                    while(uppack.dependsOn.Count <= 1 && uppack.requiredBy.Count <= 1 && keysToTraverse.Contains(uppack.id)){
+                        if(downpack.id != pack.id)
+                        {
+                            observed.Add(uppack.id);
+                        }
+                        if(uppack.dependsOn.Count == 0){
+                            break;
+                        }
+                        uppack = packetList[uppack.dependsOn.First()];
+                    }
+                    // Remove observe keys from list, and add to the cluster list
+                    keysToTraverse.RemoveWhere((int x) => { return observed.Contains(x);});
+                    observed.Reverse();
+                    clusterList.Add(observed);
+                }
+            }
+            foreach (var cluster in clusterList)
+            {
+                List<int> group = new List<int>();
+                int delimiter = (int)Math.Ceiling(Math.Sqrt(cluster.Count));
+                for (int i = 0; i < cluster.Count; i++)
+                {
+                    if(i%delimiter == 0){
+                        group.Add(cluster[i]);
+                    }
+                }
+                clusterPackets.Add(group);
+            }
+        }
+
+
+        //////////////////////////// Debug information ////////////////////////////////
         public void Info(){
             foreach(var x in packetList.OrderBy(a => a.Key))
             {
@@ -418,12 +488,66 @@ namespace TCPIP
         // Dumps the current state as a graphwiz string
         public string GraphwizState(){
             string ret = "digraph G{\n";
-            ret += "labelloc=\"t\";\n";
-            ret += $"label=\"clock: {clock}\";\n";
+
+            ret += "    graph [fontname = \"Courier\"];\n";
+            ret += "    node [fontname = \"Courier\",fixedsize = true,width = 1,height = 1];\n";
+            ret += "    edge [fontname = \"Courier\"];\n";
+            ret += "    labelloc=\"t\";\n";
+            ret += "    fontsize=35;\n";
+            ret +=$"    label=\"clock: {clock}\";\n";
 
             foreach(KeyValuePair<int,Packet> x in packetList.OrderBy(a => a.Key))
             {
-                ret += $"   {x.Key}[";
+                ret += $"    {x.Key}[label=\"{x.Key}";
+                // Set the data
+                // If the block is sending
+                if((x.Value.info & PacketInfo.Send) > 0)
+                {
+                    if((x.Value.info & (PacketInfo.Active)) > 0)
+                    {
+                        string tmp = $"{lastSend.bytes_left} 0x{lastSend.data:X2}";
+                        ret += $"\\n{tmp,7}";
+                    }
+                    else if((x.Value.info & (PacketInfo.Valid)) > 0)
+                    {
+                        ret += $"\\nDone";
+                    }
+                    else{
+                        ret += $"\\nWaiting";
+                    }
+                }
+                if((x.Value.info & PacketInfo.Wait) > 0)
+                {
+                    string waitstr = Encoding.UTF8.GetString(x.Value.data, 0, x.Value.data.Length);
+
+                    if((x.Value.info & (PacketInfo.Valid)) > 0)
+                    {
+                        ret += $"\\nDone";
+                    }
+                    else{
+                        ret += $"\\nval:{waitstr,3}";
+                    }
+                }
+                if((x.Value.info & PacketInfo.DataIn) > 0)
+                {
+                    if((x.Value.info & (PacketInfo.Active)) > 0)
+                    {
+                        string tmp = $"{lastDataIn.bytes_left} 0x{lastDataIn.data:X2}";
+                        ret += $"\\n{tmp,7}";
+                    }
+                    else if((x.Value.info & (PacketInfo.Valid)) > 0)
+                    {
+                        ret += $"\\nDone";
+                    }
+                    else{
+                        ret += $"\\nWaiting";
+                    }
+                }
+
+                ret += "\",";
+
+
+
                 // Set the shape
                 if((x.Value.info & PacketInfo.Send) > 0)
                 {
@@ -473,14 +597,25 @@ namespace TCPIP
 
                 // Define the paths
                 foreach(int y in x.Value.requiredBy){
-                    ret += $"   {x.Key} -> {y};\n";
+                    ret += $"    {x.Key} -> {y};\n";
                 }
 
             }
+            // add the clusters
+            foreach (var cluster in clusterPackets)
+            {
+                ret += "    {rank = same;";
+                foreach (var element in cluster)
+                {
+                    ret += $" {element};";
+                }
+                ret += "}\n";
+            }
+
             ret += "}\n";
             return ret;
         }
-        public void dumpStateInFile(string dir_inside_current_dir)
+        public void DumpStateInFile(string dir_inside_current_dir)
         {
             // Get the path and create the folder if needed
             string path = System.IO.Path.Combine(this.dir, dir_inside_current_dir);

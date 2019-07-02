@@ -48,17 +48,22 @@ namespace TCPIP
         {
             this.dir = dir;
             this.packetGraph = new PacketGraph(this.dir);
-
             this.packetGraph.Info();
         }
 
         public override async Task Run()
         {
+            Console.WriteLine(this.packetGraph.GraphwizState());
+            //return;
             // Get initial conditions
-            packetGraph.dumpStateInFile("Test");
+            packetGraph.DumpStateInFile("Test");
             packetGraph.NextClock();
+
+
             for(int i = 0; i < 1000; i++){
                 //Warning! this will fill up your disk fast!
+
+                Logging.log.Warn($"---------------------------------------------vvvvv-CLOCK {packetGraph.GetClock()}-vvvvv---------------------------------------");
 
                 PacketSend();
                 PacketReceive();
@@ -66,8 +71,8 @@ namespace TCPIP
                 PacketDataOut();
                 PacketWait();
                 PacketCommand();
-                packetGraph.dumpStateInFile("Test");
-                Logging.log.Warn($"---------------------------------------------^^^^^-CLOCK {packetGraph.GetClock()}-^^^^^---------------------------------------");
+                packetGraph.DumpStateInFile("Test");
+                //Logging.log.Warn($"---------------------------------------------^^^^^-CLOCK {packetGraph.GetClock()}-^^^^^---------------------------------------");
                 packetGraph.NextClock();
                 await ClockAsync();
 
@@ -123,31 +128,33 @@ namespace TCPIP
         {
 
         }
-        private bool dataInWait = true;
+        private bool dataInWaitNextClock = true;
         private void PacketDataIn()
         {
             dataInBufferConsumerControlBusOut.ready = false;
             // if we got data ready to read
             if(packetGraph.ReadyDataIn()){
                 // If we do not have to wait one clock
-                if(!dataInWait && dataInBufferProducerControlBusIn.valid)
+                if(!dataInWaitNextClock && dataInBufferProducerControlBusIn.valid)
                 {
                     if(!packetGraph.GatherDataIn(dataIn.data,(int)dataInBufferProducerControlBusIn.bytes_left))
                     {
                         throw new Exception("Wrong data, see log");
                     }
-                    dataInWait = true;
+                    dataInWaitNextClock = true;
                 }
                 if(dataInBufferProducerControlBusIn.valid)
                 {
                     dataInBufferConsumerControlBusOut.ready = true;
-                    dataInWait = false;
+                    dataInWaitNextClock = false;
                 }
                 else
                 {
                     dataInBufferConsumerControlBusOut.ready = false;
-                    dataInWait = true;
+                    dataInWaitNextClock = true;
                 }
+            }else{
+                dataInWaitNextClock = true;
             }
         }
         private void PacketDataOut()

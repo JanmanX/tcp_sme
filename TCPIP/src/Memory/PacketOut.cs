@@ -108,7 +108,7 @@ namespace TCPIP
 
         protected override void OnTick()
         {
-            return;
+            //return;
             Send();
             Write();
         }

@@ -107,7 +107,7 @@ namespace TCPIP
             this.readResultB = memory.ReadResultB;
             this.mem_calc = new MultiMemorySegmentsRingBufferFIFO<InputData>(mem_calc_num_segments,memory_size);
             // XXX better magic numbers
-            this.sequence_dict = new DictionaryListSparseLinked<SequenceInfo>(100,100);
+            this.sequence_dict = new DictionaryListSparseLinked<SequenceInfo>(10,100);
             // Define the little ring buffer for the outgoing packets
             this.buffer_calc = new SingleMemorySegmentsRingBufferFIFO<InputData>(send_buffer_size,send_buffer_size);
 
@@ -178,7 +178,7 @@ namespace TCPIP
                 // Submit the data
                 controlA.Enabled = true;
                 controlA.IsWriting = true;
-                Logging.log.Warn($"Received data 0x{dataIn.data:X2} socket: {dataIn.socket} sequence number: {dataIn.sequence}");
+                Logging.log.Info($"Received data 0x{dataIn.data:X2} socket: {dataIn.socket} sequence number: {dataIn.sequence}");
                 controlA.Address = mem_calc.SaveData(cur_write_block_id);
                 controlA.Data = dataIn.data;
             }
@@ -220,7 +220,7 @@ namespace TCPIP
                 // Get the current focus element, and test if it is ready
                 int focused_memory_block = mem_calc.FocusSegment();
                 if(mem_calc.IsSegmentDone(focused_memory_block)){
-                    Logging.log.Info($"memory segment is not ready, waiting. memory segment: {focused_memory_block}");
+                    Logging.log.Trace($"memory segment is not ready, waiting. memory segment: {focused_memory_block}");
                     invalid = true;
                 }
 
@@ -252,7 +252,7 @@ namespace TCPIP
                     }
                 }
 
-                // Segment has been tested, and we can now load its data
+                // Segment has been tested, and we can now load it's data
                 if(invalid){
                     addr = -1;
                 }else{
@@ -282,7 +282,7 @@ namespace TCPIP
 
                     // If the segment is fully loaded, we remove it from the sequence dict.
                     if(mem_calc.IsSegmentDone(focused_memory_block)){
-
+                        Logging.log.Warn($"Deleting beacuse block {focused_memory_block}");
                         sequence_dict.Delete(socket,sequence);
                     }
                 }
@@ -291,7 +291,7 @@ namespace TCPIP
             ///////////// Sending code
             // They are ready, we submit stuff
 
-            Logging.log.Trace($"The load segment status: {buffer_calc.LoadSegmentReady()} ready: {dataOutBufferConsumerControlBusIn.ready}");
+            Logging.log.Trace($"The load segment valid: {buffer_calc.LoadSegmentReady()} ready: {dataOutBufferConsumerControlBusIn.ready}");
 
 
             dataOutBufferProducerControlBusOut.valid = buffer_calc.LoadSegmentReady();
@@ -319,7 +319,11 @@ namespace TCPIP
 
                 send_preload = false;
 
-                Logging.log.Warn($"Sending(or preloading valid): data: 0x{data:X2} buffer_addr: {addr} sequence number: {sequence}");
+                Logging.log.Info($"Sending(or preloading valid): "+
+                                 $"data: 0x{data:X2} " +
+                                 $"buffer_addr: {addr} " +
+                                 $"sequence number: {sequence} " +
+                                 $"bytes left: {send_buffer[addr].length}");
 
             }
         }
