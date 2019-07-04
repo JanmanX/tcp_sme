@@ -85,6 +85,8 @@ namespace TCPIP
         public struct SendRingBuffer{
             public byte data;
             public ushort length;
+            public int socket;
+            public int sequence;
         }
         SendRingBuffer tempSendRingBuffer;
         private const int send_buffer_size = 4;
@@ -159,7 +161,11 @@ namespace TCPIP
                     // We save information about the newly seen segment for that socket
                     int test = this.sequence_dict.Insert(cur_write_socket,(int)cur_write_sequence);
                     memory_lookup[test] = cur_write_block_id;
-
+                    Logging.log.Warn($"Adding memory_segment " +
+                                     $"socket: {cur_write_socket} " +
+                                     $"sequence: {cur_write_sequence} " +
+                                     $"mem look addr: {test} " +
+                                     $"write block id: {cur_write_block_id}");
                     // Test if we have gotten a new sequence that is higher
                     tmp_sequenceinfo = this.sequence_dict.LoadMetaData(cur_write_socket);
                     if(tmp_sequenceinfo.maximum_sequence < dataIn.highest_sequence_ready){
@@ -178,8 +184,15 @@ namespace TCPIP
                 // Submit the data
                 controlA.Enabled = true;
                 controlA.IsWriting = true;
-                Logging.log.Info($"Received data 0x{dataIn.data:X2} socket: {dataIn.socket} sequence number: {dataIn.sequence}");
-                controlA.Address = mem_calc.SaveData(cur_write_block_id);
+
+                // We save information about the newly seen segment for that socket
+                int saveaddr = this.sequence_dict.Observe(cur_write_socket,(int)cur_write_sequence);
+                Logging.log.Warn($"Received data 0x{dataIn.data:X2} " +
+                                 $"Socket: {dataIn.socket} "+
+                                 $"Sequence number: {dataIn.sequence} " +
+                                 $"sequence dict addr: {saveaddr} " +
+                                 $"memory lookup: {memory_lookup[saveaddr]}" );
+                controlA.Address = mem_calc.SaveData(memory_lookup[saveaddr]);
                 controlA.Data = dataIn.data;
             }
         }
@@ -197,6 +210,8 @@ namespace TCPIP
                 byte data = readResultB.Data;
                 tempSendRingBuffer.data = data;
                 tempSendRingBuffer.length = buffer_calc.MetadataCurrentLoadSegment().accum_len;
+                tempSendRingBuffer.socket = buffer_calc.MetadataCurrentLoadSegment().socket;
+                tempSendRingBuffer.sequence = (int)buffer_calc.MetadataCurrentLoadSegment().sequence;
                 send_buffer[buffer] = tempSendRingBuffer;
                 Logging.log.Trace($"Got memory. goes to buffer:{buffer} data:0x{data:X2}");
                 buffer_calc.FinishFillingCurrentSaveSegment();
@@ -239,15 +254,15 @@ namespace TCPIP
 
                     // If this segment is not the first, push the current segment to top and try again
                     if (sequence_memory_block != focused_memory_block){
-                        Logging.log.Info("Segment is not the last one");
-                        mem_calc.DelaySegment(focused_memory_block);
+                        Logging.log.Warn("Segment is not the last one");
+                        memory_lookup[sequence_dict.Observe(socket,sequence)] = mem_calc.DelaySegment(focused_memory_block);
                         invalid = true;
                     }
 
                     // If the sequence is bigger than the max, we should not use it, as it is not in order
                     if(sequence > maximum_sequence){
-                        Logging.log.Info("Segment is in front of sequence, must be missing blocks");
-                        mem_calc.DelaySegment(focused_memory_block);
+                        Logging.log.Warn("Segment is in front of sequence, must be missing blocks");
+                        memory_lookup[sequence_dict.Observe(socket,sequence)] = mem_calc.DelaySegment(focused_memory_block);
                         invalid = true;
                     }
                 }
@@ -279,12 +294,6 @@ namespace TCPIP
 
                     // We save the metadata onto the buffer
                     buffer_calc.NextSegment(mem_calc.LoadMetaData(focused_memory_block));
-
-                    // If the segment is fully loaded, we remove it from the sequence dict.
-                    if(mem_calc.IsSegmentDone(focused_memory_block)){
-                        Logging.log.Warn($"Deleting beacuse block {focused_memory_block}");
-                        sequence_dict.Delete(socket,sequence);
-                    }
                 }
             }
 
@@ -306,11 +315,13 @@ namespace TCPIP
 
             if(send_preload && buffer_calc.LoadSegmentReady())
             {
-                dataOut.socket = buffer_calc.MetadataCurrentLoadSegment().socket;
-                long sequence = buffer_calc.MetadataCurrentLoadSegment().sequence;
                 int addr = buffer_calc.LoadData();
+
+                int socket = send_buffer[addr].socket;
+                dataOut.socket = socket;
                 byte data = send_buffer[addr].data;
                 dataOut.data = data;
+                int sequence = send_buffer[addr].sequence;
 
                 dataOutBufferProducerControlBusOut.valid = true;
                 dataOutBufferProducerControlBusOut.bytes_left = send_buffer[addr].length;
@@ -319,11 +330,18 @@ namespace TCPIP
 
                 send_preload = false;
 
-                Logging.log.Info($"Sending(or preloading valid): "+
+                Logging.log.Warn($"Sending(or preloading valid): "+
                                  $"data: 0x{data:X2} " +
                                  $"buffer_addr: {addr} " +
                                  $"sequence number: {sequence} " +
+                                 $"socket: {socket} " +
                                  $"bytes left: {send_buffer[addr].length}");
+
+                // If the segment is fully loaded, we remove it from the sequence dict.
+                if(send_buffer[addr].length == 0){
+                    Logging.log.Warn($"Deleting beacuse all have been sent socket: {socket} sequence: {sequence}");
+                    sequence_dict.Delete(socket,sequence);
+                }
 
             }
         }
