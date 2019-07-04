@@ -300,7 +300,7 @@ namespace TCPIP
 
                 // Set the key
                 k.index = delete_node.next;
-                k.offset = index + k.offset; // delete_node.offset + k.offset;
+                k.offset =  delete_node.offset + k.offset; //index + k.offset; // delete_node.offset + k.offset;
                 keys[key_pointer] = k;
 
                 // Delete it
