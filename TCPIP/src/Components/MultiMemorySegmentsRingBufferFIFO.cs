@@ -172,7 +172,7 @@ namespace TCPIP
             next_head_segment_id = (next_head_segment_id + 1) % num_segments;
             return ret;
         }
-<
+
         public bool IsSegmentDone(int segment_ID)
         {
             return segment_list[segment_ID].done;
