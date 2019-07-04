@@ -300,7 +300,7 @@ namespace TCPIP
 
                 // Set the key
                 k.index = delete_node.next;
-                k.offset =  delete_node.offset + k.offset; //index + k.offset; // delete_node.offset + k.offset;
+                k.offset = index + k.offset; // delete_node.offset + k.offset;
                 keys[key_pointer] = k;
 
                 // Delete it
@@ -340,7 +340,7 @@ namespace TCPIP
             }
             KeyTranslation k = keys[key_pointer];
             // With the pointer from the key lookup, we can traverse the link list
-            return TraverseLinkPointerExact(k.index, index);
+            return TraverseLinkPointerExact(k.index, index - k.offset);
         }
 
         public void SaveMetaData(int key, MetaData meta_data){
