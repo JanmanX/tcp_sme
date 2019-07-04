@@ -45,7 +45,8 @@ namespace TCPIP
 
         // Like focus segment, this is implementation specific, in that it may change what focus
         // segment returns , but is up to the underlaying structure (FIFO etc.)
-        bool DelaySegment(int segment_ID);
+        // returns the pointer where the segment has been moved
+        int DelaySegment(int segment_ID);
 
         // Get information from the segment, if it is full, done etc.
         bool IsSegmentDone(int segment_ID);
