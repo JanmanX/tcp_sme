@@ -253,7 +253,7 @@ namespace TCPIP
                 int link_node_before_depth = DistancebetweenLinks(k.index,link_index_before) + k.offset;
                 link_node_before.used = true;
                 int link_node_before_offset = link_node_before.offset;
-                link_node_before.offset = link_node_before_depth - index;
+                link_node_before.offset = index - link_node_before_depth ;
                 int link_node_before_next = link_node_before.next;
                 link_node_before.next = link_index_new;
                 links[link_index_before] = link_node_before;
@@ -261,7 +261,7 @@ namespace TCPIP
                 // Set the list link
                 LinkEntry link_node_new = links[link_index_new];
                 link_node_new.used = true;
-                link_node_new.offset = link_node_before_offset - link_node_before.offset;
+                link_node_new.offset = link_node_before_offset + link_node_before_depth - index; //link_node_before_offset - link_node_before.offset;
                 link_node_new.next = link_node_before_next;
                 links[link_index_new] = link_node_new;
                 return link_index_new;
