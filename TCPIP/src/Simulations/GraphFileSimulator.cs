@@ -83,7 +83,7 @@ namespace TCPIP
 
 
         private int frame_number = 0;
-        private System.Collections.Generic.IEnumerator<(ushort type,byte data,uint bytes_left)> send_enumerator = null;
+        private System.Collections.Generic.IEnumerator<(ushort type,byte data,uint bytes_left,PacketGraph.Packet packet)> send_enumerator = null;
         private bool dataExists = false;
         private void PacketSend()
         {
@@ -113,7 +113,7 @@ namespace TCPIP
                     datagramBusInBufferProducerControlBusOut.valid = true;
                     datagramBusInBufferProducerControlBusOut.bytes_left = send_enumerator.Current.bytes_left;
                     // Set the data
-                    datagramBusIn.frame_number = frame_number;
+                    datagramBusIn.frame_number = send_enumerator.Current.packet.id; //frame_number;
                     datagramBusIn.data = send_enumerator.Current.data;
                     datagramBusIn.type = send_enumerator.Current.type;
                 }

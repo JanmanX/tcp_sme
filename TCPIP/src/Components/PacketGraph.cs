@@ -233,8 +233,8 @@ namespace TCPIP
 
         ///////////////////////////////////////////////////
         // Public Functions
-        private (ushort type,byte data,uint bytes_left) lastSend;
-        public IEnumerable<(ushort type,byte data,uint bytes_left)> IterateOverSend(){
+        private (ushort type,byte data,uint bytes_left,Packet packet) lastSend;
+        public IEnumerable<(ushort type,byte data,uint bytes_left,Packet packet)> IterateOverSend(){
             var send = IterateOver(PacketInfo.Send,(int)EthernetIIFrame.HEADER_SIZE).GetEnumerator();
             while(send.MoveNext())
             {
@@ -245,8 +245,8 @@ namespace TCPIP
             yield break;
         }
 
-        private (ushort type,byte data,uint bytes_left) lastDataOut;
-        public IEnumerable<(ushort type,byte data,uint bytes_left)> IterateOverDataOut(){
+        private (ushort type,byte data,uint bytes_left,Packet packet) lastDataOut;
+        public IEnumerable<(ushort type,byte data,uint bytes_left,Packet packet)> IterateOverDataOut(){
             var dataOut = IterateOver(PacketInfo.DataOut,0).GetEnumerator();
             while(dataOut.MoveNext())
             {
@@ -256,8 +256,8 @@ namespace TCPIP
             yield break;
         }
 
-        private IEnumerator<(ushort type,byte data,uint bytes_left)> dataIn;
-        private (ushort type,byte data,uint bytes_left) lastDataIn;
+        private IEnumerator<(ushort type,byte data,uint bytes_left,Packet packet)> dataIn;
+        private (ushort type,byte data,uint bytes_left,Packet packet) lastDataIn;
         public bool GatherDataIn(byte compare, int byte_number)
         {
             if (dataIn == null){
@@ -359,7 +359,7 @@ namespace TCPIP
         ///////////////////////////////////////////////////
         // Helper Functions
 
-        private IEnumerable<(ushort type,byte data,uint bytes_left)> IterateOver(PacketInfo info, int offset){
+        private IEnumerable<(ushort type,byte data,uint bytes_left,Packet packet)> IterateOver(PacketInfo info, int offset){
             // Get all packets that we have to send currently, and test if they are ready
             var toIterate = packetPointers.Where(
                 x => (packetList[x].info & info) > 0 &&
@@ -383,7 +383,7 @@ namespace TCPIP
 
             for (int i = 0; i < packetBytes.Count; i++)
             {
-                yield return (pack.ether_type,packetBytes[i],(uint)(packetBytes.Count-i-1));
+                yield return (pack.ether_type,packetBytes[i],(uint)(packetBytes.Count-i-1),pack);
                 packetList[pid].last_clock_active = clock;
             }
 
