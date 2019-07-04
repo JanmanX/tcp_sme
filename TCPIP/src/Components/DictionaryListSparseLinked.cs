@@ -369,7 +369,6 @@ namespace TCPIP
             int count = 0;
             // Limit to checking all keys only once
             while(count++ < links.Length){
-                last_link_index = (last_link_index + 1 ) % links.Length;
                 // Test if the current pointer is not used
                 if(!links[last_link_index].used){
                     // Set it to used, reset stuff and return link pointer
@@ -380,6 +379,7 @@ namespace TCPIP
                     links[last_link_index] = x;
                     return last_link_index;
                 }
+                last_link_index = (last_link_index + 1 ) % links.Length;
             }
             return -1;
         }
