@@ -18,6 +18,10 @@ namespace TCPIP
         // Pointers to detect head and tail of the ringbuffer
         private int next_head_segment_id = 0; // This points to the next free head segment
         private int current_tail_segment_id = 0; // This points to the current tail segment
+        // pointers to the head and tail memory pointers
+        private int tail_pointer = 0;
+        private int head_pointer = 0;
+
         private SegmentEntry[] segment_list;
 
 
@@ -133,41 +137,42 @@ namespace TCPIP
 
         public int AllocateSegment(int size)
         {
-
-            int last_segment_id = next_head_segment_id - 1 < 0 ? num_segments -1 : next_head_segment_id - 1;
-            int new_segment_id = next_head_segment_id;
-            // int last_segment_id = head_segment_id;
-            // int new_segment_id = (last_segment_id + 1) % num_segments;
-            SegmentEntry last_segment = segment_list[last_segment_id];
-            SegmentEntry new_segment = segment_list[new_segment_id];
+            // Get the head element, so we can modify it
+            SegmentEntry new_segment = segment_list[next_head_segment_id];
             SegmentEntry tail_segment = segment_list[current_tail_segment_id];
 
-            // If the next segment is done or full, it is not ready
+            // Check if it is good, if not, all segments must be filled up
             if(!new_segment.done && !new_segment.full)
             {
+                Logging.log.Fatal("The segment entry table is full!");
                throw new System.Exception("The segment entry table is full!");
             }
             // If the range is currently bigger than what we can handle, there is nothing to do
             // If the tail segment and the last segment is are the same, then we must be hitting
             // themselves (full empty buffer)
-            if (MemoryRange(last_segment.stop, tail_segment.start) < size && current_tail_segment_id != new_segment_id){
-                Logging.log.Error($"The range : {last_segment.stop},{tail_segment.start} is not large enough for {size}");
+            if (MemoryRange(head_pointer,tail_pointer) < size && current_tail_segment_id != next_head_segment_id){
+                Logging.log.Error($"The range : {head_pointer},{tail_pointer} is not large enough for {size}");
+                Logging.log.Fatal($"head_pointer: {head_pointer} tail_pointer {tail_pointer} mem: {MemoryRange(head_pointer,tail_pointer)}");
                 throw new System.Exception("The range is not big enough for the allocation");
             }
             new_segment.done = false;
             new_segment.full = false;
-            new_segment.start = last_segment.stop;
+            new_segment.start = head_pointer;
             // Offset with last byte, so we do not have to subtract 1
             new_segment.stop = (new_segment.start + size) % memory_size;
             new_segment.current = 0;
-            // save the segment
-            segment_list[new_segment_id] = new_segment;
-            // set the head segment to a new segment
-            next_head_segment_id = (new_segment_id + 1) % num_segments;
-            Logging.log.Trace($"Allocating segment of size {size}. Segment id {new_segment_id}");
-            return new_segment_id;
-        }
+            // Set the new tail pointer
+            head_pointer =  new_segment.stop + 1;
 
+            // save the segment
+            segment_list[next_head_segment_id] = new_segment;
+            // set the head segment to a new segment
+            Logging.log.Trace($"Allocating segment of size {size}. Segment id {next_head_segment_id}");
+            int ret = next_head_segment_id;
+            next_head_segment_id = (next_head_segment_id + 1) % num_segments;
+            return ret;
+        }
+<
         public bool IsSegmentDone(int segment_ID)
         {
             return segment_list[segment_ID].done;
@@ -193,6 +198,12 @@ namespace TCPIP
             }
             cur_segment.done = true;
             segment_list[segment_ID] = cur_segment;
+
+            // Check the boundary to se if we should update the tail pointer
+            if(cur_segment.start == tail_pointer){
+                tail_pointer = cur_segment.start + 1;
+            }
+
             // See if we should progress the tail pointer;
             for(int i = 1; i < num_segments; i++)
             {
