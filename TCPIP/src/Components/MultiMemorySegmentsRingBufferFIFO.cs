@@ -251,14 +251,15 @@ namespace TCPIP
         }
 
         // This function moves the segment to the top of the fifo queue
-        public bool DelaySegment(int segment_ID)
+        public int DelaySegment(int segment_ID)
         {
             // Scope in the new segment, and test if it is ready
             SegmentEntry new_segment = segment_list[next_head_segment_id];
+            int retSegment = next_head_segment_id;
             if(!new_segment.done && !new_segment.full)
             {
                throw new System.Exception("The segment entry table is full!");
-               return false;
+               return -1;
             }
             // Point the new element to the old
             segment_list[next_head_segment_id] = segment_list[segment_ID];
@@ -267,9 +268,16 @@ namespace TCPIP
             if(!IsSegmentFull(segment_ID)){SegmentFull(segment_ID);}
             if(!IsSegmentDone(segment_ID)){SegmentDone(segment_ID);}
 
-            // Increment the next header
+            // reset the start and stop pointers
+            SegmentEntry deleted = segment_list[segment_ID];
+            deleted.start = 0;
+            deleted.stop = 0;
+            segment_list[segment_ID] = deleted;
+
+            // Increment the next segment id
             next_head_segment_id = (next_head_segment_id + 1) % num_segments;
-            return true;
+            Logging.log.Fatal($"Delaying segment {segment_ID} to {retSegment}");
+            return retSegment;
         }
 
         /////// Helper functions
