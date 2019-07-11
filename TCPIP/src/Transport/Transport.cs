@@ -69,9 +69,9 @@ namespace TCPIP
         private uint idx_in = 0x00;
         private bool read = true; // Indicates whether process is writing from local buffer
 
-        // Structure to hold information about the data being passed
+        // Structure to hold information about the data being passed and additional state data
         // Does not necessarily use all fields
-        private struct PassData
+        private struct StateData
         {
             public int socket;
             public uint sequence;
@@ -82,7 +82,7 @@ namespace TCPIP
             public uint bytes_passed; // Number of bytes passed
             public uint checksum_acc;
         }
-        private PassData passData;
+        private StateData stateData;
         private uint ip_id = 0x00; // Current ip_id
 
         // WRITE
@@ -225,7 +225,7 @@ namespace TCPIP
                     // End of header, start parsing
                     if (idx_in == TCP.HEADER_SIZE)
                     {
-                        Logging.log.Warn("TCP CURRENTLY NOT SUPPORTED!");
+                        Logging.log.Error("TCP CURRENTLY NOT SUPPORTED!");
                         // ParseTCP();
                     }
                     break;
@@ -239,8 +239,10 @@ namespace TCPIP
                     break;
 
                 case (byte)IPv4.Protocol.ICMP:
-                    if (idx_in == ICMP.HEADER_SIZE)
+                    if (idx_in == packetInBus.data_length)
                     {
+                        Logging.log.Info("Parsing icmp");
+                        ParseICMP();
                         Logging.log.Warn("ICMP CURRENTLY NOT SUPPORTED!");
                     }
                     break;
@@ -251,10 +253,10 @@ namespace TCPIP
         {
             state = TransportProcessState.Pass;
 
-            passData.socket = pcb_idx;
-            passData.sequence = sequence;
-            passData.length = length;
-            passData.bytes_passed = 0;
+            stateData.socket = pcb_idx;
+            stateData.sequence = sequence;
+            stateData.length = length;
+            stateData.bytes_passed = 0;
 
             // Set busses
             ResetAllBusses();
@@ -285,37 +287,37 @@ namespace TCPIP
             // an buffer.
 
             // calculate partial checksum
-            if (passData.bytes_passed % 2 == 0)
+            if (stateData.bytes_passed % 2 == 0)
             {
-                pcbs[passData.socket].checksum_acc +=
-                    (uint)((passData.high_byte << 8) | packetInBus.data);
+                pcbs[stateData.socket].checksum_acc +=
+                    (uint)((stateData.high_byte << 8) | packetInBus.data);
             }
             else
             {
-                passData.high_byte = packetInBus.data;
+                stateData.high_byte = packetInBus.data;
             }
 
             // Set control bus values
             dataInComputeProducerControlBusOut.valid = true;
-            dataInComputeProducerControlBusOut.bytes_left = passData.length - passData.bytes_passed;
+            dataInComputeProducerControlBusOut.bytes_left = stateData.length - stateData.bytes_passed;
 
             // data bus values
-            dataInWriteBus.socket = passData.socket;
-            dataInWriteBus.sequence = passData.sequence;
+            dataInWriteBus.socket = stateData.socket;
+            dataInWriteBus.sequence = stateData.sequence;
             dataInWriteBus.data = packetInBus.data;
-            dataInWriteBus.data_length = (int)passData.length;
+            dataInWriteBus.data_length = (int)stateData.length;
             dataInWriteBus.invalidate = false;
-            // XXX Should look up in the PCB for the last sequnece we can use
-            dataInWriteBus.highest_sequence_ready = passData.sequence;
-            passData.bytes_passed++;
+            // XXX Should look up in the PCB for the last sequence we can use
+            dataInWriteBus.highest_sequence_ready = stateData.sequence;
+            stateData.bytes_passed++;
 
 
             // If last byte
             if (packetInBufferProducerControlBusIn.bytes_left == 0)
             {
                 // Finish checksum
-                pcbs[passData.socket].checksum_acc = ((pcbs[passData.socket].checksum_acc & 0xFFFF)
-                        + (pcbs[passData.socket].checksum_acc >> 0x10));
+                pcbs[stateData.socket].checksum_acc = ((pcbs[stateData.socket].checksum_acc & 0xFFFF)
+                        + (pcbs[stateData.socket].checksum_acc >> 0x10));
 
                 dataInComputeProducerControlBusOut.bytes_left = 0;
                 //                if (pcbs[passData.socket].checksum_acc != 0)
@@ -340,8 +342,8 @@ namespace TCPIP
 
             state = TransportProcessState.Send;
 
-            passData.bytes_passed = 0;
-            passData.checksum_acc = 0;
+            stateData.bytes_passed = 0;
+            stateData.checksum_acc = 0;
 
             idx_out = 0;
             sending_header = false;
@@ -349,7 +351,8 @@ namespace TCPIP
 
         private void Send()
         {
-            if (dataOutBufferProducerControlBusIn.valid && passData.bytes_passed < MAX_PACKET_DATA_SIZE
+            if (dataOutBufferProducerControlBusIn.valid
+                && stateData.bytes_passed < MAX_PACKET_DATA_SIZE
                 && sending_header == false)
             {
                 SendData();
@@ -376,18 +379,18 @@ namespace TCPIP
             packetOutComputeProducerControlBusOut.bytes_left = 1; // at least one more
 
             packetOutWriteBus.data = dataOutReadBus.data;
-            packetOutWriteBus.addr = (int)(UDP.HEADER_SIZE + passData.bytes_passed++); // XXX: hardcoded for UDP fixed size header
+            packetOutWriteBus.addr = (int)(UDP.HEADER_SIZE + stateData.bytes_passed++); // XXX: hardcoded for UDP fixed size header
 
             // Update accumulated checksum
-            passData.checksum_acc += dataOutReadBus.data;
+            stateData.checksum_acc += dataOutReadBus.data;
 
             // Local info
-            passData.socket = dataOutReadBus.socket;
+            stateData.socket = dataOutReadBus.socket;
         }
 
         private void BuildHeader()
         {
-            if (passData.socket < 0 || passData.socket > pcbs.Length)
+            if (stateData.socket < 0 || stateData.socket > pcbs.Length)
             {
                 // XXX
                 Console.WriteLine("Trying to send from invalid socket");
@@ -395,14 +398,17 @@ namespace TCPIP
                 StartIdle();
                 return;
             }
-            switch (pcbs[passData.socket].protocol)
+            switch (pcbs[stateData.socket].protocol)
             {
                 case (byte)IPv4.Protocol.UDP:
-                    BuildHeaderUDP(passData);
+                    BuildHeaderUDP(stateData);
+                    break;
+                case (byte)IPv4.Protocol.ICMP:
+                    BuildHeaderUDP(stateData);
                     break;
 
                 default:
-                    Console.WriteLine($"Unsupported protocol for sending: {pcbs[passData.socket].protocol}");
+                    Console.WriteLine($"Unsupported protocol for sending: {pcbs[stateData.socket].protocol}");
                     StartIdle();
                     break;
             }
