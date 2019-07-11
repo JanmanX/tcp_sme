@@ -59,7 +59,7 @@ namespace TCPIP
         }
 
 
-        private void BuildHeaderUDP(PassData data)
+        private void BuildHeaderUDP(StateData data)
         {
             buffer_out[UDP.SRC_PORT_OFFSET_0] = (byte)(pcbs[data.socket].l_port >> 0x08);
             buffer_out[UDP.SRC_PORT_OFFSET_1] = (byte)pcbs[data.socket].l_port;
