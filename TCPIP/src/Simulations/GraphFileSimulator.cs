@@ -124,9 +124,35 @@ namespace TCPIP
                 }
             }
         }
+        private bool receiveWaitNextClock = true;
+
         private void PacketReceive()
         {
-
+            datagramBusOutComputeConsumerControlBusOut.ready = false;
+            // if we got data ready to read
+            if(packetGraph.ReadyReceive()){
+                // If we do not have to wait one clock
+                if(!receiveWaitNextClock && datagramBusOutComputeProducerControlBusIn.valid)
+                {
+                    if(!packetGraph.GatherReceive(datagramBusOut.data,(int)datagramBusOutComputeProducerControlBusIn.bytes_left))
+                    {
+                        throw new Exception("Wrong data, see log");
+                    }
+                    receiveWaitNextClock = true;
+                }
+                if(datagramBusOutComputeProducerControlBusIn.valid)
+                {
+                    datagramBusOutComputeConsumerControlBusOut.ready = true;
+                    receiveWaitNextClock = false;
+                }
+                else
+                {
+                    datagramBusOutComputeConsumerControlBusOut.ready = false;
+                    receiveWaitNextClock = true;
+                }
+            }else{
+                receiveWaitNextClock = true;
+            }
         }
         private bool dataInWaitNextClock = true;
         private void PacketDataIn()

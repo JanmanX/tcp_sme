@@ -256,6 +256,49 @@ namespace TCPIP
             yield break;
         }
 
+        private IEnumerator<(ushort type,byte data,uint bytes_left,Packet packet)> receive;
+        private (ushort type,byte data,uint bytes_left,Packet packet) lastReceive;
+        public bool GatherReceive(byte compare, int byte_number)
+        {
+            if (receive == null){
+                receive = IterateOver(PacketInfo.Receive,0).GetEnumerator();
+            }
+
+            if(receive.MoveNext()){
+                byte excact = receive.Current.data;
+                lastReceive = receive.Current;
+                if(excact == compare && byte_number == receive.Current.bytes_left)
+                {
+                    Logging.log.Info($"Good comparison of input data from receive. " +
+                                     $"correct: 0x{excact:X2} index: {receive.Current.bytes_left} " +
+                                     $"observed: 0x{compare:X2} index: {byte_number}");
+                    if(byte_number == 0)
+                    {
+                        receive.MoveNext();
+                    }
+                    return true;
+                }
+                else
+                {
+                    Logging.log.Error($"Wrong comparison of input data from receive. " +
+                                      $"correct: 0x{excact:X2} index: {receive.Current.bytes_left} " +
+                                      $"observed: 0x{compare:X2} index: {byte_number}");
+                    return false;
+                }
+
+            }else
+            {
+                if(ReadyReceive()){
+                    receive.MoveNext();
+                    receive = null;
+                    return GatherReceive(compare, byte_number);
+                }
+            }
+            Logging.log.Warn($"No packet found for GatherReceive. compared to: 0x{compare:X2}");
+            return false;
+        }
+
+
         private IEnumerator<(ushort type,byte data,uint bytes_left,Packet packet)> dataIn;
         private (ushort type,byte data,uint bytes_left,Packet packet) lastDataIn;
         public bool GatherDataIn(byte compare, int byte_number)
@@ -506,6 +549,21 @@ namespace TCPIP
                     if((x.Value.info & (PacketInfo.Active)) > 0)
                     {
                         string tmp = $"{lastSend.bytes_left} 0x{lastSend.data:X2}";
+                        ret += $"\\n{tmp,7}";
+                    }
+                    else if((x.Value.info & (PacketInfo.Valid)) > 0)
+                    {
+                        ret += $"\\nDone";
+                    }
+                    else{
+                        ret += $"\\nWaiting";
+                    }
+                }
+                if((x.Value.info & PacketInfo.Receive) > 0)
+                {
+                    if((x.Value.info & (PacketInfo.Active)) > 0)
+                    {
+                        string tmp = $"{lastReceive.bytes_left} 0x{lastReceive.data:X2}";
                         ret += $"\\n{tmp,7}";
                     }
                     else if((x.Value.info & (PacketInfo.Valid)) > 0)
