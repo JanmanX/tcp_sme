@@ -118,7 +118,7 @@ namespace TCPIP
 
             // Test if we need to guess in the design
             if(maxDepends > 1 || initPackets.Count > 1 || exitPackets.Count > 1){
-                Logging.log.Warn("The graph may have to guess which node it is receiving data to");
+                Logging.log.Warn("The graph may have cases where the the current receiving node is dependent of ID, beware!");
             }
 
             // Calculate the clusters
