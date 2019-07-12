@@ -601,6 +601,21 @@ namespace TCPIP
                         ret += $"\\nWaiting";
                     }
                 }
+                if((x.Value.info & PacketInfo.DataOut) > 0)
+                {
+                    if((x.Value.info & (PacketInfo.Active)) > 0)
+                    {
+                        string tmp = $"{lastDataOut.bytes_left} 0x{lastDataOut.data:X2}";
+                        ret += $"\\n{tmp,7}";
+                    }
+                    else if((x.Value.info & (PacketInfo.Valid)) > 0)
+                    {
+                        ret += $"\\nDone";
+                    }
+                    else{
+                        ret += $"\\nWaiting";
+                    }
+                }
 
                 ret += "\",";
 
