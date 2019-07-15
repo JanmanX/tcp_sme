@@ -65,14 +65,87 @@ swap between physical connectors, such as going from ethernet cables to wireless
 or even another FPGA.
 \end{itemize}
 
-\section{The architecture}
-\subsection{Initi1al design}
+\section{Initial design}
 
-\begin{figure}
+% Spans 2 columns
+\begin{figure*}
+    \centering
     \includegraphics[scale=0.45]{design/design_0.eps}
     \caption{The initial design}
     \label{fig:initial_design}
+\end{figure*}
+
+The initial architecture had a very simplistic approach to its design in order 
+to aid with early identification of potential issues and problems. 
+The basic idea of the initial design is to minimize the number of memory 
+operations carried out. Under the assumption that the Ethernet interface used in the network 
+stack will likely have limited memory, everything needs to be copied directly to
+the stack. Figure \ref{fig:initial_design} shows the initial design, where the 
+leftmost module Ethernet connects to the memory for direct access, and each 
+parsing layers listens to this connection and performs accordingly. Each parsing 
+layer also connects to the subsequent layer in order to flag when the subsequent
+layer should start listening on the data-bus (that is, where the current packet
+header stops and the next header begins).\\
+An advantage that this design provided was the cetralized memory, which is much 
+easier to up-scale in terms of capacity and bandwidth. This global memory would 
+also be able to modify packets in-place, removing duplicate data, minimizing the 
+need to copy data around, and making it easier to keep track of the memory 
+fragmentation.
+
+\subsection{The issues}
+As anticipated, this initial design brought fourth the main issue fairly quickly 
+in the implementation phase, where most of these stem from the differences in 
+programming hardware as opposed to the software network stack, from which the 
+inspiration was drawn.
+
+\subsubsection{Internal parsing buffer or memory is largely unavoidable}
+Although listening to the global data-bus and processing on the bytes currently 
+therein  seems like an efficient way of minimizing the data-transfer required 
+across processes, it has shown to yield some unavoidable challenges.\\
+Parsing fields in a packet-header is much more cross-dependent than initially 
+anticipated; each field might have numerious implications on the way preceeding 
+and subsequent fields are read and interpreted. As an example, in the Internet
+Control Message Protocol (ICMP), a redirect message type has an IPv4 address field in 
+the header, whereas in the timestamp message type, this field is interpreted as 
+both an identifier and a sequence number.
+This sort of inter-dependency is hard to parse without the ability of caching 
+or buffering the header locally in the parsing process. 
+
+\subsubsection{Overutilized memory module}
+While the ethernet is the main writer to the memory module, the parsing layers 
+need to access and write to the module as well. At the very least, the memory 
+module would have 6 connections in the network, not counting any additional 
+components, such as user interface, firewall, etc. 
+Although numerous memory implementations exist on the FPGA landscape, Block RAM 
+(BRAM) seems to be the most suitable in this situation for its speed and latency.
+Unfortunately, many widely used block RAMs only have 2 simultaneous connections 
+(or "ports") at the same time. Additionally, the block rams are frequently 
+limited to only operate a few bytes of data at a time.\\
+Although some block RAMs, such as the ones found in Xilinx FPGAs can be cascaded\cite{xilinx_fpga_memory_resources}
+to lessen the impact of these limitations, this hardly provides a good basis for 
+a scalable design.
+
+\subsubsection{Data fragmentation and memory management}
+Another problem a unified address space in the global memory is how costly 
+basic memory operations, such as moving or copying, become. The initial 
+assumption that packets stored in memory could be reused by modifying them 
+in-place and send them turned out to be misguided, since the layout, size, and 
+the number of the outgoing packets very rarely resemble the in-going packets.\\
+Furthermore, the general purposeness of the memory makes it very hard to 
+structure. Without very complex memory management, the memory can get very 
+fragmented and slow.
+
+
+\section{Revised design}
+
+
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.45]{design/design_1.eps}
+    \caption{Second iteration of the design}
+    \label{fig:second_design}
 \end{figure}
+
 
 The initial architecture focused heavily on the input from the link interface, 
 minimizing hardware memory requirements, and to minimize the latency from the 
@@ -157,9 +230,9 @@ the parallel arrangement of the process blocks.
 
 \section{Pipelined design}
 \begin{figure}
-    \includegraphics[scale=0.45]{design/design_1.eps}
-    \caption{The revised design}
-    \label{fig:revised_design}
+    \includegraphics[scale=0.45]{design/design_2.eps}
+    \caption{The final design}
+    \label{fig:final_design}
 \end{figure}
 
 The next iteration of the design utilizes a fairly standard approach to 
@@ -175,7 +248,7 @@ packets, called "layer processes" for brevity, are by large kept intact from the
 previous design. The fairly simple, but highly sequential nature of packet 
 header parsing turned out to be very complicated to optimise with the additional
 computing power of the hardware, without introducing too much complication.\\
-Missing from the updated figure \ref{fig:revised_design} are the \texttt{Link In}
+Missing from the updated figure \ref{fig:final_design} are the \texttt{Link In}
 and \texttt{Link Out} processes, which, for now, are made by the ethernet 
 interface, which can easily parse and strip the first frame headers.
 
@@ -192,14 +265,14 @@ some logic to actually ensure that the reading process is ready to receive new
 data. While the Data Buffers, as introduced in the next section \ref{sec:data_buffers},
 solve the issue of blocks reading and writing data at their own pace, the busses
 must support an interface for sharing the state of both processes. Thus, while 
-the busses are depicted as directional with arrows in figure \ref{fig:revised_design},
+the busses are depicted as directional with arrows in figure \ref{fig:final_design},
 there is naturally a need for a control signal in the opposite direction to 
 control the data-flow. This communication protocol will be discussed further in 
 the implementation section \ref{sec:interface_signal_protocol}.
 
 
 \subsection{Data buffers} \label{sec:data_buffers}
-Illustrated as cylinders on figure \ref{fig:revised_design}, First-In, First-Out (FIFO)
+Illustrated as cylinders on figure \ref{fig:final_design}, First-In, First-Out (FIFO)
 buffers are introduced between each parsing process in order to control the data-flow 
 between the layers. Apart from maintaining a fairly large memory bank through 
 the block-RAM, these buffers also contain logic to store the incoming data
@@ -256,6 +329,53 @@ is a good basis for the interface used in the network stack.
 \end{itemize}
 
 The first version of the stack should support the following functions:
+\begin{description}
+\item[\texttt{listen(protocol, port)}]\hfill\\
+    Finds and initializes a free socket with the given protocol and port. This 
+    socket is immediatelly put into listen mode.
+    Returns error if protocol is not supported, if port taken, or if no free sockets 
+    are available.
+\item[\texttt{connect(protocol, ip, r\_port , l\_port])}]\hfill\\
+    Connects to a remote endpoint on \texttt{ip:remote\_port} using \texttt{protocol}.
+    This call is used mainly by connection-based protocols that need to 
+    establish a connection before exchangning data, although it can also be used 
+    by datagram-based protocols as a way of setting the default destination to
+    send subsequent data to.
+    Returns error if protocol is not supported, if no free sockets are available,
+    or if the optional local port is taken.
+
+\item[\texttt{accept(socket)}]\hfill\\
+    Accepts the pending connection and sets up the underlying socket state 
+    accordingly. Note that unlike the POSIX implementation of \texttt{accept},
+    which returns a new socket with the connection, this implementation changes 
+    the state of the current, listening, socket.
+    Returns error if no pending connection to accept, or if invalid socket 
+    supplied.
+
+\item[\texttt{send(socket, byte, [ip], [port])}]\hfill\\
+    Queues a byte for sending through the socket. An optional IP address and 
+    port can be specified in certain connectionless protocols. 
+    Guaranteed to succeed, given that the transport-bus can be written to. More 
+    on this discussed later.  
+\item[\texttt{recv(socket)}]\hfill\\
+    Reads (or "receives") a single byte from the socket. The appropriate error
+    code is set if no byte available on that particular socket.
+
+\item[\texttt{close(socket)}]\hfill\\
+    Closes the connection on \texttt{socket} and frees the socket for further 
+    usage. Calling on an already closed on non-existent socket has no effect.
+    Guaranteed to succeed.
+
+\end{description}
+
+While the arguably most essential functions have been defined, there are some 
+functions from the Berkeley Sockets API that are missing, mainly the 
+\texttt{bind()}
+
+You might notice that some functions lack .... blabla... because no uses identified ...
+
 % TODO: Table here
+
+
 % \cofeAm{0.7}{0.75}{2}{80}{0}
 
