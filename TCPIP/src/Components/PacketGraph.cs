@@ -526,11 +526,12 @@ namespace TCPIP
             {
                 string depends = String.Join(",",x.Value.dependsOn);
                 string required = String.Join(",",x.Value.requiredBy);
-                Logging.log.Info($"PacketID: {x.Key,5} Depends: {depends,7} Required: {required,7} Flags:" + x.Value.info);
-            }
-            foreach(var x in packetList.OrderBy(a => a.Key))
-            {
-                Logging.log.Info("Is ready " + x.Key + " " + isReady(x.Key));
+                Logging.log.Info($"PacketID: {x.Key,5} " +
+                                 $"Ready: {isReady(x.Key),5} " +
+                                 $"Depends: {depends,7} " +
+                                 $"Required: {required,7} " +
+                                 $"Extra: {x.Value.additional_data,4} " +
+                                 $"Flags:" + x.Value.info);
             }
         }
         // Dumps the current state as a graphwiz string
