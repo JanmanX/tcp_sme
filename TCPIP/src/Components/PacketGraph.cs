@@ -55,6 +55,7 @@ namespace TCPIP
             public string dataPath;
             public byte[] data;
             public ushort ether_type;
+            public string additional_data; // Contains the additional data from the filename
             public int last_clock_active; // The last clockcycle the packet was "active"
             public SortedSet<int> dependsOn;
             public SortedSet<int> requiredBy;
@@ -128,7 +129,7 @@ namespace TCPIP
         private Packet GenerateSimPacket(string filePath){
             Logging.log.Trace("Parsing " + filePath);
             var fileName =  Path.GetFileName(filePath);
-            var reg = new Regex(@"^(\d*)_?(.*)\-(\w*)\.bin$");
+            var reg = new Regex(@"^(\d*)_?(.*)\-(\w*)(?:\.(.*)|)\.bin$");
             var match = reg.Match(fileName);
             PacketInfo info = 0;
             var id = Int32.Parse(match.Groups[1].Value);
@@ -171,10 +172,14 @@ namespace TCPIP
                     Logging.log.Fatal("Packet metainfo not detected: " + fileName);
                     break;
             }
+            // Get the additional data
+            string additional_data = match.Groups[4].Value;
+
             // Create the packet
             Packet pack = new Packet();
             pack.id = id;
             pack.info = info;
+            pack.additional_data = additional_data;
             // if this packet can be sent or received, load the data
             if((pack.info & (PacketInfo.Send |
                              PacketInfo.Receive |
