@@ -55,6 +55,7 @@ namespace TCPIP
             public string dataPath;
             public byte[] data;
             public ushort ether_type;
+            public string additional_data; // Contains the additional data from the filename
             public int last_clock_active; // The last clockcycle the packet was "active"
             public SortedSet<int> dependsOn;
             public SortedSet<int> requiredBy;
@@ -118,7 +119,7 @@ namespace TCPIP
 
             // Test if we need to guess in the design
             if(maxDepends > 1 || initPackets.Count > 1 || exitPackets.Count > 1){
-                Logging.log.Warn("The graph may have to guess which node it is receiving data to");
+                Logging.log.Warn("The graph may have cases where the the current receiving node is dependent of ID, beware!");
             }
 
             // Calculate the clusters
@@ -128,7 +129,7 @@ namespace TCPIP
         private Packet GenerateSimPacket(string filePath){
             Logging.log.Trace("Parsing " + filePath);
             var fileName =  Path.GetFileName(filePath);
-            var reg = new Regex(@"^(\d*)_?(.*)\-(\w*)\.bin$");
+            var reg = new Regex(@"^(\d*)_?(.*)\-(\w*)(?:\.(.*)|)\.bin$");
             var match = reg.Match(fileName);
             PacketInfo info = 0;
             var id = Int32.Parse(match.Groups[1].Value);
@@ -171,10 +172,14 @@ namespace TCPIP
                     Logging.log.Fatal("Packet metainfo not detected: " + fileName);
                     break;
             }
+            // Get the additional data
+            string additional_data = match.Groups[4].Value;
+
             // Create the packet
             Packet pack = new Packet();
             pack.id = id;
             pack.info = info;
+            pack.additional_data = additional_data;
             // if this packet can be sent or received, load the data
             if((pack.info & (PacketInfo.Send |
                              PacketInfo.Receive |
@@ -521,11 +526,12 @@ namespace TCPIP
             {
                 string depends = String.Join(",",x.Value.dependsOn);
                 string required = String.Join(",",x.Value.requiredBy);
-                Logging.log.Info($"PacketID: {x.Key,5} Depends: {depends,7} Required: {required,7} Flags:" + x.Value.info);
-            }
-            foreach(var x in packetList.OrderBy(a => a.Key))
-            {
-                Logging.log.Info("Is ready " + x.Key + " " + isReady(x.Key));
+                Logging.log.Info($"PacketID: {x.Key,5} " +
+                                 $"Ready: {isReady(x.Key),5} " +
+                                 $"Depends: {depends,7} " +
+                                 $"Required: {required,7} " +
+                                 $"Extra: {x.Value.additional_data,4} " +
+                                 $"Flags:" + x.Value.info);
             }
         }
         // Dumps the current state as a graphwiz string
@@ -591,6 +597,21 @@ namespace TCPIP
                     if((x.Value.info & (PacketInfo.Active)) > 0)
                     {
                         string tmp = $"{lastDataIn.bytes_left} 0x{lastDataIn.data:X2}";
+                        ret += $"\\n{tmp,7}";
+                    }
+                    else if((x.Value.info & (PacketInfo.Valid)) > 0)
+                    {
+                        ret += $"\\nDone";
+                    }
+                    else{
+                        ret += $"\\nWaiting";
+                    }
+                }
+                if((x.Value.info & PacketInfo.DataOut) > 0)
+                {
+                    if((x.Value.info & (PacketInfo.Active)) > 0)
+                    {
+                        string tmp = $"{lastDataOut.bytes_left} 0x{lastDataOut.data:X2}";
                         ret += $"\\n{tmp,7}";
                     }
                     else if((x.Value.info & (PacketInfo.Valid)) > 0)
