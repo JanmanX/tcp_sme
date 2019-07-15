@@ -137,20 +137,26 @@ fragmented and slow.
 
 
 \section{Revised design}
+The initial architecture focused heavily on the input from the link interface, 
+minimizing hardware memory requirements, and to minimize the latency from the 
+source data-stream to its respective layer handler. Unfortunately, the opposite 
+revealed to be true, as the overly-utilized memory unveiled plentiful issues to 
+the performance.\\
 
-
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[scale=0.45]{design/design_1.eps}
     \caption{Second iteration of the design}
     \label{fig:second_design}
 \end{figure}
 
-
-The initial architecture focused heavily on the input from the link interface, 
-minimizing hardware memory requirements, and to minimize the latency from the 
-source data-stream to its respective layer handler.\\
-In the initial design, figure \ref{fig:initial_design}, the link interface, which
+To avoid the problem with global memory, the data needs to "flow" through the 
+components that need the data at that time. Therefore, as opposed to the initial 
+design, where the link interface writes to memory directly, in the revised design, 
+this connection is completely removed. The idea is to let all the data pass 
+pass through each state, letting each stage parse the required information, and 
+passing the rest to the next components.\\
+As seen on figure \ref{fig:second_design}, the link interface, which
 provides the raw byte-stream from the network, is connected to all of the input
 parsing layers. The layers are connected in the order in which a network frame 
 is parsed; link- to internet- to transport-layer. This approach aims to utilize
@@ -166,13 +172,12 @@ accordingly. The same procedure would be applied to the connection between
 When data is to be sent to the internet, the network frame would be built bottom
 up from the transport layer through internet to the link layer.
 
-\subsubsection{The issues}
-The issues quickly surfaced during the implementation of the design. Although 
+\subsection{The issues}
+The issues quickly surfaced during the implementation of this revised design. Although 
 the interconnect from the \texttt{Link Interface} to all the subsequent layers
-in parallel promised negligible latency, it came with a great cost to the solution:
-\begin{enumerate}
+in parallel promised negligible latency, it came with a great cost to the solution.
 
-\item \textbf{Process under-utilization} \label{item:process_utilization}\\
+\subsubsection{Process under-utilization} \label{item:process_utilization}
 Since each "in" process has to wait for the previous layer to signal when to 
 start listening on the data-bus, the layers would in average only be active a third
 of the time. Since each layer has very little information about the states of 
@@ -181,7 +186,7 @@ these phases.\\
 For example, it would be an immense challenge to coordinate an ICMP reply on a 
 faulty packet in the \texttt{Internet In}.
 
-\item \textbf{Redundant Link layer}\\
+\subsubsection{Redundant Link layer}
 While the Link layer is an essential part of the Internet Protocol Suite, it did 
 not fit well with the functionality of the rest of the stack. 
 Most network interfaces are equipped with buffers, on which integrated circuits
@@ -193,7 +198,7 @@ This memory, apart from the cyclic redundancy check, can be used as the initial
 step for parsing the packet, and only send the datagram to the stack.
 
 
-\item \textbf{IPv4 fragmentation and out of order TCP packets}\\
+\subsubsection{IPv4 fragmentation and out of order TCP packets}
 The chaotic nature of internet routing might cause packets to come out of order,
 or even get fragmented along the way. Since each layer parses the packet immediatelly
 as it is written to the bus, it became a challenge for the layers to figure out 
@@ -203,7 +208,7 @@ Although IPv4 fragmentation is an increasingly rare phenomenon, the network
 design is not able to handle the situation well.  
 
 
-\item \textbf{TCP connection state sharing}\\
+\subsubsection{TCP connection state sharing}
 With a clear separation between the "in" layers and the "out" layers, the 
 Transport block had to be split as well. Unfortunately, unlike the other stateless
 layers, the transportl layer actually needs to keep track of the connections and 
@@ -217,18 +222,48 @@ is not feasible. To solve this, a negotiation protocol may be introduced, howeve
 as pointed out in item \ref{item:process_utilization}, the processes are very
 limited in their execution time. A negotiation would be very hard to achieve in 
 such circumstances.
-% \item \textbf{Control and logic flow} \\
+
+
+\subsubsection{Problematic order of building and sending outgoing packets}
+Outgoing packets are built in the reverse order of which they are parsed -- the 
+inner layers are built first, and then the packet grows outwards by adding new 
+layers on top of the existing one.\\
+That in itself is not a problem, as the packet can be easily passed through the 
+network backwards from the last byte first.
+However, this would require that the network knows the length of the data-section
+of the packet beforehand, as it needs to know which user data-byte to start from.
+Unfortunately, knowing where to start prior to sending is not a trivial, nor is 
+it very efficient or practical. 
+For improved performance and flexibility, it is better to just let the 
+stack send as much data out as possible with as little overhead as possible.\\
+Figure \ref{fig:sending_packet_order} shows the possible ways of creating and 
+passing a packet along the network stack. 
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.45]{design/sending_packet_order.eps}
+    \caption{Possible orders of ways of building an outgoingg packet}
+    \label{fig:sending_packet_order}
+\end{figure}
+
+While the right side of figure \ref{fig:sending_packet_order} is more intuitive,
+it is impractical for the reasons described above. The left side is better 
+performance-wise, but slighty more odd in the way bytes are added without any 
+sequential order.
+
+
+% \subsubsection{Control and logic flow}
 % Although the layers take turns to parse the incoming byte-stream, the design 
-% handles the whole packets at once.  
+% handles the whole packets at once. This leaves 
 
-\end{enumerate}
-
-While it would be possible to work around these identified issues in code, the 
+\section{Pipelined design}
+While it would be possible to work around these identified issues with the 
+revised design in the code, the 
 added complexity would have additional ramifications on the project as a whole.
 Upon further analysis of analysis, it is clear that the source of the issues is 
 the parallel arrangement of the process blocks.
 
-\section{Pipelined design}
+
+
 \begin{figure}
     \includegraphics[scale=0.45]{design/design_2.eps}
     \caption{The final design}
@@ -369,12 +404,14 @@ The first version of the stack should support the following functions:
 \end{description}
 
 While the arguably most essential functions have been defined, there are some 
-functions from the Berkeley Sockets API that are missing, mainly the 
-\texttt{bind()}
-
-You might notice that some functions lack .... blabla... because no uses identified ...
-
-% TODO: Table here
+functions from the Berkeley Sockets API that have been omitted for purely 
+technical and practical reasons.\\
+The function \texttt{socket()} is mainly used to allocate and create new sockets 
+in an environment, but given that the hardware network stack has static allocation
+of the sockets, it is not needed.\\
+Additionaly, the \texttt{bind()} function is also missing for the sole reason 
+that in the current implementation of the network stack does not have any valid 
+reason not to bind a socket immediatelly.
 
 
 % \cofeAm{0.7}{0.75}{2}{80}{0}
