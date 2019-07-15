@@ -1,0 +1,4 @@
+# Ignore debug files form running the simulation
+*.dot
+*.dot.png
+*.mp4
