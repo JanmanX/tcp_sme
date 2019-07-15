@@ -82,9 +82,9 @@ namespace TCPIP
         }
 
 
-        private int frame_number = 0;
+        private int frame_number_send = 0;
         private System.Collections.Generic.IEnumerator<(ushort type,byte data,uint bytes_left,PacketGraph.Packet packet)> send_enumerator = null;
-        private bool dataExists = false;
+        private bool dataExistSend = false;
         private void PacketSend()
         {
 
@@ -92,22 +92,22 @@ namespace TCPIP
             if(send_enumerator == null)
             {
                 send_enumerator = packetGraph.IterateOverSend().GetEnumerator();
-                dataExists = send_enumerator.MoveNext();
-                if(dataExists){
-                    frame_number++;
+                dataExistSend = send_enumerator.MoveNext();
+                if(dataExistSend){
+                    frame_number_send++;
                 }
             }
             // If we are ready to send a packet
             if(packetGraph.ReadySend())
             {
                 // If there exist data, and the consumer are ready, we load new data
-                if(datagramBusInBufferConsumerControlBusIn.ready && dataExists)
+                if(datagramBusInBufferConsumerControlBusIn.ready && dataExistSend)
                 {
-                    dataExists = send_enumerator.MoveNext();
+                    dataExistSend = send_enumerator.MoveNext();
                 }
 
                 // if there exist data we insert it
-                if(dataExists){
+                if(dataExistSend){
 
                     // Set the busses
                     datagramBusInBufferProducerControlBusOut.valid = true;
