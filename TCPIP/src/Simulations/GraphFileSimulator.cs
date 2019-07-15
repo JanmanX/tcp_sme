@@ -41,26 +41,36 @@ namespace TCPIP
         // Simulation fields
         private readonly String dir;
 
+        private readonly int max_clocks;
+        private readonly bool debug;
         private PacketGraph packetGraph;
 
 
-        public GraphFileSimulator(String dir)
+        public GraphFileSimulator(String dir, int max_clocks, bool debug = false)
         {
             this.dir = dir;
+            this.max_clocks = max_clocks;
+            this.debug = debug;
             this.packetGraph = new PacketGraph(this.dir);
+            if(this.debug){
             this.packetGraph.Info();
+        }
+
         }
 
         public override async Task Run()
         {
-            Console.WriteLine(this.packetGraph.GraphwizState());
+            if(debug){
+                //Console.WriteLine(this.packetGraph.GraphwizState());
+                //return;
+                packetGraph.DumpStateInFile("Test");
+            }
             //return;
             // Get initial conditions
-            packetGraph.DumpStateInFile("Test");
             packetGraph.NextClock();
 
 
-            for(int i = 0; i < 1000; i++){
+            for(int i = 0; i < this.max_clocks; i++){
                 //Warning! this will fill up your disk fast!
 
                 Logging.log.Warn($"---------------------------------------------vvvvv-CLOCK {packetGraph.GetClock()}-vvvvv---------------------------------------");
@@ -71,14 +81,16 @@ namespace TCPIP
                 PacketDataOut();
                 PacketWait();
                 PacketCommand();
+                if(debug){
                 packetGraph.DumpStateInFile("Test");
+                }
                 //Logging.log.Warn($"---------------------------------------------^^^^^-CLOCK {packetGraph.GetClock()}-^^^^^---------------------------------------");
                 packetGraph.NextClock();
                 await ClockAsync();
 
 
             }
-            Logging.log.Info($"End of simulation with {frame_number} packets sent");
+            Logging.log.Info($"End of simulation with {frame_number_send} packets sent");
         }
 
 
