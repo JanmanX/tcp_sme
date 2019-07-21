@@ -250,6 +250,17 @@ it is impractical for the reasons described above. The left side is better
 performance-wise, but slighty more odd in the way bytes are added without any 
 sequential order.
 
+\begin{figure*}
+    \centering
+    \includegraphics[scale=0.45]{design/sending_packet_graph.eps}
+    \caption{The order in which an outgoing packet is built and passed through the network pipeline}
+    \label{fig:sending_packet_graph}
+\end{figure*}
+
+
+
+
+
 
 % \subsubsection{Control and logic flow}
 % Although the layers take turns to parse the incoming byte-stream, the design 
