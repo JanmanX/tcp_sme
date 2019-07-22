@@ -232,36 +232,14 @@ That in itself is not a problem, as the packet can be easily passed through the
 network backwards from the last byte first. That is, the inner-layer of a packet
 is passed on to the next layer first, then the header packet header is built, 
 and lastly, the header is passed on backwards.\\
-However, this poses a small challenge, as the \texttt{data}-section has to be 
-read by Transport in first-in, first-out order, solely for the reason that 
-Transport does not know beforehand how much data to send, nor whether more urgent 
-tasks appear during the transmission.
-Figure \ref{fig:sending_packet_order} shows the possible ways of creating and 
-passing a packet along the network stack. 
-\begin{figure}
-    \centering
-    \includegraphics[scale=0.45]{design/sending_packet_order.eps}
-    \caption{Possible orders of ways of building an outgoingg packet}
-    \label{fig:sending_packet_order}
-\end{figure}
-
-While the right side of figure \ref{fig:sending_packet_order} is more intuitive,
-it is impractical for the reasons described above. The left side is better 
-performance-wise, but slightly more odd in the way bytes are added without any 
-sequential order.\\
-Figure \ref{fig:sending_packet_graph} shows the building of an outgoing packet.
-Between each process, the colored block represents the state of the packet 
-being passed along the processes.  
-
-\begin{figure*}
-    \centering
-    \includegraphics[scale=0.45]{design/sending_packet_graph.eps}
-    \caption{The order in which an outgoing packet is built and passed through the network pipeline.
-    The colored boxes represent the state of the outgoing packet, and the red arrow
-    shows the order in which the bytes are passed.}
-    \label{fig:sending_packet_graph}
-\end{figure*}
-
+However, this assumes that the next layer to process the packet is available at 
+all times in order to process the packet. This is certainly not the case, as 
+layers such as \texttt{Link Out} and \texttt{Internet Out} might be in the 
+process of sending out their own protocol-specific control messages (such as 
+an ARP annoucement in the Link Layer or ICMP reply in the Internet Layer).\\
+A negotiation protocol can be implemented between the outgoing processes in to 
+postpone the outgoing packet, but these structural hazards, as known from 
+conventional processor pipelines, add a lot of complexity to the system.
 
 
 
@@ -278,8 +256,6 @@ added complexity would have additional ramifications on the project as a whole.
 Upon further analysis of analysis, it is clear that the source of the issues is 
 the parallel arrangement of the process blocks.
 
-
-
 \begin{figure}
     \includegraphics[scale=0.45]{design/design_2.eps}
     \caption{The final design}
@@ -293,6 +269,7 @@ forward data at their own pace, without any major limitation from the other
 parts of the system.
 
 
+
 \subsection{Internet layer processes} \label{sec:layer_processes}
 The processes performing computation and processing on the actual internet 
 packets, called "layer processes" for brevity, are by large kept intact from the 
@@ -300,8 +277,9 @@ previous design. The fairly simple, but highly sequential nature of packet
 header parsing turned out to be very complicated to optimise with the additional
 computing power of the hardware, without introducing too much complication.\\
 Missing from the updated figure \ref{fig:final_design} are the \texttt{Link In}
-and \texttt{Link Out} processes, which, for now, are made by the ethernet 
+and \texttt{Link Out} processes, which, for now, are handled by the ethernet 
 interface, which can easily parse and strip the first frame headers.
+
 
 \subsection{Busses}
 The busses in the revised pipelined design are devised such that communication 
@@ -335,6 +313,49 @@ challenge. While the buffers can be read from at any time, the layer-parsing
 processes do not have this luxury, as they do not have any significant internal
 buffer. Here again it becomes obvious that a handshake protocol needs to be used 
 in the bus-communication between the buffers and the processes.
+
+\subsubsection{Order of outgoing packets}
+In the previous design, it was obvious how sending packets might become a challenge
+given that all processes involved must be ready to promptly operate on the 
+outgoing packet. With the introduction of data buffers, the processing of an 
+outgoing packet can be delayed.
+However, there lies another small problem with the way data is passed around.
+The \texttt{data}-section has to be read by Transport in first-in, first-out 
+order, solely for the reason that Transport does not know beforehand how much 
+data to send, nor whether more urgent tasks appear during the transmission.
+Figure \ref{fig:sending_packet_order} shows the possible ways of creating and 
+passing a packet along the network stack. 
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.45]{design/sending_packet_order.eps}
+    \caption{Possible orders of ways of building an outgoing packet}
+    \label{fig:sending_packet_order}
+\end{figure}
+On the right side of figure \ref{fig:sending_packet_order}, the data is sent 
+from the last byte first, indicated by the red arrow from bottom up. Then, the 
+transport-, internet-, and lastly, the frame-header is built and sent with it 
+in the same order, from the last byte of the header till the first.
+While this method is fairly simple, it has two problems that are hard to work
+around -- firstly, the user might be in the process of writing outgoing bytes 
+to the \texttt{Data Out} buffer, in which case, Transport cannot beforehand 
+start sending the last byte. The second problem is that, although Transport 
+wants to send as much data at once as possible to lessen the overhead from the 
+rest of the package, more urgent tasks might come up during the transmission.\\
+The left side of figure \ref{fig:sending_packet_order} shows another approach
+to sending a packet. Here, the data is read  
+Figure \ref{fig:sending_packet_graph} shows the building of an outgoing packet.
+Between each process, the colored block represents the state of the packet 
+being passed along the processes.  
+
+\begin{figure*}
+    \centering
+    \includegraphics[scale=0.45]{design/sending_packet_graph.eps}
+    \caption{The order in which an outgoing packet is built and passed through the network pipeline.
+    The colored boxes represent the state of the outgoing packet, and the red arrow
+    shows the order in which the bytes are passed.}
+    \label{fig:sending_packet_graph}
+\end{figure*}
+
 
 
 \subsection{Interface}
