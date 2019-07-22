@@ -340,19 +340,34 @@ around -- firstly, the user might be in the process of writing outgoing bytes
 to the \texttt{Data Out} buffer, in which case, Transport cannot beforehand 
 start sending the last byte. The second problem is that, although Transport 
 wants to send as much data at once as possible to lessen the overhead from the 
-rest of the package, more urgent tasks might come up during the transmission.\\
+rest of the package, more urgent tasks might come up during the transmission, 
+yet the operation has to finish reading the last (first) byte.\\
 The left side of figure \ref{fig:sending_packet_order} shows another approach
-to sending a packet. Here, the data is read  
+to sending a packet. Here, the data portion of the packet is read as is in the 
+first-in, first-out byte order. The headers are written afterwards, also in the 
+FIFO order. It is important to notice that even though the package looks 
+structurally right when reading backwards (the frame header is in the beginning,
+then Internet header and so on), the ordering of the bytes is not correct! For 
+example, if reading the right-hand on figure \ref{fig:sending_packet_order} 
+packet in reverse order, the data section would begin with the very last byte!\\
+Here, the intermediate buffers once again offload this problem, as one of the 
+brilliant features is that they enable the system to pass bytes out of order.
+In that case, the sending process can begin in the middle of a package, and then
+append to the beginning of it at the very last.\\
 Figure \ref{fig:sending_packet_graph} shows the building of an outgoing packet.
 Between each process, the colored block represents the state of the packet 
-being passed along the processes.  
+being passed along the processes. The red arrow indicated the first stage of 
+the connection between processes, where data is passed from a previous layer.
+The blue line indicates the data that the process itself appends to the stream.\\
+The implementation of this out-of-order forwarding will be described in-depth 
+in the implementation chapter \ref{chap:implementation}.
 
 \begin{figure*}
     \centering
     \includegraphics[scale=0.45]{design/sending_packet_graph.eps}
     \caption{The order in which an outgoing packet is built and passed through the network pipeline.
-    The colored boxes represent the state of the outgoing packet, and the red arrow
-    shows the order in which the bytes are passed.}
+    The colored boxes represent the state of the outgoing packet, the red arrow
+    indicates the first stage of forwarding, and the blue line indicates the last stage.}
     \label{fig:sending_packet_graph}
 \end{figure*}
 
