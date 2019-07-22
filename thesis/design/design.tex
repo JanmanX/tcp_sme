@@ -229,13 +229,13 @@ Outgoing packets are built in the reverse order of which they are parsed -- the
 inner layers are built first, and then the packet grows outwards by adding new 
 layers on top of the existing one.\\
 That in itself is not a problem, as the packet can be easily passed through the 
-network backwards from the last byte first.
-However, this would require that the network knows the length of the data-section
-of the packet beforehand, as it needs to know which user data-byte to start from.
-Unfortunately, knowing where to start prior to sending is not a trivial, nor is 
-it very efficient or practical. 
-For improved performance and flexibility, it is better to just let the 
-stack send as much data out as possible with as little overhead as possible.\\
+network backwards from the last byte first. That is, the inner-layer of a packet
+is passed on to the next layer first, then the header packet header is built, 
+and lastly, the header is passed on backwards.\\
+However, this poses a small challenge, as the \texttt{data}-section has to be 
+read by Transport in first-in, first-out order, solely for the reason that 
+Transport does not know beforehand how much data to send, nor whether more urgent 
+tasks appear during the transmission.
 Figure \ref{fig:sending_packet_order} shows the possible ways of creating and 
 passing a packet along the network stack. 
 \begin{figure}
@@ -247,13 +247,18 @@ passing a packet along the network stack.
 
 While the right side of figure \ref{fig:sending_packet_order} is more intuitive,
 it is impractical for the reasons described above. The left side is better 
-performance-wise, but slighty more odd in the way bytes are added without any 
-sequential order.
+performance-wise, but slightly more odd in the way bytes are added without any 
+sequential order.\\
+Figure \ref{fig:sending_packet_graph} shows the building of an outgoing packet.
+Between each process, the colored block represents the state of the packet 
+being passed along the processes.  
 
 \begin{figure*}
     \centering
     \includegraphics[scale=0.45]{design/sending_packet_graph.eps}
-    \caption{The order in which an outgoing packet is built and passed through the network pipeline}
+    \caption{The order in which an outgoing packet is built and passed through the network pipeline.
+    The colored boxes represent the state of the outgoing packet, and the red arrow
+    shows the order in which the bytes are passed.}
     \label{fig:sending_packet_graph}
 \end{figure*}
 
