@@ -11,6 +11,7 @@ namespace TCPIP
         }
         public interface WriteBus : IBus
         {
+            long frame_number { get; set; }
             int socket { get; set; }
             int data { get; set; }
         }
