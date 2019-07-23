@@ -1,26 +1,86 @@
 \chapter{Implementation}
 \label{chap:implementation}
-In this chapter, the implementation of the network stack using the pipeline
-design is outlined and described, the application of SME detailed and evaluated,
-and lastly, the viability of the system on an FPGA is discussed.\\
+In this chapter, the implementation of the network stack using the
+pipelined design from chapter \ref{chap:design} is outlined and described,
+the application of SME detailed and evaluated, and lastly, the viability
+of the system on an FPGA is discussed.\\
+The network stack is implemented in C\# using the C\# version of SME, which is,
+at the moment of writing, more mature and feature-rich. The current version of
+the implementation supports most of the absolutely vital parts of the IPv4
+protocol, as well as the UDP protocol, as specified by RFC 1122\cite{RFC1122}.
+Although work has been carried out in order to ensure that additional protocols
+can be implemented without obstructions, no additional protocols are supported
+at the moment.\\
+The solution is fairly well-divided into 3 different types of components,
+relating closely to those of SME: processes, buffers, and busses. The most
+interesting parts of these components will be described in further detail in the
+following sections.
 
 
+\section{Processes}
+The processes are arguably the most vital part of the system, as they provide
+the computation and "processing" on the in- and out-going packets.
+It is important to note that although there are many other types of "processes",
+in the network, such as the buffers, we will mainly refer to the modules doing
+actual business-logic as "processes" \footnote{These processes are not to be
+confused with SME processes, which are used for the implementation of both the
+buffers and processes.}.
 
-\subsection{Interface Signal protocols}
+The essential processes in the network are represented as light-grey boxes in
+the figure \ref{fig:final_design}. These processes are \texttt{Internet\_In},
+\texttt{Internet\_Out}, and \texttt{Transport}.
+
+
+\subsection{SME execution flow and state-machines}
+Network communication can consists of countless different packets, formats,
+protocols, combinations of flags and settings, and even errors and corrupted
+bits. The processes in the network have to take on a manifold of jobs in order
+to handle all these scenarios, which sadly cannot be handled with a simple
+combinational logic circuit. To operate under these various conditions, these
+processes are modelled as finite state machines, maintaining a single state at
+all times.\\
+The processes have a lot of similar states, such as \texttt{Idle}, \texttt{Receive},
+\texttt{Pass}, or \texttt{Send}.
+
+\subsubsection{\texttt{Internet In} state machine}
+The state-machine of \texttt{Internet In} is probably the most simple of all the
+state-machines, as it can effectively only read new packets from the Link-layer,
+and pass it along the pipeline.
+
+\subsubsection{\texttt{Transport} state machine}
+
+\subsubsection{\texttt{Internet Out} state machine}
+
+
+\subsection{Internal memory}
+
+
+\section{Buffers}
+\subsection{Internal memory}
+\subsection{IPv4 de-fragmentation and segment unification}
+\subsection{Allocation}
+
+
+\section{Busses}
+\section{Interface Signal protocols}
 \label{sec:interface_signal_protocol}
 With the introduction of buffers between each parsing processes, a clear pattern
-emerged. The layer-handling processes are responsible for numerous real-time tasks 
-(parsing, sending, protocol-specific tasks, etc), while also limited by their 
-fixed internal buffers. These processes are not always ready to receive input 
+emerged. The layer-handling processes are responsible for numerous real-time tasks
+(parsing, sending, protocol-specific tasks, etc), while also limited by their
+fixed internal buffers. These processes are not always ready to receive input
 from preceding processes, while they at the same time must be able to write their
 output to following processes immediatelly.\\
 The buffers are a stark opposite, as their large internal block memories enable
-them to buffer huge chunks of memory, while also being able to wait for the 
+them to buffer huge chunks of memory, while also being able to wait for the
 succeeding process to start reading.\\
-With these two established scenarios, protocols for each can be proposed.  
+With these two established scenarios, protocols for each can be proposed.
 
-\subsection{Buffer-Producer data transfer}
+\subsection{Buffer-Producer}
+\subsection{Compute-Producer}
 
-\subsection{Compute-Producer data transfer}
 
-\subsection{Interface Control}
+
+\section{Interface Control}
+\subsection{Usage}
+\subsection{Limitations}
+
