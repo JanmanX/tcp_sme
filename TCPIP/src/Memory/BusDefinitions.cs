@@ -13,7 +13,7 @@ namespace TCPIP
         {
             long frame_number { get; set; }
             int socket { get; set; }
-            int data { get; set; }
+            byte data { get; set; }
         }
     }
 
