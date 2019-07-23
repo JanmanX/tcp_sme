@@ -35,6 +35,13 @@ namespace TCPIP
         [OutputBus]
         public ConsumerControlBus dataInBufferConsumerControlBusOut = Scope.CreateBus<ConsumerControlBus>();
 
+        //////// DATA OUT (Sending from this)
+        [OutputBus]
+        public DataOut.WriteBus dataOut = Scope.CreateBus<DataOut.WriteBus>();
+        [OutputBus]
+        public ComputeProducerControlBus dataOutComputeProducerControlBusOut = Scope.CreateBus<ComputeProducerControlBus>();
+        [InputBus]
+        public ConsumerControlBus dataOutComputeConsumerControlBusIn;
 
 
 
@@ -53,8 +60,8 @@ namespace TCPIP
             this.debug = debug;
             this.packetGraph = new PacketGraph(this.dir);
             if(this.debug){
-            this.packetGraph.Info();
-        }
+                this.packetGraph.Info();
+            }
 
         }
 
@@ -68,11 +75,10 @@ namespace TCPIP
             //return;
             // Get initial conditions
             packetGraph.NextClock();
-
+            await ClockAsync();
 
             for(int i = 0; i < this.max_clocks; i++){
                 //Warning! this will fill up your disk fast!
-
                 Logging.log.Warn($"---------------------------------------------vvvvv-CLOCK {packetGraph.GetClock()}-vvvvv---------------------------------------");
 
                 PacketSend();
@@ -82,15 +88,17 @@ namespace TCPIP
                 PacketWait();
                 PacketCommand();
                 if(debug){
-                packetGraph.DumpStateInFile("Test");
+                    packetGraph.DumpStateInFile("Test");
                 }
                 //Logging.log.Warn($"---------------------------------------------^^^^^-CLOCK {packetGraph.GetClock()}-^^^^^---------------------------------------");
                 packetGraph.NextClock();
                 await ClockAsync();
 
 
+
             }
             Logging.log.Info($"End of simulation with {frame_number_send} packets sent");
+            //Console.WriteLine("---------------------------------------------END-------------------------------------------");
         }
 
 
@@ -195,9 +203,41 @@ namespace TCPIP
                 dataInWaitNextClock = true;
             }
         }
+
+        private System.Collections.Generic.IEnumerator<(ushort type,byte data,uint bytes_left,PacketGraph.Packet packet)> dataout_enumerator = null;
+        private bool dataExistDataout = false;
         private void PacketDataOut()
         {
+            //dataOutComputeProducerControlBusOut.valid = false;
+            // There are no current enumerator, get it
+            if(dataout_enumerator == null)
+            {
+                dataout_enumerator = packetGraph.IterateOverDataOut().GetEnumerator();
+            }
+            // If we are ready to send a packet
+            if(packetGraph.ReadyDataOut())
+            {
+                // If there exist data, and the consumer are ready, we load new data
+                dataExistDataout = dataout_enumerator.MoveNext();
+                if(dataExistDataout)
+                {
+                    // Set the busses
+                    dataOutComputeProducerControlBusOut.valid = true;
+                    dataOutComputeProducerControlBusOut.bytes_left = dataout_enumerator.Current.bytes_left;
+                    // Set the data
+                    dataOut.frame_number = dataout_enumerator.Current.packet.id; //frame_number;
+                    dataOut.data = dataout_enumerator.Current.data;
+                    int socket = Convert.ToInt32(dataout_enumerator.Current.packet.additional_data);
+                    dataOut.socket = socket;
+                    //Logging.log.Error($"Submitting: 0x{dataout_enumerator.Current.data:X2} socket: {socket}");
 
+                }
+                else
+                {
+                    dataOutComputeProducerControlBusOut.valid = false;
+                    dataout_enumerator = null;
+                }
+            }
         }
         private void PacketCommand()
         {
