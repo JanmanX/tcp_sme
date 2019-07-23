@@ -30,11 +30,11 @@
 \usepackage{blindtext}
 \usepackage{enumitem}
 
-\usepackage{coffee4} % Comment me out 
+\usepackage{coffee4} % Comment me out
 
 %%% Macros
 % easier figure
-% usage: \pic{width}{image}{caption}{label} 
+% usage: \pic{width}{image}{caption}{label}
 \newcommand\pic[4]{% these comment signs will prevent the introduction of spurious spaces
   \begin{figure}[h!]
   \centering
@@ -120,9 +120,9 @@
 \twocolumn
 
 \thispagestyle{empty}
-\setcounter{tocdepth}{4} % Add subsubsections to ToC
+\setcounter{tocdepth}{3} % Add subsubsections to ToC
 \tableofcontents
-\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}} 
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}}
 \renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
 \onecolumn
 \newpage
@@ -135,15 +135,17 @@
 \markboth{Name}{Report}
 \noindent
 
+% Chapters:
 \input{introduction/introduction.tex}
 \input{background/background.tex}
-
-% Chapters:
-% - Network stack architecture
 \input{design/design.tex}
-
-
 \input{implementation/implementation.tex}
+\input{simulation/simulation.tex}
+\input{evaluation/evaluation.tex} % Rename this to "Verification" for FPGA lingo?
+\input{discussion/discussion.tex}
+\input{conclusion/conclusion.tex}
+
+
 
 % - Network API and interfacing
 % - Test setup
