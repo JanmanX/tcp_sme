@@ -63,7 +63,7 @@ namespace TCPIP
 
         // The memory calculations
         private SingleMemorySegmentsRingBufferFIFO<TempData> mem_calc;
-        private readonly int mem_calc_num_segments = 10;
+        private readonly int mem_calc_num_segments = 100;
 
         // little ringbuffer for the data out
         public struct SendRingBuffer{
