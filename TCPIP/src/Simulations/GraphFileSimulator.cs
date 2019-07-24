@@ -156,7 +156,8 @@ namespace TCPIP
                 {
                     if(!packetGraph.GatherReceive(datagramBusOut.data,(int)datagramBusOutComputeProducerControlBusIn.bytes_left))
                     {
-                        throw new Exception("Wrong data, see log");
+                        Logging.log.Error("Wrong data, see log");
+                        //throw new Exception("Wrong data, see log");
                     }
                     receiveWaitNextClock = true;
                 }
@@ -185,7 +186,8 @@ namespace TCPIP
                 {
                     if(!packetGraph.GatherDataIn(dataIn.data,(int)dataInBufferProducerControlBusIn.bytes_left))
                     {
-                        throw new Exception("Wrong data, see log");
+                        Logging.log.Error("Wrong data, see log");
+                        //throw new Exception("Wrong data, see log");
                     }
                     dataInWaitNextClock = true;
                 }
