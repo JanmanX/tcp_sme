@@ -15,15 +15,10 @@ namespace TCPIP
            using (var sim = new Simulation())
             {
                 // Notes:
-                // * implement reverse load and save in the MemorySegmentsRingBufferFiFo
-                // * Fix internet_out to use new standards
-                // * Make the databuffers ready with 2 bytes(request-respond) so
-                //   ready on consumers will give no latency
-                // * Make a first in first out ring buffer for the packet out classes
                 // * InternetIn should signal if the packet is fragmented
 
                 // Graph simulator
-                var simulator = new GraphFileSimulator("data/graphsimulation/udp_test/");
+                var simulator = new GraphFileSimulator("data/graphsimulation/udp_out_test/",500,true);
                 // Allocate memory blocks
                 int packet_out_mem_size = 8192;
                 var packet_out_mem = new TrueDualPortMemory<byte>(packet_out_mem_size);
