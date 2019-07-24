@@ -50,5 +50,9 @@ namespace TCPIP
         MetaData MetadataCurrentSaveSegment();
         MetaData MetadataCurrentLoadSegment();
 
+        // Save the current meta data for the load and save segment
+        bool MetadataCurrentSaveSegment(MetaData metadata);
+        bool MetadataCurrentLoadSegment(MetaData metadata);
+
     }
 }

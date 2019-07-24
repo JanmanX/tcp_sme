@@ -6,13 +6,18 @@ namespace TCPIP
     {
         public interface ReadBus : IBus
         {
+            [InitialValue(0x00)]
             int socket { get; set; }
+            [InitialValue(0xFF)]
             byte data { get; set; }
         }
         public interface WriteBus : IBus
         {
+            [InitialValue(0x00)]
+            long frame_number { get; set; }
             int socket { get; set; }
-            int data { get; set; }
+             [InitialValue(0xFF)]
+            byte data { get; set; }
         }
     }
 
