@@ -171,6 +171,7 @@ namespace TCPIP
 
         public int Insert(int key, int index)
         {
+            Logging.log.Trace($"Inserting on key: {key} at index: {index}");
             int key_pointer = GetKeyPointer(key);
             int link_index_new = -1;
             if(key_pointer == -1){
@@ -334,6 +335,7 @@ namespace TCPIP
 
         public int Observe(int key, int index)
         {
+            Logging.log.Trace($"Observing on key: {key} at index: {index}");
             int key_pointer = GetKeyPointer(key);
             if(key_pointer == -1){
                 throw new System.Exception("Key does not exist");
