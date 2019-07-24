@@ -119,9 +119,11 @@ namespace TCPIP
                     tmp_write_ip_info.protocol = packetIn.protocol;
                     tmp_write_ip_info.ip_id = packetIn.ip_id;
                     tmp_write_ip_info.frame_number = packetIn.frame_number;
-                    tmp_write_ip_info.total_len = (ushort)packetIn.data_length;
-                    // Set the accumulator length to the same as the total length, since this is a new "pristine" packet
-                    tmp_write_ip_info.accum_len = (ushort)(packetIn.data_length - 1);
+
+                    // Set the accumulator and total length to zero, since we do not know how
+                    // much space is needed yet
+                    tmp_write_ip_info.total_len = 0;
+                    tmp_write_ip_info.accum_len = 0;
                     // Get the new block we write to, and save the metadata
                     mem_calc.NextSegment(tmp_write_ip_info);
                     write_next_packet = false;
@@ -198,6 +200,12 @@ namespace TCPIP
                     tmp_send_ip_info = mem_calc.MetadataCurrentLoadSegment();
 
                     tmp_send_ip_info.accum_len = (ushort)mem_calc.LoadDataBytesLeft();
+                    // test if the total size is missing
+                    if(tmp_send_ip_info.total_len == 0)
+                    {
+                        tmp_send_ip_info.total_len = tmp_send_ip_info.accum_len;
+                        mem_calc.MetadataCurrentLoadSegment(tmp_send_ip_info);
+                    }
                     if(tmp_send_ip_info.accum_len == 0)
                     {
                         mem_calc.FinishReadingCurrentLoadSegment();
@@ -224,28 +232,31 @@ namespace TCPIP
             {
                 int addr = buffer_calc.LoadData();
                 byte data = send_buffer[addr].data;
+                int bytes_left = send_buffer[addr].length;
                 packetOut.data = data;
-                //packetOut.data_length = buf.data_length;
                 packetOut.ip_dst_addr_0 = buffer_calc.MetadataCurrentLoadSegment().ip_dst_addr_0;
                 packetOut.ip_dst_addr_1 = buffer_calc.MetadataCurrentLoadSegment().ip_dst_addr_1;
                 packetOut.ip_src_addr_0 = buffer_calc.MetadataCurrentLoadSegment().ip_src_addr_0;
                 packetOut.ip_src_addr_1 = buffer_calc.MetadataCurrentLoadSegment().ip_src_addr_1;
                 packetOut.frame_number = buffer_calc.MetadataCurrentLoadSegment().frame_number;
-                // XXX: fragmenttation for us?
-                packetOut.fragment_offset = 0;
+                packetOut.data_length = buffer_calc.MetadataCurrentLoadSegment().total_len;
+                //packetOut.fragment_offset = 0;
                 packetOut.ip_id = buffer_calc.MetadataCurrentLoadSegment().ip_id;
                 packetOut.protocol = buffer_calc.MetadataCurrentLoadSegment().protocol;
 
 
 
                 packetOutBufferProducerControlBusOut.valid = true;
-                packetOutBufferProducerControlBusOut.bytes_left = send_buffer[addr].length;
+                packetOutBufferProducerControlBusOut.bytes_left = (uint)bytes_left;
 
                 buffer_calc.FinishReadingCurrentLoadSegment();
 
                 send_preload = false;
 
-                Logging.log.Info($"Sending: data: 0x{data:X2} buffer_addr: {addr}");
+                Logging.log.Info($"Sending: data: 0x{data:X2} " +
+                                 $"buffer_addr: {addr} " +
+                                 $"bytes left: {bytes_left} " +
+                                 $"total length : {buffer_calc.MetadataCurrentLoadSegment().total_len}");
             }
         }
     }
