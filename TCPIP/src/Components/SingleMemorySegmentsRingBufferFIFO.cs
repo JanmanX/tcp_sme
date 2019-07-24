@@ -243,12 +243,28 @@ namespace TCPIP
 
         public MetaData MetadataCurrentSaveSegment()
         {
-            return segment_list[load_segment_id].metaData;
+            return segment_list[save_segment_id].metaData;
         }
 
         public MetaData MetadataCurrentLoadSegment()
         {
-            return segment_list[save_segment_id].metaData;
+            return segment_list[load_segment_id].metaData;
+        }
+
+        public bool MetadataCurrentSaveSegment(MetaData metadata)
+        {
+            SegmentEntry cur_segment = segment_list[save_segment_id];
+            cur_segment.metaData = metadata;
+            segment_list[save_segment_id] = cur_segment;
+            return true;
+        }
+
+        public bool MetadataCurrentLoadSegment(MetaData metadata)
+        {
+            SegmentEntry cur_segment = segment_list[load_segment_id];
+            cur_segment.metaData = metadata;
+            segment_list[load_segment_id] = cur_segment;
+            return true;
         }
 
         //////// helping functions
