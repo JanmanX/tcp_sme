@@ -94,6 +94,11 @@ namespace TCPIP
                 data_in.dataOutBufferConsumerControlBusIn = simulator.dataInBufferConsumerControlBusOut;
                 simulator.dataInBufferProducerControlBusIn = data_in.dataOutBufferProducerControlBusOut;
 
+                // Wire DataOut to L(Simulator)
+                data_out.dataIn = simulator.dataOut;
+                data_out.dataInComputeProducerControlBusIn = simulator.dataOutComputeProducerControlBusOut;
+                simulator.dataOutComputeConsumerControlBusIn = data_out.dataInComputeConsumerControlBusOut;
+
                 // Use fluent syntax to configure the simulator.
                 // The order does not matter, but `Run()` must be
                 // the last method called.
