@@ -242,8 +242,8 @@ namespace TCPIP
                     if (idx_in == packetInBus.data_length)
                     {
                         Logging.log.Info("Parsing icmp");
-                        ParseICMP();
-                        Logging.log.Fatal("ICMP CURRENTLY NOT SUPPORTED!");
+//                        ParseICMP();
+                        Logging.log.Warn("ICMP CURRENTLY NOT SUPPORTED!");
                     }
                     break;
             }
@@ -357,6 +357,11 @@ namespace TCPIP
                 && sending_header == false)
             {
                 SendData();
+
+	     if(stateData.bytes_passed >= MAX_PACKET_DATA_SIZE)
+		{
+			dataOutBufferConsumerControlBusOut.ready = false;
+		}
             }
             else
             {
@@ -387,6 +392,7 @@ namespace TCPIP
 
             // Local info
             stateData.socket = dataOutReadBus.socket;
+
         }
 
         private void BuildHeader()
@@ -428,6 +434,8 @@ namespace TCPIP
             {
                 packetOutComputeProducerControlBusOut.bytes_left = 0; // this is the last byte
 
+		Logging.log.Fatal($"last byte: 0x{buffer_out[idx_out -1 ]:X2}");
+		dataOutBufferConsumerControlBusOut.ready = false;
                 Finish();
             }
         }
