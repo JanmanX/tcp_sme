@@ -147,7 +147,7 @@ namespace TCPIP
             {
                 if(write_next_packet == false)
                 {
-                    Logging.log.Fatal("Packet done!");
+                    Logging.log.Info("Packet done!");
                     write_next_packet = true;
                     mem_calc.FinishFillingCurrentSaveSegment();
                 }

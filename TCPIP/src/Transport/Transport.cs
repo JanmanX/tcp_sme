@@ -163,7 +163,7 @@ namespace TCPIP
             //     }
             else if (dataOutBufferProducerControlBusIn.valid)
             {
-                Console.WriteLine("dataOutProducerControlBus.available!");
+                Logging.log.Error("dataOutProducerControlBus.available!");
                 StartSend();
             }
 
@@ -243,7 +243,7 @@ namespace TCPIP
                     {
                         Logging.log.Info("Parsing icmp");
                         ParseICMP();
-                        Logging.log.Warn("ICMP CURRENTLY NOT SUPPORTED!");
+                        Logging.log.Fatal("ICMP CURRENTLY NOT SUPPORTED!");
                     }
                     break;
             }
@@ -351,6 +351,7 @@ namespace TCPIP
 
         private void Send()
         {
+            Logging.log.Debug("Sending data!");
             if (dataOutBufferProducerControlBusIn.valid
                 && stateData.bytes_passed < MAX_PACKET_DATA_SIZE
                 && sending_header == false)

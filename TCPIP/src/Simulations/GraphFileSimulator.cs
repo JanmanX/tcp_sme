@@ -97,6 +97,7 @@ namespace TCPIP
 
 
             }
+            Logging.log.Warn($"---------------------------------------------vvvvv-CLOCK {packetGraph.GetClock()}-vvvvv---------------------------------------");
             Logging.log.Info($"End of simulation with {frame_number_send} packets sent");
             //Console.WriteLine("---------------------------------------------END-------------------------------------------");
         }
