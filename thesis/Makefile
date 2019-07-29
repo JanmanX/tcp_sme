@@ -1,3 +1,5 @@
+.PHONY: all
+
 default: all
 
 all:

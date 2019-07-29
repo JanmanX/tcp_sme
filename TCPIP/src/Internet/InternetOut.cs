@@ -47,6 +47,8 @@ namespace TCPIP
 
         public override async Task Run()
         {
+            while(true)
+{
             linkOutComputeProducerControlBusOut.valid = false;
             //linkOutComputeProducerControlBusOut.available = false;
 
@@ -54,7 +56,6 @@ namespace TCPIP
             uint bytes_passed = 0;
             byte protocol = 0;
             uint dst_ip = 0;
-            uint idx = 0;
             ip_id++;
 
             // Set ready and wait for first byte
@@ -74,12 +75,13 @@ namespace TCPIP
                 linkOutComputeProducerControlBusOut.valid = true;
                 linkOutComputeProducerControlBusOut.bytes_left = 1;
                 linkOutWriteBus.data = packetOutWriteBus.data;
-                linkOutWriteBus.addr = IPv4.HEADER_SIZE + bytes_passed++;
+                linkOutWriteBus.addr = IPv4.HEADER_SIZE + bytes_passed;
+		bytes_passed++;
                 await ClockAsync();
             }
 
             // If nothing sent, restart
-            if(bytes_passed == 0) { return; }
+            if(bytes_passed == 0) { continue; }
 
             // We do not want to receive more bytes at the moment
             packetOutBufferConsumerControlBusOut.ready = false;
@@ -88,9 +90,9 @@ namespace TCPIP
             uint header_size = SetupPacket((ushort)bytes_passed, ip_id, protocol, IP_ADDRESS_0, dst_ip);
 
             // Send the header
+            uint idx = 0;
             while(idx < header_size)
             {
-                //linkOutComputeProducerControlBusOut.available = true;
                 linkOutComputeProducerControlBusOut.valid = true;
                 linkOutComputeProducerControlBusOut.bytes_left = 1;
 
@@ -100,12 +102,17 @@ namespace TCPIP
                 idx++;
 
                 // Indicate if last byte
-                if(idx < header_size) {
+                if(idx >= header_size) {
                     linkOutComputeProducerControlBusOut.bytes_left = 0;
                 }
 
                 await ClockAsync();
             }
+
+
+            await ClockAsync();
+            }
+
         }
 
         // Creates the packet inside the buffer, and returns its data offset
