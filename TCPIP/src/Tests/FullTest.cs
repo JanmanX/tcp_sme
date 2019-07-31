@@ -18,11 +18,15 @@ namespace TCPIP
                 // * InternetIn should signal if the packet is fragmented
 
                 // Graph simulator
-                var simulator = new GraphFileSimulator("data/graphsimulation/udp_out_test/",500,true);
+                var simulator = new GraphFileSimulator("data/graphsimulation/udp_out_test/",2000,true);
                 // Allocate memory blocks
                 int packet_out_mem_size = 8192;
                 var packet_out_mem = new TrueDualPortMemory<byte>(packet_out_mem_size);
                 var packet_out = new PacketOut(packet_out_mem,packet_out_mem_size);
+
+                int frame_out_mem_size = 8192;
+                var frame_out_mem = new TrueDualPortMemory<byte>(frame_out_mem_size);
+                var frame_out = new FrameOut(frame_out_mem,frame_out_mem_size);
 
                 int packet_in_mem_size = 8192;
                 var packet_in_mem = new TrueDualPortMemory<byte>(packet_in_mem_size);
@@ -79,10 +83,15 @@ namespace TCPIP
                 packet_out.packetOutBufferConsumerControlBusIn = internet_out.packetOutBufferConsumerControlBusOut;
                 internet_out.packetOutWriteBus = packet_out.packetOut;
 
-                // Wire internet_out to L(Simulator)
-                simulator.datagramBusOutComputeProducerControlBusIn = internet_out.linkOutComputeProducerControlBusOut;
-                internet_out.linkOutComputeConsumerControlBusIn = simulator.datagramBusOutComputeConsumerControlBusOut;
-                simulator.datagramBusOut = internet_out.linkOutWriteBus;
+                // Wire internet_out to frame_out
+                frame_out.packetInComputeProducerControlBusIn = internet_out.frameOutComputeProducerControlBusOut;
+                internet_out.frameOutComputeConsumerControlBusIn = frame_out.packetInComputeConsumerControlBusOut;
+                frame_out.packetIn = internet_out.frameOutWriteBus;
+
+                // Wire frame_out to L(Simulator)
+                simulator.datagramBusOutBufferProducerControlBusIn = frame_out.datagramBusOutBufferProducerControlBusOut;
+                frame_out.datagramBusOutBufferConsumerControlBusIn = simulator.datagramBusOutBufferConsumerControlBusOut;
+                simulator.datagramBusOut = frame_out.datagramBusOut;
 
                 // Wire DataIn to L(Simulator)
                 simulator.dataIn = data_in.dataOut;

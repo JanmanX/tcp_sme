@@ -22,9 +22,9 @@ namespace TCPIP
         [InputBus]
         public Internet.DatagramBusOut datagramBusOut;
         [InputBus]
-        public ComputeProducerControlBus datagramBusOutComputeProducerControlBusIn;
+        public BufferProducerControlBus datagramBusOutBufferProducerControlBusIn;
         [OutputBus]
-        public ConsumerControlBus datagramBusOutComputeConsumerControlBusOut =  Scope.CreateBus<ConsumerControlBus>();
+        public ConsumerControlBus datagramBusOutBufferConsumerControlBusOut =  Scope.CreateBus<ConsumerControlBus>();
 
 
         //////// DATA IN (Receiving from this)
@@ -149,27 +149,27 @@ namespace TCPIP
 
         private void PacketReceive()
         {
-            datagramBusOutComputeConsumerControlBusOut.ready = false;
+            datagramBusOutBufferConsumerControlBusOut.ready = false;
             // if we got data ready to read
             if(packetGraph.ReadyReceive()){
                 // If we do not have to wait one clock
-                if(!receiveWaitNextClock && datagramBusOutComputeProducerControlBusIn.valid)
+                if(!receiveWaitNextClock && datagramBusOutBufferProducerControlBusIn.valid)
                 {
-                    if(!packetGraph.GatherReceive(datagramBusOut.data,(int)datagramBusOutComputeProducerControlBusIn.bytes_left))
+                    if(!packetGraph.GatherReceive(datagramBusOut.data,(int)datagramBusOutBufferProducerControlBusIn.bytes_left))
                     {
-                        Logging.log.Error("Wrong data, see log");
+                        //Logging.log.Error("Wrong data, see log");
                         //throw new Exception("Wrong data, see log");
                     }
                     receiveWaitNextClock = true;
                 }
-                if(datagramBusOutComputeProducerControlBusIn.valid)
+                if(datagramBusOutBufferProducerControlBusIn.valid)
                 {
-                    datagramBusOutComputeConsumerControlBusOut.ready = true;
+                    datagramBusOutBufferConsumerControlBusOut.ready = true;
                     receiveWaitNextClock = false;
                 }
                 else
                 {
-                    datagramBusOutComputeConsumerControlBusOut.ready = false;
+                    datagramBusOutBufferConsumerControlBusOut.ready = false;
                     receiveWaitNextClock = true;
                 }
             }else{

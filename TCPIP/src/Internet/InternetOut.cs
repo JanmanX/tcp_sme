@@ -24,11 +24,11 @@ namespace TCPIP
 
         // LinkOut
         [OutputBus]
-        public ComputeProducerControlBus linkOutComputeProducerControlBusOut = Scope.CreateBus<ComputeProducerControlBus>();
+        public ComputeProducerControlBus frameOutComputeProducerControlBusOut = Scope.CreateBus<ComputeProducerControlBus>();
         [OutputBus]
-        public readonly Internet.DatagramBusOut linkOutWriteBus = Scope.CreateBus<Internet.DatagramBusOut >();
+        public readonly FrameOut.WriteBus frameOutWriteBus = Scope.CreateBus<FrameOut.WriteBus >();
         [InputBus]
-        public ConsumerControlBus linkOutComputeConsumerControlBusIn;
+        public ConsumerControlBus frameOutComputeConsumerControlBusIn;
 
 
         // Local
@@ -49,7 +49,7 @@ namespace TCPIP
         {
             while(true)
 {
-            linkOutComputeProducerControlBusOut.valid = false;
+            frameOutComputeProducerControlBusOut.valid = false;
             //linkOutComputeProducerControlBusOut.available = false;
 
             // Set/Reset all values
@@ -72,10 +72,10 @@ namespace TCPIP
             // Pass data while packetOut has valid data
             while(packetOutBufferProducerControlBusIn.valid) {
                 //linkOutComputeProducerControlBusOut.available = true;
-                linkOutComputeProducerControlBusOut.valid = true;
-                linkOutComputeProducerControlBusOut.bytes_left = 1;
-                linkOutWriteBus.data = packetOutWriteBus.data;
-                linkOutWriteBus.addr = IPv4.HEADER_SIZE + bytes_passed;
+                frameOutComputeProducerControlBusOut.valid = true;
+                frameOutComputeProducerControlBusOut.bytes_left = 1;
+                frameOutWriteBus.data = packetOutWriteBus.data;
+                frameOutWriteBus.addr = IPv4.HEADER_SIZE + bytes_passed;
 		bytes_passed++;
                 await ClockAsync();
             }
@@ -93,17 +93,17 @@ namespace TCPIP
             uint idx = 0;
             while(idx < header_size)
             {
-                linkOutComputeProducerControlBusOut.valid = true;
-                linkOutComputeProducerControlBusOut.bytes_left = 1;
+                frameOutComputeProducerControlBusOut.valid = true;
+                frameOutComputeProducerControlBusOut.bytes_left = 1;
 
-                linkOutWriteBus.data = buffer[idx];
-                linkOutWriteBus.addr = idx;
-                linkOutWriteBus.ethertype = (ushort)EthernetIIFrame.EtherType.IPv4;
+                frameOutWriteBus.data = buffer[idx];
+                frameOutWriteBus.addr = idx;
+                frameOutWriteBus.ethertype = (ushort)EthernetIIFrame.EtherType.IPv4;
                 idx++;
 
                 // Indicate if last byte
                 if(idx >= header_size) {
-                    linkOutComputeProducerControlBusOut.bytes_left = 0;
+                    frameOutComputeProducerControlBusOut.bytes_left = 0;
                 }
 
                 await ClockAsync();

@@ -38,6 +38,9 @@ namespace TCPIP
 
             [InitialValue(0x00)]
             ushort ethertype { get; set; }
+
+            [InitialValue(0x00)]
+            int data_length { get; set; } // the size we are writing currently
         }
     }
 }
