@@ -18,7 +18,9 @@ namespace TCPIP
                 // * InternetIn should signal if the packet is fragmented
 
                 // Graph simulator
-                var simulator = new GraphFileSimulator("data/graphsimulation/udp_out_test/",500,true);
+//                var simulator = new GraphFileSimulator("data/graphsimulation/udp_out_test/",4000,true);
+                var simulator = new NativeStackSimulator();
+
                 // Allocate memory blocks
                 int packet_out_mem_size = 8192;
                 var packet_out_mem = new TrueDualPortMemory<byte>(packet_out_mem_size);
@@ -102,7 +104,7 @@ namespace TCPIP
                 // for interfacing with other VHDL code or board pins
 
                 sim.AddTopLevelInputs(simulator.datagramBusIn)
-                    .BuildCSVFile()
+                    //.BuildCSVFile()
                     //.BuildVHDL()
                     .Run();
 
