@@ -20,7 +20,7 @@ static int tun_fd;
 static char *dev;
 
 char *tapaddr = "10.0.0.4";
-char *taproute = "10.0.0.4/24";
+char *taproute = "10.0.0.0/24";
 
 int run_cmd(char *cmd, ...)
 {
@@ -32,6 +32,8 @@ int run_cmd(char *cmd, ...)
     vsnprintf(buf, CMDBUFLEN, cmd, ap);
 
     va_end(ap);
+
+    printf("Executing: %s\n", buf);
 
     return system(buf);
 }
@@ -209,7 +211,12 @@ int main(int argc, char **argv)
                 printf("Flags: 0x%X\t", ((uint32_t)buffer[0]) << 8 | buffer[1]);
                 printf("Proto: 0x%X\n", ((uint32_t)buffer[2]) << 8 | buffer[3]);
 
-                
+		unsigned int j = 0;
+		for(j = 4; i < BUFLEN; i++) {
+			printf("%c ", buffer[j]);
+		}
+		printf("\n");
+
             }
             sendto(s, buffer, bytes_read, 0, (struct sockaddr *)&si_other, slen);
             //            write(fd, buffer, bytes_read);
