@@ -285,9 +285,9 @@ namespace TCPIP
                 }
                 else
                 {
-                    Logging.log.Error($"Wrong comparison of input data from receive. " +
-                                      $"correct: 0x{excact:X2} index: {receive.Current.bytes_left} " +
-                                      $"observed: 0x{compare:X2} index: {byte_number}");
+                    // Logging.log.Error($"Wrong comparison of input data from receive. " +
+                    //                   $"correct: 0x{excact:X2} index: {receive.Current.bytes_left} " +
+                    //                   $"observed: 0x{compare:X2} index: {byte_number}");
                     return false;
                 }
 
@@ -381,7 +381,7 @@ namespace TCPIP
                 }
                 packetList[pid].data = Encoding.UTF8.GetBytes(waitfor.ToString());
 
-                Logging.log.Trace($"PacketID: {pid} waiting for {waitfor} info: {packetList[pid].info}");
+                //Logging.log.Trace($"PacketID: {pid} waiting for {waitfor} info: {packetList[pid].info}");
             }
             return true;
         }
@@ -444,7 +444,7 @@ namespace TCPIP
 
             // We add what is up next, so it is valid packet pointers
             packetPointers.UnionWith(packetList[pid].requiredBy);
-            Logging.log.Warn("PacketID: " + pid + " iterator ended");
+            Logging.log.Trace("PacketID: " + pid + " iterator ended");
         }
 
         private bool TestPacketContains(PacketInfo info)
@@ -702,7 +702,7 @@ namespace TCPIP
 
             string fullfilepath = System.IO.Path.Combine(path, $"{this.clock:D8}"  +  ".dot");
 
-            Logging.log.Trace($"Adding dot graph to: {fullfilepath}");
+            //Logging.log.Trace($"Adding dot graph to: {fullfilepath}");
             using (StreamWriter writer = new StreamWriter(fullfilepath, true))
             {
                 writer.Write(this.GraphwizState());
