@@ -163,7 +163,7 @@ namespace TCPIP
             //     }
             else if (dataOutBufferProducerControlBusIn.valid)
             {
-                Console.WriteLine("dataOutProducerControlBus.available!");
+                Logging.log.Trace("dataOutProducerControlBus.available!");
                 StartSend();
             }
 
@@ -351,6 +351,7 @@ namespace TCPIP
 
         private void Send()
         {
+            Logging.log.Debug("Sending data!");
             if (dataOutBufferProducerControlBusIn.valid
                 && stateData.bytes_passed < MAX_PACKET_DATA_SIZE
                 && sending_header == false)
@@ -433,8 +434,8 @@ namespace TCPIP
             {
                 packetOutComputeProducerControlBusOut.bytes_left = 0; // this is the last byte
 
-		Logging.log.Fatal($"last byte: 0x{buffer_out[idx_out -1 ]:X2}");
-		dataOutBufferConsumerControlBusOut.ready = false;
+		        Logging.log.Info($"last byte: 0x{buffer_out[idx_out -1 ]:X2}");
+		        dataOutBufferConsumerControlBusOut.ready = false;
                 Finish();
             }
         }

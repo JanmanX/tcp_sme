@@ -7,7 +7,7 @@ using SME.Components;
 namespace TCPIP
 {
     [ClockedProcess]
-    public partial class PacketOut : SimpleProcess
+    public partial class FrameOut : SimpleProcess
     {
 
          /////////////////////// Memory busses and ports
@@ -37,23 +37,18 @@ namespace TCPIP
 
         //////////// Packet out to I out
         [OutputBus]
-        public ReadBus packetOut = Scope.CreateBus<ReadBus>();
+        public Internet.DatagramBusOut datagramBusOut = Scope.CreateBus<Internet.DatagramBusOut>();
         [OutputBus]
-        public BufferProducerControlBus packetOutBufferProducerControlBusOut = Scope.CreateBus<BufferProducerControlBus>();
+        public BufferProducerControlBus datagramBusOutBufferProducerControlBusOut = Scope.CreateBus<BufferProducerControlBus>();
         [InputBus]
-        public ConsumerControlBus packetOutBufferConsumerControlBusIn;
+        public ConsumerControlBus datagramBusOutBufferConsumerControlBusIn;
 
 
         public struct TempData{
-            public byte protocol;
+            public ushort ethertype;
             public long frame_number;
-            public uint ip_id;
             public ushort total_len;
             public ushort accum_len; // Accumulator for the length.
-            public ulong ip_src_addr_0; // Lower 8 bytes of IP addr (lower 4 bytes used in this field on IPv4)
-            public ulong ip_src_addr_1; // Upper 8 bytes of IP addr
-            public ulong ip_dst_addr_0; // Lower 8 bytes of IP addr (lower 4 bytes used in this field on IPv4)
-            public ulong ip_dst_addr_1; // Upper 8 bytes of IP addr
         }
         private TempData tmp_write_ip_info;
         private TempData tmp_send_ip_info;
@@ -81,7 +76,7 @@ namespace TCPIP
         private bool memory_receiving = false;
         private bool send_preload = true;
 
-        public PacketOut(TrueDualPortMemory<byte> memory, int memory_size)
+        public FrameOut(TrueDualPortMemory<byte> memory, int memory_size)
         {
             // Set up the header information
             this.memory = memory;
@@ -112,12 +107,7 @@ namespace TCPIP
                 {
 
                     // Fill in the temporary data
-                    tmp_write_ip_info.ip_dst_addr_0 = packetIn.ip_dst_addr_0;
-                    tmp_write_ip_info.ip_dst_addr_1 = packetIn.ip_dst_addr_1;
-                    tmp_write_ip_info.ip_src_addr_0 = packetIn.ip_src_addr_0;
-                    tmp_write_ip_info.ip_src_addr_1 = packetIn.ip_src_addr_1;
-                    tmp_write_ip_info.protocol = packetIn.protocol;
-                    tmp_write_ip_info.ip_id = packetIn.ip_id;
+                    tmp_write_ip_info.ethertype = packetIn.ethertype;
                     tmp_write_ip_info.frame_number = packetIn.frame_number;
 
                     // Set the accumulator and total length to zero, since we do not know how
@@ -133,10 +123,11 @@ namespace TCPIP
                 // Submit the data
                 controlA.Enabled = true;
                 controlA.IsWriting = true;
-                int addr = mem_calc.SaveData(packetIn.addr);
+                int addr = mem_calc.SaveData((int)packetIn.addr);
                 controlA.Address = addr;
-                Logging.log.Warn($"Receiving: data: 0x{packetIn.data:X2} "+
-                                  $"addr: {addr} "+
+                Logging.log.Error($"Receiving: data: 0x{packetIn.data:X2} " +
+                                  $"addr: {addr} " +
+                                  $"received addr: {(int)packetIn.addr} " +
                                   $"data left: {packetInComputeProducerControlBusIn.bytes_left}");
                 controlA.Data = packetIn.data;
 
@@ -219,12 +210,12 @@ namespace TCPIP
             ///////////// Sending code
             // They are ready, we submit stuff
 
-            Logging.log.Info($"The load segment status: {buffer_calc.LoadSegmentReady()} ready: {packetOutBufferConsumerControlBusIn.ready}");
+            Logging.log.Info($"The load segment status: {buffer_calc.LoadSegmentReady()} ready: {datagramBusOutBufferConsumerControlBusIn.ready}");
 
 
-            packetOutBufferProducerControlBusOut.valid = buffer_calc.LoadSegmentReady();
+            datagramBusOutBufferProducerControlBusOut.valid = buffer_calc.LoadSegmentReady();
 
-            if(packetOutBufferConsumerControlBusIn.ready){
+            if(datagramBusOutBufferConsumerControlBusIn.ready){
                 send_preload = true;
             }
 
@@ -233,21 +224,15 @@ namespace TCPIP
                 int addr = buffer_calc.LoadData();
                 byte data = send_buffer[addr].data;
                 int bytes_left = send_buffer[addr].length;
-                packetOut.data = data;
-                packetOut.ip_dst_addr_0 = buffer_calc.MetadataCurrentLoadSegment().ip_dst_addr_0;
-                packetOut.ip_dst_addr_1 = buffer_calc.MetadataCurrentLoadSegment().ip_dst_addr_1;
-                packetOut.ip_src_addr_0 = buffer_calc.MetadataCurrentLoadSegment().ip_src_addr_0;
-                packetOut.ip_src_addr_1 = buffer_calc.MetadataCurrentLoadSegment().ip_src_addr_1;
-                packetOut.frame_number = buffer_calc.MetadataCurrentLoadSegment().frame_number;
-                packetOut.data_length = buffer_calc.MetadataCurrentLoadSegment().total_len;
-                //packetOut.fragment_offset = 0;
-                packetOut.ip_id = buffer_calc.MetadataCurrentLoadSegment().ip_id;
-                packetOut.protocol = buffer_calc.MetadataCurrentLoadSegment().protocol;
+                datagramBusOut.data = data;
+                datagramBusOut.frame_number = buffer_calc.MetadataCurrentLoadSegment().frame_number;
+                datagramBusOut.data_length = buffer_calc.MetadataCurrentLoadSegment().total_len;
+                datagramBusOut.ethertype = buffer_calc.MetadataCurrentLoadSegment().ethertype;
 
 
 
-                packetOutBufferProducerControlBusOut.valid = true;
-                packetOutBufferProducerControlBusOut.bytes_left = (uint)bytes_left;
+                datagramBusOutBufferProducerControlBusOut.valid = true;
+                datagramBusOutBufferProducerControlBusOut.bytes_left = (uint)bytes_left;
 
                 buffer_calc.FinishReadingCurrentLoadSegment();
 

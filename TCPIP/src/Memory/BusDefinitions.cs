@@ -188,4 +188,21 @@ namespace TCPIP
         }
 
     }
+     public partial class FrameOut
+    {
+        public interface WriteBus  : IBus
+        {
+            [InitialValue(0x00)]
+            long frame_number { get; set; } // Increments so we can distinguish between new packages
+
+            [InitialValue(0x00)]
+            ushort ethertype { get; set; }
+
+            [InitialValue(0x00)]
+            byte data { get; set; } // The data needed
+
+            [InitialValue(0)]
+            uint addr { get; set; } // The data address(-1 if order is not important)
+        }
+    }
 }

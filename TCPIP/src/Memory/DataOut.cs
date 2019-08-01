@@ -55,7 +55,7 @@ namespace TCPIP
         private bool write_next_packet = true;
 
         private SingleMemorySegmentsRingBufferFIFO<TempData> mem_calc;
-        private readonly int mem_calc_num_segments = 10;
+        private readonly int mem_calc_num_segments = 50;
 
 
         private bool memory_requested = false;
