@@ -7,7 +7,7 @@ using SME.Components;
 namespace TCPIP
 {
     [ClockedProcess]
-    public partial class InternetOut: Process
+    public partial class InternetOut: StateProcess
     {
         // STATIC
         public readonly uint IP_ADDRESS_0 = 0xC0A82B01; // 192.168.43.1
@@ -45,10 +45,8 @@ namespace TCPIP
         {
         }
 
-        public override async Task Run()
+        protected async override Task OnTickAsync()
         {
-            while(true)
-{
             frameOutComputeProducerControlBusOut.valid = false;
             //linkOutComputeProducerControlBusOut.available = false;
 
@@ -105,11 +103,6 @@ namespace TCPIP
 
                 await ClockAsync();
             }
-
-
-            await ClockAsync();
-            }
-
         }
 
         // Creates the packet inside the buffer, and returns its data offset
