@@ -76,12 +76,9 @@ namespace TCPIP
                 frameOutComputeProducerControlBusOut.bytes_left = 1;
                 frameOutWriteBus.data = packetOutWriteBus.data;
                 frameOutWriteBus.addr = IPv4.HEADER_SIZE + bytes_passed;
-		bytes_passed++;
+        		bytes_passed++;
                 await ClockAsync();
             }
-
-            // If nothing sent, restart
-            if(bytes_passed == 0) { continue; }
 
             // We do not want to receive more bytes at the moment
             packetOutBufferConsumerControlBusOut.ready = false;
@@ -91,7 +88,7 @@ namespace TCPIP
 
             // Send the header
             uint idx = 0;
-            while(idx < header_size)
+            while(idx < header_size && bytes_passed > 0)
             {
                 frameOutComputeProducerControlBusOut.valid = true;
                 frameOutComputeProducerControlBusOut.bytes_left = 1;
