@@ -31,6 +31,10 @@
 \usepackage{blindtext}
 \usepackage{enumitem}
 \usepackage{minted}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{subcaption}
+
 
 \usepackage{coffee4} % Comment me out
 
@@ -173,6 +177,10 @@
 \markboth{Name}{Report}
 \noindent
 
+\renewcommand{\dblfloatpagefraction}{.8}
+\renewcommand{\dbltopfraction}{.85}
+
+
 % Chapters:
 \input{introduction/introduction.tex}
 \input{background/background.tex}
@@ -182,7 +190,7 @@
 \input{evaluation/evaluation.tex} % Rename this to "Verification" for FPGA lingo?
 \input{discussion/discussion.tex}
 \input{conclusion/conclusion.tex}
-
+\input{future_work/future_work.tex}
 
 
 % - Network API and interfacing

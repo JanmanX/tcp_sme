@@ -78,11 +78,11 @@ works, how it is split into multiple steps on the hardware, while
 maintaining simplicity, as seen on the statemachine diagram on subfigure
 \ref{fig:sme_example_process_fsm}.
 
-\begin{figure*}[b]
+\begin{figure*}[H]
     \begin{subfigure}[b]{0.3\textwidth}
         \centering
 \begin{lstlisting}[language={[Sharp]C}]
-public class SomeProcess : Process
+public class SomeProcess : StateProcess
 {
   private override async Task Run()
   {
@@ -189,14 +189,14 @@ layer to send control packets out to the network, this is not supported in the
 current build.
 
 
-\begin{figure*}[t!]
+
+\begin{figure*}[t]
     \centering
     \begin{subfigure}[t]{0.5\textwidth}
         \centering
         \includegraphics[scale=0.45]{implementation/internet_in_fsm.eps}
         \caption{The \texttt{Internet In} state machine}
     \end{subfigure}%
-    ~
     \begin{subfigure}[t]{0.5\textwidth}
         \centering
         \includegraphics[scale=0.45]{implementation/transport_fsm.eps}
@@ -331,7 +331,6 @@ opportunity to drop the transaction, but it might also continue till the end.
 	transaction.}
 	\label{fig:compute_producer}
 \end{figure}
-
 
 
 \section{Interface Control}
