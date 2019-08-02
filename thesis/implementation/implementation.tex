@@ -78,13 +78,13 @@ works, how it is split into multiple steps on the hardware, while
 maintaining simplicity, as seen on the statemachine diagram on subfigure
 \ref{fig:sme_example_process_fsm}.
 
-\begin{figure*}[H]
+\begin{figure*}
     \begin{subfigure}[b]{0.3\textwidth}
         \centering
 \begin{lstlisting}[language={[Sharp]C}]
 public class SomeProcess : StateProcess
 {
-  private override async Task Run()
+  private override async Task OnTickAsync()
   {
     // A
     await ClockAsync();
@@ -150,9 +150,9 @@ input and one output, and the state-changes are simple and intuitive.
     \begin{subfigure}[b]{0.5\textwidth}
         \centering
 \begin{lstlisting}[language={[Sharp]C}]
-public partial class InternetOut: Process
+public partial class InternetOut: StateProcess
 {
-public override async Task Run()
+public override async Task OnTickAsync()
 {
   while segment_available() {
     pass_segment();
@@ -226,7 +226,7 @@ emerged. The layer-handling processes are responsible for numerous real-time tas
 (parsing, sending, protocol-specific tasks, etc), while also limited by their
 fixed internal buffers. These processes are not always ready to receive input
 from preceding processes, while they at the same time must be able to write their
-output to following processes immediatelly.\\
+output to following processes immediately.\\
 The buffers are a stark opposite, as their large internal block memories enable
 them to buffer huge chunks of memory, while also being able to wait for the
 succeeding process to start reading.\\
@@ -237,24 +237,48 @@ Buffer-Producer protocol, and the Compute-Producer protocol.
 The Buffer-Producer (BP) is the interface signal protocol where the producer of
 the data is a buffer process (such as \texttt{Data Out} or \texttt{Segment
 Out}).\\
-The Buffer-Producer is identical to the Transfer signalling of the
-AXI4-Stream protocol, which ensures a two-way flow-control mechanism for both
+The Buffer-Producer is heavily inspired by the Transfer signalling protocol in
+the AXI4-Stream standard, which ensures a two-way flow-control mechanism for both
 the producer and the consumer\footnote{The producer and consumer are called
 master and slave respectively in the AXI4 specification.}\cite{arm_axi4}.
 
 \begin{figure}[h]
 \centering
 \includegraphics[scale=0.8]{implementation/axi4_handshake.eps}
-\caption{The AXI4 handshake process. Adapted from “AMBA 4 AXI4 Stream-Protocol
+\caption{The AXI4 handshake process, adapted from “AMBA 4 AXI4 Stream-Protocol
 specification” by ARM, 2010, p. 19.}
 \label{fig:axi4_handshake}
 \end{figure}
 
-In the Buffer-Producer protocol, as well as the AXI4, only a \texttt{valid}
-flag is needed on the producer, and a \texttt{ready} on the consumer. With such
-a few flags required during the data transfer, simple rules are defined for the
-BP protocol, inspired by the AXI4 handshake process.
+The AXI4 protocol uses two signals (also called "flags"), the \texttt{TVALID}
+on master, and \texttt{TREADY} on slave. Every time both \texttt{TVALID} and
+\texttt{TREADY} are asserted during a clock-cycle, a data-exchange happens.
+Figure \ref{fig:axi4_handshake} shows a data exchange, where the information
+(the bytes) are placed on the bus and the \texttt{TVALID} is raised. When this
+signal propagates to the slave, it asserts \texttt{TREADY}. When this signal
+propagates back to the master, it knows that the information was read, and that
+it can proceed with the next byte, or in this case, de-assert the
+\texttt{TVALID} to indicate no more bytes available\cite{arm_axi4}.
 
+The information transferred in the AXI4 protocol can be defined by the user,
+but it usually is a payload consisting of multiple element, such as a byte
+location or the type of the data.\\
+
+The Buffer-Producer protocol draws heavy inspiration from this model, as it
+provides a simple flow-protocol with only a few flags. In the BP protocol,
+the producer has a \texttt{valid} flag, while the consumer has the
+\texttt{ready} flag. However, without any modifications, the AXI4 protocol sees
+the data exchanged as being a single data-stream.
+In the case of the Buffer-Producer however, we want to differentiate between the
+end of a packet (or simply just a segment of data), and the beginning of a new
+one. In the very first iterations, this was done by distinguishing the parsed
+data by finding a known delimiter, such as the ID of the IPv4 packet, or the
+sequence number of the TCP header. Unfortunately, this solution is very
+dependent on the scenario where different delimiters might appear, or not be
+present at all. To generalize this issue, an additional signal
+\texttt{bytes\_left} is added to the control bus of the protocol, which
+indicates the end of a current data-block by setting \texttt{bytes\_left = 0}.
+The final Buffer-Producer protocol can be summed up in these following rules:
 \begin{itemize}
 	\item A data transfer only occurs if both \texttt{valid} and \texttt{ready}
 		are raised at the same clock-cycle.
@@ -268,12 +292,10 @@ BP protocol, inspired by the AXI4 handshake process.
 		reset it before \texttt{valid} is raised.
 \end{itemize}
 
-This data transfer process is visualized on figure \ref{fig:axi4_handshake},
-where the \texttt{INFORMATION} along with \texttt{TVALID} is raised by the
-producer, while the \texttt{TREADY} is raised one clock after where the the
-data-exchange happens.
-The conventional data-exchange in the network stack is perhaps better
-visualized by a sequence diagram on figure \ref{fig:buffer_producer}.
+The conventional data-exchange using the BP protocol in the network
+stack is perhaps better visualized by a sequence diagram on figure
+\ref{fig:buffer_producer}.
+
 
 \begin{figure}
 	\centering
@@ -297,12 +319,6 @@ The concept for the Compute-Producer model is fairly simple; since the producer
 on the bus, regardless if the consumer is ready. It is up to the producer to
 mark the end of an ongoing data-stream.\\
 
-Apart from the \texttt{valid} and \texttt{ready} flags present in the
-Buffer-Producer model, only the additional \texttt{bytes\_left} integer is
-required in the control bus. Although this field in the bus is an integer and
-can indicate the actual number of remaining bytes, the CP protocol specifies
-that it is to be treated as a boolean.
-
 Thus, the rules for the Compute-Producer protocol are as such:
 \begin{itemize}
 	\item If the producer puts data on the bus, the \texttt{valid} flag
@@ -311,7 +327,7 @@ Thus, the rules for the Compute-Producer protocol are as such:
 		clock will be valid.
 	\item If \texttt{bytes\_left} is $0$, the current byte ends the
 		current sequence of bytes.
-	\item If the consumer deasserts \texttt{ready}, it will not read the
+	\item If the consumer deasserts \texttt{ready}, it \textit{may} not read the
 		data in the bus.
 	\item The producer may act upon the knowledge that the consumer is
 		either reading (\texttt{ready = true}) or ignoring
@@ -322,7 +338,6 @@ Such a scenario is visualized on figure \ref{fig:compute_producer}, where the
 consumer becomes unavailable during the transaction. The producer has the
 opportunity to drop the transaction, but it might also continue till the end.
 
-
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.5]{implementation/compute_producer.eps}
@@ -331,6 +346,7 @@ opportunity to drop the transaction, but it might also continue till the end.
 	transaction.}
 	\label{fig:compute_producer}
 \end{figure}
+
 
 
 \section{Interface Control}

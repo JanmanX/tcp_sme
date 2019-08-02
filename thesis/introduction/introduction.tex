@@ -5,45 +5,45 @@ TCP/IP network stack intended to run on custom hardware where performance, respo
 and throughput is crucial.\\
 
 % 2. Explanation of specific problem
-As is the trend with modern automation, computerization, and mechanization, new 
-devices are steadily invented to handle this increasing demand for data and 
-control. 
-With the ever-increasing sophistication of machines generating immense amount 
+As is the trend with modern automation, computerization, and mechanization, new
+devices are steadily invented to handle this increasing demand for data and
+control.
+With the ever-increasing sophistication of machines generating immense amount
 of information, the data needs to be transmitted to numerous other machines for
 further processing, or even simply storage. The most common and the most convenient
 way of linking multiple devices together is using the internet, and its underlying
-protocols. However, the networking stack supplied with most major operating 
-systems, while heavily optimised, suffers from considerable penalties due to 
+protocols. However, the networking stack supplied with most major operating
+systems, while heavily optimised, suffers from considerable penalties due to
 complexities of a standard computer architecture. For example, heavy network
-traffic utilizes the computers' internal busses, allocates vast amounts of 
-memory, and spend precious CPU clock-cycles with polling and interrupts. This
+traffic utilizes the computers' internal busses, utilizes the memory, and spend
+precious CPU clock-cycles with polling and interrupts. This
 prevents the machine from using these resources for actual computing tasks.\\
 These issues have been identified and solved by hardware manufacturers by
 adopting dedicated Network Interface Controllers (NIC) which would employ
-various techniques to offload the processing. One such offloading technique is 
+various techniques to offload the processing. One such offloading technique is
 called the TCP offload engine (TOE), which usually takes care of the essential
-parts of networking involved -- the Internet Protocol and the Transmission 
+parts of networking involved -- the Internet Protocol and the Transmission
 Control Protocol\cite{TCP_offload_dumb_idea}.\\
-Modern hardware manufacturers can produce NICs boasting network throughput 
-speeds as high as 100 Gigabits\cite{xilinx_100g_nic}. Unfortunately, these cards 
-are highly specialized for certain applications, and even though they provide 
+Modern hardware manufacturers can produce NICs boasting network throughput
+speeds as high as 100 Gigabits\cite{xilinx_100g_nic}. Unfortunately, these cards
+are highly specialized for certain applications, and even though they provide
 basic programmability, they are rarely suitable for rapid prototyping of
 applications and other custom hardware devices. Furthermore, each NIC manufacturer
-has a diverse set of hardware with varying interfaces, making it hard to 
-combine and swap and test these cards.
+has a diverse set of hardware with varying interfaces, making it hard to
+combine, swap and test these cards.
 Licensed software solutions in the form of IP blocks exist as well. Unfortunately,
-these blocks are usually distributed as black-boxes of VHDL code, which is 
+these blocks are usually distributed as black-boxes of VHDL code, which is
 hard to maintain, and even harder to debug and extend.  \\
 
 In this thesis, we bridge the gap between the blazingly-fast network offloading
 devices and their more flexible and malleable software counterparts.\\
-This networking stack is implemented in a fully self-contained fashion so that 
+This networking stack is implemented in a fully self-contained fashion so that
 it is completely independent of any other software running on the machine, while
 utilizing the performance advantages gained from the lack of overhead in
-conventional implementations. 
-The use of a high-level programming language in combination with the modern 
-Synchronous Message Exchange model makes the network stack a very versatile 
-implementation with ease of use, debugging, and even extension. 
+conventional implementations.
+The use of a high-level programming language in combination with the modern
+Synchronous Message Exchange model makes the network stack a very versatile
+implementation with ease of use, debugging, and even extension.
 
 % * VHDL unmaintainable
 % * SME better for simulation
