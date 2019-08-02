@@ -48,7 +48,6 @@ namespace TCPIP
         protected async override Task OnTickAsync()
         {
             frameOutComputeProducerControlBusOut.valid = false;
-            //linkOutComputeProducerControlBusOut.available = false;
 
             // Set/Reset all values
             uint bytes_passed = 0;
@@ -63,22 +62,26 @@ namespace TCPIP
                 await ClockAsync();
             }
 
+            await ClockAsync();
+
             // Get primary information about the packet
             protocol = packetOutWriteBus.protocol;
             dst_ip = (uint)packetOutWriteBus.ip_dst_addr_0;
 
             // Pass data while packetOut has valid data
-            while(packetOutBufferProducerControlBusIn.valid) { //linkOutComputeProducerControlBusOut.available = true;
+            while(packetOutBufferProducerControlBusIn.valid) { 
                 frameOutComputeProducerControlBusOut.valid = true;
                 frameOutComputeProducerControlBusOut.bytes_left = 1;
                 frameOutWriteBus.data = packetOutWriteBus.data;
                 frameOutWriteBus.addr = IPv4.HEADER_SIZE + bytes_passed;
         		bytes_passed++;
-                await ClockAsync();
 
                 if(packetOutBufferProducerControlBusIn.bytes_left == 0)
                 {
+                    await ClockAsync();
                     break;
+                } else {
+                    await ClockAsync();
                 }
             }
 
