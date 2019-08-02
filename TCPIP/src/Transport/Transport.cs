@@ -101,18 +101,18 @@ namespace TCPIP
             // DEBUG: Debug sockets
             pcbs[0].state = (byte)PCB_STATE.CONNECTED;
             pcbs[0].protocol = (byte)IPv4.Protocol.UDP;
-            pcbs[0].f_address = 0x11223344;
-            pcbs[0].f_port = 0x5566;
-            pcbs[0].l_address = 0x778899AA;
+            pcbs[0].f_address = 0x0A000002; // 10.0.0.1
+            pcbs[0].f_port = 80;            
+            pcbs[0].l_address = 0x0A000001; // 10.0.0.1
             pcbs[0].l_port = 80;
 
-            pcbs[1].state = (byte)PCB_STATE.CONNECTED;
-            pcbs[1].protocol = (byte)IPv4.Protocol.UDP;
-            pcbs[1].f_address = 0x11223344;
-            pcbs[1].f_port = 0x5566;
-            pcbs[1].l_address = 0x778899AA;
-            pcbs[1].l_port = 81;
-        }
+            pcbs[0].state = (byte)PCB_STATE.CONNECTED;
+            pcbs[0].protocol = (byte)IPv4.Protocol.UDP;
+            pcbs[0].f_address = 0x0A000002; // 10.0.0.1
+            pcbs[0].f_port = 21;            
+            pcbs[0].l_address = 0x0A000001; // 10.0.0.1
+            pcbs[0].l_port = 21;
+       }
 
 
         protected override void OnTick()
@@ -191,10 +191,6 @@ namespace TCPIP
 
         void Receive()
         {
-            // Logging.log.Info($"In receive mode "+
-            //                  $"valid:{packetInBufferProducerControlBusIn.valid} "+
-            //                  //$"avaliable:{packetInBufferProducerControlBusIn.available} "+
-            //                  $"Databus: {packetInBus.data:X2}");
             // If invalid, reset
             if (packetInBufferProducerControlBusIn.valid == false)
             {
