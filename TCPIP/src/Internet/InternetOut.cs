@@ -57,19 +57,18 @@ namespace TCPIP
 
             // Set ready and wait for first byte
             packetOutBufferConsumerControlBusOut.ready = true;
-            while( packetOutBufferProducerControlBusIn.valid == false)
+            do
             {
                 await ClockAsync();
             }
-
-            await ClockAsync();
+            while(packetOutBufferProducerControlBusIn.valid == false);
 
             // Get primary information about the packet
             protocol = packetOutWriteBus.protocol;
             dst_ip = (uint)packetOutWriteBus.ip_dst_addr_0;
 
             // Pass data while packetOut has valid data
-            while(packetOutBufferProducerControlBusIn.valid) { 
+            while(packetOutBufferProducerControlBusIn.valid) {
                 frameOutComputeProducerControlBusOut.valid = true;
                 frameOutComputeProducerControlBusOut.bytes_left = 1;
                 frameOutWriteBus.data = packetOutWriteBus.data;
@@ -78,6 +77,7 @@ namespace TCPIP
 
                 if(packetOutBufferProducerControlBusIn.bytes_left == 0)
                 {
+                    packetOutBufferConsumerControlBusOut.ready = false;
                     await ClockAsync();
                     break;
                 } else {
@@ -109,7 +109,7 @@ namespace TCPIP
                 }
 
 
- 
+
                 await ClockAsync();
             }
 
