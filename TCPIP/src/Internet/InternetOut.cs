@@ -68,14 +68,18 @@ namespace TCPIP
             dst_ip = (uint)packetOutWriteBus.ip_dst_addr_0;
 
             // Pass data while packetOut has valid data
-            while(packetOutBufferProducerControlBusIn.valid) {
-                //linkOutComputeProducerControlBusOut.available = true;
+            while(packetOutBufferProducerControlBusIn.valid) { //linkOutComputeProducerControlBusOut.available = true;
                 frameOutComputeProducerControlBusOut.valid = true;
                 frameOutComputeProducerControlBusOut.bytes_left = 1;
                 frameOutWriteBus.data = packetOutWriteBus.data;
                 frameOutWriteBus.addr = IPv4.HEADER_SIZE + bytes_passed;
         		bytes_passed++;
                 await ClockAsync();
+
+                if(packetOutBufferProducerControlBusIn.bytes_left == 0)
+                {
+                    break;
+                }
             }
 
             // We do not want to receive more bytes at the moment
@@ -101,8 +105,13 @@ namespace TCPIP
                     frameOutComputeProducerControlBusOut.bytes_left = 0;
                 }
 
+
+ 
                 await ClockAsync();
             }
+
+
+            frameOutComputeProducerControlBusOut.valid = false;
         }
 
         // Creates the packet inside the buffer, and returns its data offset
