@@ -34,6 +34,9 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{subcaption}
+\usepackage{glossaries}
+\input{acronyms.tex}
+\makeglossaries
 
 
 \usepackage{coffee4} % Comment me out
@@ -167,7 +170,14 @@
 \renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}}
 \renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
 \onecolumn
+
+% \newpage
+
+% Make acronym page
+\printglossary[type=\acronymtype,title=Abbrevations]
 \newpage
+
+
 \twocolumn
 
 \clearpage
@@ -205,6 +215,7 @@
 
 
 
+asd a\gls{sme} asda is SME and \gls{sme}
 
 
 \newpage

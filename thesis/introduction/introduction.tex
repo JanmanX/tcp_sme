@@ -19,11 +19,11 @@ traffic utilizes the computers' internal busses, utilizes the memory, and spend
 precious CPU clock-cycles with polling and interrupts. This
 prevents the machine from using these resources for actual computing tasks.\\
 These issues have been identified and solved by hardware manufacturers by
-adopting dedicated Network Interface Controllers (NIC) which would employ
+adopting dedicated Network Interface Controllers (NIC), which would employ
 various techniques to offload the processing. One such offloading technique is
 called the TCP offload engine (TOE), which usually takes care of the essential
-parts of networking involved -- the Internet Protocol and the Transmission
-Control Protocol\cite{TCP_offload_dumb_idea}.\\
+parts of networking involved -- the Internet Protocol (IP) and the Transmission
+Control Protocol (TCP) \cite{TCP_offload_dumb_idea}.\\
 Modern hardware manufacturers can produce NICs boasting network throughput
 speeds as high as 100 Gigabits\cite{xilinx_100g_nic}. Unfortunately, these cards
 are highly specialized for certain applications, and even though they provide
@@ -31,9 +31,10 @@ basic programmability, they are rarely suitable for rapid prototyping of
 applications and other custom hardware devices. Furthermore, each NIC manufacturer
 has a diverse set of hardware with varying interfaces, making it hard to
 combine, swap and test these cards.
-Licensed software solutions in the form of IP blocks exist as well. Unfortunately,
+Licensed software solutions in the form of IP blocks exist as well
+\cite{microtronix_ip_cores}\cite{avnet_ip_cores}. Unfortunately,
 these blocks are usually distributed as black-boxes of VHDL code, which is
-hard to maintain, and even harder to debug and extend.  \\
+hard to maintain, and even harder to debug and extend\cite{opencores_mission}.\\
 
 In this thesis, we bridge the gap between the blazingly-fast network offloading
 devices and their more flexible and malleable software counterparts.\\
@@ -42,7 +43,7 @@ it is completely independent of any other software running on the machine, while
 utilizing the performance advantages gained from the lack of overhead in
 conventional implementations.
 The use of a high-level programming language in combination with the modern
-Synchronous Message Exchange model makes the network stack a very versatile
+Synchronous Message Exchange (SME) model makes the network stack a very versatile
 implementation with ease of use, debugging, and even extension.
 
 % * VHDL unmaintainable
