@@ -32,8 +32,20 @@ has a diverse set of hardware with varying interfaces, making it hard to
 combine, swap and test these cards.
 Licensed software solutions in the form of IP blocks exist as well
 \cite{microtronix_ip_cores}\cite{avnet_ip_cores}. Unfortunately,
-these blocks are usually distributed as black-boxes of \gls{vhdl} code, which is
-hard to maintain, and even harder to debug and extend\cite{opencores_mission}.\\
+these blocks are usually distributed as black-boxes of \gls{vhdl}
+code, which is hard to maintain, and even harder to debug and
+extend\cite{opencores_mission}.  Additionally, these IP blocks or
+"cores" are exceptionaly expensive for smaller design teams, making
+it nearly impossible to prototype hardware designs with limited
+funding\cite{opencores_mission}. Multiple networking IP cores exist gratis for
+non-commercial use, but use for these is very limited by that nature.
+Bying a licence for such IP cores is not an easy task either, as the
+prices of the licenses are rarely listed on the vendor sites, and the
+sales departments have to be contacted for a custom quotation. It is
+also common to either require a lawyer to verify and sign the excessive
+license agreements, or having to sign up for memberships of various
+IP Licensing deals, such as the SignOnce IP Licensing program by
+Xilinx\cite{xilinx_signonce}.\\
 
 In this thesis, we bridge the gap between the blazingly-fast network offloading
 devices and their more flexible and malleable software counterparts.\\
@@ -45,14 +57,14 @@ The use of a high-level programming language in combination with the modern
 \gls{sme} model makes the network stack a very versatile
 implementation with ease of use, debugging, and even extension.
 
+
+\section{Related work}
+Networking is indeed desired in more and more applications and hardware devices.
+
+
 % * VHDL unmaintainable
 % * SME better for simulation
-% * IP blocks not open source (No code) + Hard to debug
 % * Price
-
-
-
-MORE TO COME!!
 
 
 % 3. Brief review of existing solutions
