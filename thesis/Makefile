@@ -3,6 +3,7 @@
 default: all
 
 all:
+	makeglossaries thesis
 	latexmk -pdf -shell-escape thesis.tex
 
 clean:
