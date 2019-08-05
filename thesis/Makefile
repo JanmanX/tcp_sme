@@ -3,6 +3,7 @@
 default: all
 
 all:
+	latexmk -pdf -shell-escape thesis.tex
 	makeglossaries thesis
 	latexmk -pdf -shell-escape thesis.tex
 
