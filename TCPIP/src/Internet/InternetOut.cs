@@ -67,6 +67,10 @@ namespace TCPIP
             protocol = packetOutWriteBus.protocol;
             dst_ip = (uint)packetOutWriteBus.ip_dst_addr_0;
 
+            // Set frame specific data such as framenumber and ethertype
+            frameOutWriteBus.frame_number = packetOutWriteBus.frame_number;
+            frameOutWriteBus.ethertype = (ushort)EthernetIIFrame.EtherType.IPv4;
+
             // Pass data while packetOut has valid data
             while(packetOutBufferProducerControlBusIn.valid) {
                 frameOutComputeProducerControlBusOut.valid = true;
@@ -100,7 +104,6 @@ namespace TCPIP
 
                 frameOutWriteBus.data = buffer[idx];
                 frameOutWriteBus.addr = idx;
-                frameOutWriteBus.ethertype = (ushort)EthernetIIFrame.EtherType.IPv4;
                 idx++;
 
                 // Indicate if last byte
