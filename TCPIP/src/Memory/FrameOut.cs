@@ -234,14 +234,13 @@ namespace TCPIP
                 datagramBusOutBufferProducerControlBusOut.valid = true;
                 datagramBusOutBufferProducerControlBusOut.bytes_left = (uint)bytes_left;
 
-                buffer_calc.FinishReadingCurrentLoadSegment();
-
-                send_preload = false;
-
                 Logging.log.Info($"Sending: data: 0x{data:X2} " +
                                  $"buffer_addr: {addr} " +
                                  $"bytes left: {bytes_left} " +
                                  $"total length : {buffer_calc.MetadataCurrentLoadSegment().total_len}");
+
+                buffer_calc.FinishReadingCurrentLoadSegment();
+                send_preload = false;
             }
         }
     }
