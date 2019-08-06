@@ -30,8 +30,8 @@ namespace TCPIP
             {
                 // TODO: Drop with reset
                 //Logging.log.Warn("PCB not found");
-                pcb_idx = 0; // XXX: Debug
-            }
+            	return;
+	    }
 
             // Calculate header checksum
             for (int i = 0; i < UDP.HEADER_SIZE; i += 2)
