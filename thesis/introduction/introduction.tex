@@ -77,4 +77,17 @@ These annotations are not a part of the core C++ language, and they cannot be
 added generated automatically without the risk of creating race conditions and
 other bugs. As such, the loop unrolling has to be done by the programmer, and
 the performance of the finished product relies solely on the ability of the
-programmer to unroll and pipeline the loops efficiently and without errors.
+programmer to unroll and pipeline the loops efficiently and without errors.\\
+The architecture of the Xilinx TCP/IP stack, seen on figure \ref{fig:fccm2015},
+is very similar to the one described in the implementation chapter.
+\ref{chap:implementation}.
+\begin{figure}[h]
+\centering
+\includegraphics[scale=1]{introduction/fccm2015.eps}
+\caption{The architecture of the Xilinx 10Gbps TCP/IP stack introduced in
+\textit{Scalable 10Gbps TCP/IP Stack Architecture for Reconfigurable Hardware,
+in FCCM’15}\cite{sidler2015tcp}.}
+\label{fig:fccm2015}
+\end{figure}
+
+
