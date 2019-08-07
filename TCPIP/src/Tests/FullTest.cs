@@ -18,7 +18,9 @@ namespace TCPIP
                 // * InternetIn should signal if the packet is fragmented
 
                 // Graph simulator
-                var simulator = new GraphFileSimulator("data/graphsimulation/udp_out_test/",2000,true);
+                //var simulator = new GraphFileSimulator("data/graphsimulation/udp_out_test/",450,true);
+                var simulator = new GraphFileSimulator("data/graphsimulation/multi_in_test/",55000,false);
+
                 // Allocate memory blocks
                 int packet_out_mem_size = 8192;
                 var packet_out_mem = new TrueDualPortMemory<byte>(packet_out_mem_size);
