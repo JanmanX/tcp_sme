@@ -150,9 +150,9 @@ namespace TCPIP
             // If the range is currently bigger than what we can handle, there is nothing to do
             // If the tail segment and the last segment is are the same, then we must be hitting
             // themselves (full empty buffer)
-            if (MemoryRange(head_pointer,tail_pointer) < size && current_tail_segment_id != next_head_segment_id){
+            if (MemoryRange(head_pointer,tail_pointer - 1) < size && current_tail_segment_id != next_head_segment_id){
                 Logging.log.Error($"The range : {head_pointer},{tail_pointer} is not large enough for {size}");
-                Logging.log.Fatal($"head_pointer: {head_pointer} tail_pointer {tail_pointer} mem: {MemoryRange(head_pointer,tail_pointer)}");
+                Logging.log.Fatal($"head_pointer: {head_pointer} tail_pointer {tail_pointer} mem: {MemoryRange(head_pointer,tail_pointer - 1)}");
                 throw new System.Exception("The range is not big enough for the allocation");
             }
             new_segment.done = false;
@@ -200,8 +200,9 @@ namespace TCPIP
             segment_list[segment_ID] = cur_segment;
 
             // Check the boundary to se if we should update the tail pointer
-            if(cur_segment.start == tail_pointer){
-                tail_pointer = cur_segment.start + 1;
+            if(cur_segment.start == (tail_pointer % memory_size)){
+                //Logging.log.Fatal($"Tailpointer was: {tail_pointer} is {cur_segment.stop}");
+                tail_pointer = (cur_segment.stop + 1) % memory_size;
             }
 
             // See if we should progress the tail pointer;
