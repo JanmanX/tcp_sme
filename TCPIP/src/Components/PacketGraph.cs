@@ -299,7 +299,7 @@ namespace TCPIP
                     return GatherReceive(compare, byte_number);
                 }
             }
-            Logging.log.Warn($"No packet found for GatherReceive. compared to: 0x{compare:X2}");
+            Logging.log.Error($"No packet found for GatherReceive. compared to: 0x{compare:X2}");
             return false;
         }
 
@@ -328,7 +328,7 @@ namespace TCPIP
                 }
                 else
                 {
-                    Logging.log.Error($"Wrong comparison of input data from datain. " +
+                    Logging.log.Fatal($"Wrong comparison of input data from datain. " +
                                       $"correct: 0x{excact:X2} index: {dataIn.Current.bytes_left} " +
                                       $"observed: 0x{compare:X2} index: {byte_number}");
                     return false;
@@ -420,7 +420,7 @@ namespace TCPIP
             }
 
             int pid = toIterate.First();
-            Logging.log.Trace("PacketID: " + pid + " iterator started");
+            Logging.log.Warn("PacketID: " + pid + " iterator started");
             Packet pack = packetList[pid];
 
             // Start after ethernet header

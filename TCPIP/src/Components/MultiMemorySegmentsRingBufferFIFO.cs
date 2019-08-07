@@ -145,7 +145,7 @@ namespace TCPIP
             if(!new_segment.done && !new_segment.full)
             {
                 Logging.log.Fatal("The segment entry table is full!");
-               throw new System.Exception("The segment entry table is full!");
+                throw new System.Exception("The segment entry table is full!");
             }
             // If the range is currently bigger than what we can handle, there is nothing to do
             // If the tail segment and the last segment is are the same, then we must be hitting
@@ -161,7 +161,7 @@ namespace TCPIP
             // Offset with last byte, so we do not have to subtract 1
             new_segment.stop = (new_segment.start + size) % memory_size;
             new_segment.current = 0;
-            // Set the new tail pointer
+            // Set the new head pointer
             head_pointer =  new_segment.stop + 1;
 
             // save the segment
@@ -212,7 +212,7 @@ namespace TCPIP
                 cur_segment = segment_list[scope_pointer];
                 if(!cur_segment.done)
                 {
-                current_tail_segment_id = (current_tail_segment_id + i) % num_segments;
+                    current_tail_segment_id = (current_tail_segment_id + i) % num_segments;
                     return;
                 }
             }
@@ -247,6 +247,7 @@ namespace TCPIP
             return segment_list[segment_ID].metaData;
         }
 
+        // Returns the current tail of the buffer
         public int FocusSegment()
         {
             return current_tail_segment_id;

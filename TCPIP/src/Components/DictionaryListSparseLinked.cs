@@ -273,7 +273,7 @@ namespace TCPIP
         public int Delete(int key, int index)
         {
             // XXXXXX Possible edgecases
-            Logging.log.Fatal($"Delete called on: key: {key} index: {index}");
+            Logging.log.Trace($"Delete called on: key: {key} index: {index}");
             int key_pointer = GetKeyPointer(key);
             if(key_pointer == -1){
                 throw new System.Exception("Key does not exist");
