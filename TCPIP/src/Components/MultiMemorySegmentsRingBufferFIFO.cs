@@ -205,17 +205,18 @@ namespace TCPIP
                 tail_pointer = (cur_segment.stop + 1) % memory_size;
             }
 
-            // See if we should progress the tail pointer;
+            // See if we should progress the tail segment id;
             for(int i = 1; i < num_segments; i++)
             {
                 int scope_pointer = (i + current_tail_segment_id) % num_segments;
                 cur_segment = segment_list[scope_pointer];
-                current_tail_segment_id = (current_tail_segment_id + i) % num_segments;
-                if(cur_segment.full)
+                if(!cur_segment.done)
                 {
+                current_tail_segment_id = (current_tail_segment_id + i) % num_segments;
                     return;
                 }
             }
+            current_tail_segment_id = (current_tail_segment_id + 1) % num_segments;
         }
 
         public void SegmentFull(int segment_ID)
