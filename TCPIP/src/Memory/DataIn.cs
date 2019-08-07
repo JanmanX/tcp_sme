@@ -209,9 +209,9 @@ namespace TCPIP
                 int buffer = buffer_calc.SaveData();
                 byte data = readResultB.Data;
                 tempSendRingBuffer.data = data;
-                tempSendRingBuffer.length = buffer_calc.MetadataCurrentLoadSegment().accumulated_len;
-                tempSendRingBuffer.socket = buffer_calc.MetadataCurrentLoadSegment().socket;
-                tempSendRingBuffer.sequence = (int)buffer_calc.MetadataCurrentLoadSegment().sequence;
+                tempSendRingBuffer.length = buffer_calc.MetadataCurrentSaveSegment().accum_len;
+                tempSendRingBuffer.socket = buffer_calc.MetadataCurrentSaveSegment().socket;
+                tempSendRingBuffer.sequence = (int)buffer_calc.MetadataCurrentSaveSegment().sequence;
                 send_buffer[buffer] = tempSendRingBuffer;
                 Logging.log.Trace($"Got memory. goes to buffer:{buffer} data:0x{data:X2}");
                 buffer_calc.FinishFillingCurrentSaveSegment();
