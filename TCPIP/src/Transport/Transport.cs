@@ -252,6 +252,8 @@ namespace TCPIP
             stateData.socket = pcb_idx;
             stateData.sequence = sequence;
             stateData.length = length;
+            ///// Hack to get the framenumber in the state
+            stateData.frame_number = packetInBus.frame_number;
             stateData.bytes_passed = 0;
 
             // Set busses
@@ -261,10 +263,11 @@ namespace TCPIP
 
         void Pass()
         {
-            Logging.log.Info($"Passing packetIn valid: {packetInBufferProducerControlBusIn.valid} " +
+            Logging.log.Trace($"Passing packetIn valid: {packetInBufferProducerControlBusIn.valid} " +
                              $"dataIn ready: {dataInComputeConsumerControlBusIn.ready} " +
                              $"bytes left packetIn: {packetInBufferProducerControlBusIn.bytes_left} " +
-                             $"data in bus: 0x{packetInBus.data:X2}");
+                             $"data in bus: 0x{packetInBus.data:X2} " +
+                             $"frame_number: {packetInBus.frame_number}");
             // If packetIn suddenly invalid, start idle
             if (packetInBufferProducerControlBusIn.valid == false)
             {
@@ -303,6 +306,7 @@ namespace TCPIP
             dataInWriteBus.data = packetInBus.data;
             dataInWriteBus.data_length = (int)stateData.length;
             dataInWriteBus.invalidate = false;
+            dataInWriteBus.frame_number = stateData.frame_number;
             // XXX Should look up in the PCB for the last sequence we can use
             dataInWriteBus.highest_sequence_ready = stateData.sequence;
             stateData.bytes_passed++;
