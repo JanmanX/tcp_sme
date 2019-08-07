@@ -21,7 +21,7 @@ then
 fi
 
 SHELL=$(type -p bash) find . -name "*dot" | sort -n | parallel dotconvert
-ffmpeg -r 10 -i %*.dot.png -r 10  out.mp4;
+ffmpeg -r 10 -i %*.dot.png -r 10 out.mp4;
 
 #rm -- *.dot
 #rm -- *.dot.png
