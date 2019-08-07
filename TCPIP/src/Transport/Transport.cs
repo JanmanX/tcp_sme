@@ -81,6 +81,7 @@ namespace TCPIP
             public byte high_byte; // High byte for checksum calculation
             public uint bytes_passed; // Number of bytes passed
             public uint checksum_acc;
+            public long frame_number;
         }
         private StateData stateData;
         private uint ip_id = 0x00; // Current ip_id
@@ -101,17 +102,17 @@ namespace TCPIP
             // DEBUG: Debug sockets
             pcbs[0].state = (byte)PCB_STATE.CONNECTED;
             pcbs[0].protocol = (byte)IPv4.Protocol.UDP;
-            pcbs[0].f_address = 0x0A000002; // 10.0.0.1
-            pcbs[0].f_port = 80;            
-            pcbs[0].l_address = 0x0A000001; // 10.0.0.1
-            pcbs[0].l_port = 80;
+            pcbs[0].f_address = 0x12345678; //0x0A000002; // 10.0.0.1
+            pcbs[0].f_port = 6666;
+            pcbs[0].l_address = 0xBCDE0123; // 10.0.0.1
+            pcbs[0].l_port = 6789;
 
-            pcbs[0].state = (byte)PCB_STATE.CONNECTED;
-            pcbs[0].protocol = (byte)IPv4.Protocol.UDP;
-            pcbs[0].f_address = 0x0A000002; // 10.0.0.1
-            pcbs[0].f_port = 21;            
-            pcbs[0].l_address = 0x0A000001; // 10.0.0.1
-            pcbs[0].l_port = 21;
+            pcbs[1].state = (byte)PCB_STATE.CONNECTED;
+            pcbs[1].protocol = (byte)IPv4.Protocol.UDP;
+            pcbs[1].f_address = 0x0A000002; // 10.0.0.1
+            pcbs[1].f_port = 6666;
+            pcbs[1].l_address = 0x0A000001; // 10.0.0.1
+            pcbs[1].l_port = 6543;
        }
 
 
