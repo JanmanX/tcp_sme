@@ -54,6 +54,7 @@ namespace TCPIP
             public ulong ip_src_addr_1; // Upper 8 bytes of IP addr
             public ulong ip_dst_addr_0; // Lower 8 bytes of IP addr (lower 4 bytes used in this field on IPv4)
             public ulong ip_dst_addr_1; // Upper 8 bytes of IP addr
+            public int mem_block_id;
         }
         private TempData tmp_write_info;
         private TempData tmp_send_info;
@@ -73,6 +74,7 @@ namespace TCPIP
         public struct SendRingBuffer{
             public byte data;
             public ushort length;
+            public int mem_block_id;
         }
         SendRingBuffer tempSendRingBuffer;
         private const int send_buffer_size = 4;
@@ -81,7 +83,6 @@ namespace TCPIP
 
         private bool memory_requested = false;
         private bool memory_receiving = false;
-
         private bool send_preload = true;
 
         public PacketIn(TrueDualPortMemory<byte> memory, int memory_size){
@@ -133,8 +134,8 @@ namespace TCPIP
                     tmp_write_info.ip_id = packetInBus.ip_id;
                     tmp_write_info.frame_number = packetInBus.frame_number;
                     tmp_write_info.total_len = (ushort)packetInBus.data_length;
-                    // Set the accumulator length to the same as the total lenth, since this is a new "pristine" packet
-                    tmp_write_info.accum_len = (ushort)(packetInBus.data_length - 1);
+                    // Set the accumulator length to the same as the total length, since this is a new "pristine" packet
+                    tmp_write_info.accum_len = (ushort)(packetInBus.data_length);
                     // Get the new block we write to, and save the metadata
                     cur_write_block_id = mem_calc.AllocateSegment(packetInBus.data_length);
                     mem_calc.SaveMetaData(cur_write_block_id,tmp_write_info);
@@ -151,10 +152,11 @@ namespace TCPIP
                 controlA.IsWriting = true;
                 int addr = mem_calc.SaveData(cur_write_block_id);
                 controlA.Address = addr;
-                Logging.log.Trace($"Receiving: data: 0x{packetInBus.data:X2} "+
-                                  $"addr: {addr} "+
-                                  $"in memory block: {cur_write_block_id} "+
-                                  $"data left: {packetInComputeProducerControlBusIn.bytes_left}");
+                Logging.log.Info($"Receiving: data: 0x{packetInBus.data:X2} " +
+                                  $"addr: {addr} " +
+                                  $"in memory block: {cur_write_block_id} " +
+                                  $"data left: {packetInComputeProducerControlBusIn.bytes_left} " +
+                                  $"frame_number: {packetInBus.frame_number}");
                 controlA.Data = packetInBus.data;
 
             }
@@ -185,6 +187,7 @@ namespace TCPIP
                 byte data = readResultB.Data;
                 tempSendRingBuffer.data = data;
                 tempSendRingBuffer.length = buffer_calc.MetadataCurrentSaveSegment().accum_len;
+                tempSendRingBuffer.mem_block_id = buffer_calc.MetadataCurrentSaveSegment().mem_block_id;
                 send_buffer[buffer] = tempSendRingBuffer;
                 Logging.log.Trace($"Got memory. goes to buffer:{buffer} data:0x{data:X2}");
                 buffer_calc.FinishFillingCurrentSaveSegment();
@@ -203,6 +206,7 @@ namespace TCPIP
             {
                 // Get the address for the current focus element
                 int focus_segment = mem_calc.FocusSegment();
+                Logging.log.Trace($"focus segment: {focus_segment}");
                 int addr = mem_calc.LoadData(focus_segment);
 
                 // If we actually can get the address(If buffer empty etc)
@@ -221,6 +225,7 @@ namespace TCPIP
                     // Push it into the segment. This makes it possible to detect the last byte in the loaded data
                     tmp_send_info = mem_calc.LoadMetaData(focus_segment);
                     tmp_send_info.accum_len -= 1;
+                    tmp_send_info.mem_block_id = focus_segment;
                     mem_calc.SaveMetaData(focus_segment,tmp_send_info);
 
                     // We save the metadata onto the buffer
