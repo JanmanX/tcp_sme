@@ -35,7 +35,9 @@ namespace TCPIP
         }
         public interface ReadBus : IBus
         {
+            [InitialValue(0x00)]
             int socket { get; set; }
+            [InitialValue(0x00)]
             byte data { get; set; }
         }
     }
