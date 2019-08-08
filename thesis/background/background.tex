@@ -22,16 +22,59 @@ into 4 abstraction layers, each related to their scope of networking
 involved.
 
 \subsection{Link Layer}
+\begin{figure*}
+\centering
+\includegraphics[scale=0.75]{background/ethernet.eps}
+\caption{Layout of the Ethernet II header. The \texttt{EtherType} field is used
+as \texttt{Length} in the IEEE 802.3 specification.}
+\label{fig:ethernet_header}
+\end{figure*}
+
+
 The link layer is the lowest, bottom-most layer in the Internet Protocol Suite.
 Link layer addresses methods and protocols operating on the link that the host
 is physically connected to\footnote{Wireless connections are also included
-under this category.}. Contrary to the OSI model, this lowest layer in TCP/IP
-does not regard the standards and protocols of the physical mediums used (the
-pin layout, voltages, cable specifications etc.), making TCP/IP hardware-independent.
-As a result, TCP/IP can in theory be implemented on virtually any hardware
-configuration, emphasizing the flexibility of the model.
+under this category.}. The purpose of this layer is to send and receive IP
+datagrams for the Internet Layer described in the next section.\\
+Contrary to the OSI model, this lowest layer in TCP/IP
+does not regard the standards and protocols of the physical mediums used
+(the pin layout, voltages, cable specifications etc.), making TCP/IP
+hardware-independent. As a result, TCP/IP can in theory be implemented on
+virtually any hardware configuration, emphasizing the flexibility of the
+model.\\
+TCP/IP supports many different link layers depending on the underlying hardware
+used, such as the \gls{fddi} using optical fiber cables\cite{RFC1103}, RS-232
+serial lines\cite{tia_232}, or perhaps the most well-known link-layer protocol,
+the Ethernet.
+
+\subsubsection{Ethernet (II) and IEEE 802.3}
+The collection of standards known under the term "Ethernet" are were originally
+developed by Xerox Corp. between year 1973 and 1974\cite{americanhistory_ethernet}
+\cite{tcpip_illustrated_vol1}. Version 2 of the protocol was published in 1982
+under the name Ethernet II, also known as DIX Ethernet, named after 3 companies
+participating in its design: DEC, Intel and Xerox\cite{heywood2001drew}.\\
+Seeing wide adoption of this standard, it has been formally standardized as by
+the \gls{ieee} under the publication of IEEE 802.3 in
+1983\cite{ieee_8023_release}. Unfortunately, the original specification of
+Ethernet frame format deviate slightly from that of IEEE
+802.3\cite{tcpip_illustrated_vol1}. Figure \ref{fig:ethernet_header} shows the
+layout of a standard Ethernet header. The \texttt{EtherType} field is used to
+indicate the type of the payload type, whereas it is used as \texttt{Length} in
+the IEEE 802.3. Fortunately, none of the valid \texttt{EtherType} values in
+conventional Ethernet are valid as \texttt{Length} in the 802.3 standard, and
+so the headers are easily distinguishable.\\
+The divergent way of encapsulating IP datagrams is defined in RFC 894 for
+true Ethernet\cite{RFC0894} and RFC 1042 for IEEE 802 networks\cite{RFC1042}.
+
+
 
 \subsection{Internet Layer}
+\begin{figure}
+\includegraphics[scale=0.55]{background/ip.eps}
+\caption{Layout of the IPv4 packet header}
+\label{fig:ipv4_header}
+\end{figure}
+
 The internet layer mainly concerns itself with sending data from the source
 network to the destination network. This seemingly simple task requires multiple
 functions from the layer:
@@ -40,6 +83,64 @@ functions from the layer:
     \item Packet routing
     \item \emph{Basic} transmit diagnostic information
     \item Carrying data for various upper layer protocols
+\end{itemize}
+
+\subsubsection{Internet Protocol (IP)}
+The core protocol of the Internet Layer is the aptly named Internet Protocol
+(IP), which is the workhorse of the TCP/IP protocol suite.
+\gls{ip} is a connectionless datagram delivery service based on the
+end-to-end principle, where the application-specific computation is located on
+the end nodes. It is often described as an "unreliable" protocol, as there are
+no guarantees that an IP datagram successfully arrives at the intended
+destination. By being connectionless, \gls{ip} does not maintain any
+information about the current state about the outgoing datagrams.
+As a consequence, \gls{ip} is a best effort service, in which the protocol does
+its best to deliver a packet without additional knowledge of the next steps in
+the network\cite{tcpip_illustrated_vol1}.\\
+The first major version, and the currently most used version of the \gls{ip}
+is version 4, usually referred to as \gls{ipv4}. However, it is steadily
+being replaced by the newer \gls{ipv6}, with an adoption rate of over $29\%$
+total users connecting to \url{www.google.com} using an IPv6 address by Jul
+30, 2019\cite{google_ipv6_adoption}. Despite the improvements that the new
+version provides, it has been proven to be a hard challenge to replace, update,
+and modify all the existing network devices to support this new protocol,
+extending the life current version 4. In this thesis, only \gls{ipv4} will
+be considered.\\
+\gls{ipv4} provides two basic functions: addressing and fragmentation. By using
+32-bit addresses located as one of the last fields in the header on figure
+\ref{fig:ipv4_header}, the nodes use the destination address to transmit
+internet datagrams towards their destination. The process of selection a path
+on the network is called routing\cite{RFC0791}.\\
+Fragmentation on the other hand is used to split large datagrams and transmit
+these through nodes supporting smaller packets. The \texttt{Fragment Offset} in
+the packet header defines the offset of the data in the datagram with the
+\texttt{Identification} number.\\
+\gls{ipv4} uses additional mechanisms to achieve its service:
+\begin{itemize}
+	\item \textbf{\gls{tos}}\\
+	ToS is used to indicate the desired quality of the service provided.
+	It provides options to minimize delay or monetary cost, or options to
+		maximize throughput or
+		reliability\cite{tcpip_illustrated_vol1}\cite{RFC0791}.
+	\item \textbf{\gls{ttl}}\\
+	\gls{ttl} is an upper limit of how many routers a datagram is allowed
+		to pass. For every node visited, the \gls{ttl} is decremented,
+		and if the counter reaches $0$, the datagram is destroyed. This
+		ensures a reasonable routing by eliminating datagrams stuck in
+		loops\cite{RFC0791}.
+	\item \textbf{Options}\\
+	Options can be added to the end of the header as a variable-list of
+		optional information. It can specify additional functionality
+		during the transmission, such as timestamping, routing options,
+		security restrictions etc.. However, since it is not required
+		to support Options in the \gls{ipv4} header, these are rarely
+		supported and used\cite{tcpip_illustrated_vol1}.
+	\item \textbf{Header Checksum}\\
+	To ensure the correct routing and handling of the IP datagram, the
+		checksum in the header assures the header-part of the packet is
+		intact. Note that the checksum is only calculated for the
+		header, and not the data, as this is done by most transport
+		protocols.
 \end{itemize}
 
 
@@ -62,10 +163,9 @@ Suite as simply "TCP/IP".
 \subsection{Application Layer}
 The application layer protocols are used by applications and services to
 exchange information over the network. A few of the well-known application
-layer protocols are the Hypertext Transfer Protocol (HTTP)\cite{RFC1945},
-File Transfer Protocol (FTP)\cite{RFC0114}, and Simple Mail Transfer Protocol
-(SMTP)\cite{RFC0788}.\\
-This layer is usually implemented by the userspace applications themselves, and
+layer protocols are the \gls{http}\cite{RFC1945},
+\gls{ftp}\cite{RFC0114}, and \gls{smtp}\cite{RFC0788}.\\
+This layer is usually implemented by the user-space applications themselves, and
 therefore are not strictly required to actually run a TCP/IP network.
 
 
@@ -79,8 +179,7 @@ networking stack has to be implemented, but the hardware needs to be defined
 as well. This hardware should be self-contained enough to work well in combination
 with any additional system, which the user incorporate for networking.\\
 A wide variety of hardware types exist for such independent system, such as
-Application-specific Integrated Circuit (ASIC), Complex Programmable Logic
-Device (CPLD), Socket on a Chip (SoC), and Field-Programmable Gate Array (FPGA).
+\gls{asic}, \gls{cpld}, \gls{soc}, and \gls{fpga}.
 Each of these integrated circuits have their advantages and disadvantages; some
 of them are re-programmable, some are cheap and disposable, and some are excellent
 for general-purpose applications.\\
