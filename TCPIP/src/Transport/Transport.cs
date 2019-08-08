@@ -202,12 +202,13 @@ namespace TCPIP
             // If we are receiving a new packet
             if (packetInBus.ip_id != ip_id)
             {
+                Logging.log.Info($"Reset! old ip_id: 0x{ip_id:X2} new: 0x{packetInBus.ip_id:X2}");
                 ip_id = packetInBus.ip_id;
                 read = true;
                 idx_in = 0;
             }
 
-            Logging.log.Info($"Got receive data: 0x{packetInBus.data:X2} ip_id: {packetInBus.ip_id}");
+            Logging.log.Info($"Got receive data: 0x{packetInBus.data:X2} ip_id: 0x{packetInBus.ip_id:X2}");
 
             if (idx_in < buffer_in.Length)
             {
@@ -264,7 +265,7 @@ namespace TCPIP
 
         void Pass()
         {
-            Logging.log.Trace($"Passing packetIn valid: {packetInBufferProducerControlBusIn.valid} " +
+            Logging.log.Info($"Passing packetIn valid: {packetInBufferProducerControlBusIn.valid} " +
                              $"dataIn ready: {dataInComputeConsumerControlBusIn.ready} " +
                              $"bytes left packetIn: {packetInBufferProducerControlBusIn.bytes_left} " +
                              $"data in bus: 0x{packetInBus.data:X2} " +

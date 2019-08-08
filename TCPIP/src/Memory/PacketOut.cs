@@ -127,7 +127,7 @@ namespace TCPIP
                     // Get the new block we write to, and save the metadata
                     mem_calc.NextSegment(tmp_write_ip_info);
                     write_next_packet = false;
-                    Logging.log.Warn($"New packet! frame_number: {packetIn.frame_number}");
+                    Logging.log.Info($"New packet! frame_number: {packetIn.frame_number}");
 
                 }
                 // Submit the data
