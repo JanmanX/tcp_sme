@@ -70,20 +70,21 @@ for counter, packet in tqdm.tqdm(enumerate(packets)):
         if counter == 0:
             endstr = ""
         else:
-            endstr = "_" + str(counter-1) + z
-        filename = args.outputfolder + "/" + f"{counter}{z}"+ endstr +"-send.bin"
+            endstr = "_" + str(counter) + z
+            endstr = ""
+        filename = args.outputfolder + "/" + f"{counter + 1}{z}"+ endstr +"-send.bin"
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         with open(filename,"wb") as f:
                 f.write(data)
         # save data from the packet files
         if Raw in packet:
             if last_end_packet != 0:
-                filename = args.outputfolder + "/" + f"{counter}_" + str(last_end_packet) +"-datain.bin"
+                filename = args.outputfolder + "/" + f"{counter + 1}_" + str(last_end_packet) +"-datain.bin"
             else:
-                filename = args.outputfolder + "/" + f"{counter}-datain.bin"
+                filename = args.outputfolder + "/" + f"{counter + 1}-datain.bin"
 
             if not packet[Raw].load.startswith(b"!"):
-                last_end_packet = counter
+                last_end_packet = counter + 1
                 os.makedirs(os.path.dirname(filename), exist_ok=True)
                 with open(filename,"wb") as f:
                     f.write(packet[Raw].load)
