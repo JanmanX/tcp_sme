@@ -164,6 +164,7 @@ namespace TCPIP
                     memory_lookup[test] = cur_write_block_id;
                     Logging.log.Info($"Adding memory_segment " +
                                      $"socket: {cur_write_socket} " +
+                                     $"segment size: {dataIn.data_length} " +
                                      $"sequence: {cur_write_sequence} " +
                                      $"mem look addr: {test} " +
                                      $"write block id: {cur_write_block_id}");
