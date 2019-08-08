@@ -145,14 +145,14 @@ namespace TCPIP
             if(!new_segment.done && !new_segment.full)
             {
                 Logging.log.Fatal("The segment entry table is full!");
-               throw new System.Exception("The segment entry table is full!");
+                throw new System.Exception("The segment entry table is full!");
             }
             // If the range is currently bigger than what we can handle, there is nothing to do
             // If the tail segment and the last segment is are the same, then we must be hitting
             // themselves (full empty buffer)
-            if (MemoryRange(head_pointer,tail_pointer) < size && current_tail_segment_id != next_head_segment_id){
+            if (MemoryRange(head_pointer,tail_pointer - 1) < size && current_tail_segment_id != next_head_segment_id){
                 Logging.log.Error($"The range : {head_pointer},{tail_pointer} is not large enough for {size}");
-                Logging.log.Fatal($"head_pointer: {head_pointer} tail_pointer {tail_pointer} mem: {MemoryRange(head_pointer,tail_pointer)}");
+                Logging.log.Fatal($"head_pointer: {head_pointer} tail_pointer {tail_pointer} mem: {MemoryRange(head_pointer,tail_pointer - 1)}");
                 throw new System.Exception("The range is not big enough for the allocation");
             }
             new_segment.done = false;
@@ -161,7 +161,7 @@ namespace TCPIP
             // Offset with last byte, so we do not have to subtract 1
             new_segment.stop = (new_segment.start + size) % memory_size;
             new_segment.current = 0;
-            // Set the new tail pointer
+            // Set the new head pointer
             head_pointer =  new_segment.stop + 1;
 
             // save the segment
@@ -200,21 +200,23 @@ namespace TCPIP
             segment_list[segment_ID] = cur_segment;
 
             // Check the boundary to se if we should update the tail pointer
-            if(cur_segment.start == tail_pointer){
-                tail_pointer = cur_segment.start + 1;
+            if(cur_segment.start == (tail_pointer % memory_size)){
+                //Logging.log.Fatal($"Tailpointer was: {tail_pointer} is {cur_segment.stop}");
+                tail_pointer = (cur_segment.stop + 1) % memory_size;
             }
 
-            // See if we should progress the tail pointer;
+            // See if we should progress the tail segment id;
             for(int i = 1; i < num_segments; i++)
             {
                 int scope_pointer = (i + current_tail_segment_id) % num_segments;
                 cur_segment = segment_list[scope_pointer];
-                current_tail_segment_id = (current_tail_segment_id + i) % num_segments;
-                if(cur_segment.full)
+                if(!cur_segment.done)
                 {
+                    current_tail_segment_id = (current_tail_segment_id + i) % num_segments;
                     return;
                 }
             }
+            current_tail_segment_id = (current_tail_segment_id + 1) % num_segments;
         }
 
         public void SegmentFull(int segment_ID)
@@ -245,6 +247,7 @@ namespace TCPIP
             return segment_list[segment_ID].metaData;
         }
 
+        // Returns the current tail of the buffer
         public int FocusSegment()
         {
             return current_tail_segment_id;

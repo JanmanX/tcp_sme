@@ -49,8 +49,9 @@ namespace TCPIP
             public int socket;
             public uint sequence;
             public bool invalidate;
-            public int data_length;
-            public ushort accumulated_len; // Accumulator for the length.
+            public int total_length;
+            public int accum_len; // Accumulator for the length.
+
         }
         private InputData tmp_write_inputdata;
         private InputData tmp_send_inputdata;
@@ -84,7 +85,7 @@ namespace TCPIP
         // little ringbuffer for the data out
         public struct SendRingBuffer{
             public byte data;
-            public ushort length;
+            public int length;
             public int socket;
             public int sequence;
         }
@@ -161,8 +162,9 @@ namespace TCPIP
                     // We save information about the newly seen segment for that socket
                     int test = this.sequence_dict.Insert(cur_write_socket,(int)cur_write_sequence);
                     memory_lookup[test] = cur_write_block_id;
-                    Logging.log.Warn($"Adding memory_segment " +
+                    Logging.log.Info($"Adding memory_segment " +
                                      $"socket: {cur_write_socket} " +
+                                     $"segment size: {dataIn.data_length} " +
                                      $"sequence: {cur_write_sequence} " +
                                      $"mem look addr: {test} " +
                                      $"write block id: {cur_write_block_id}");
@@ -174,11 +176,11 @@ namespace TCPIP
                     }
 
                     // We create the struct for the address block
-                    tmp_write_inputdata.data_length = dataIn.data_length;
+                    tmp_write_inputdata.total_length = dataIn.data_length;
                     tmp_write_inputdata.invalidate = dataIn.invalidate;
                     tmp_write_inputdata.socket = dataIn.socket;
                     tmp_write_inputdata.sequence = dataIn.sequence;
-                    tmp_write_inputdata.accumulated_len = (ushort)dataIn.data_length;
+                    tmp_write_inputdata.accum_len = dataIn.data_length;
                     mem_calc.SaveMetaData(cur_write_block_id,tmp_write_inputdata);
                 }
                 // Submit the data
@@ -187,10 +189,11 @@ namespace TCPIP
 
                 // We save information about the newly seen segment for that socket
                 int saveaddress = this.sequence_dict.Observe(cur_write_socket,(int)cur_write_sequence);
-                Logging.log.Warn($"Received data 0x{dataIn.data:X2} " +
+                Logging.log.Info($"Received data 0x{dataIn.data:X2} " +
                                  $"Socket: {dataIn.socket} "+
                                  $"Sequence number: {dataIn.sequence} " +
                                  $"sequence dict addr: {saveaddress} " +
+                                 $"frame number: {dataIn.frame_number} " +
                                  $"memory lookup: {memory_lookup[saveaddress]}" );
                 controlA.Address = mem_calc.SaveData(memory_lookup[saveaddress]);
                 controlA.Data = dataIn.data;
@@ -209,9 +212,9 @@ namespace TCPIP
                 int buffer = buffer_calc.SaveData();
                 byte data = readResultB.Data;
                 tempSendRingBuffer.data = data;
-                tempSendRingBuffer.length = buffer_calc.MetadataCurrentLoadSegment().accumulated_len;
-                tempSendRingBuffer.socket = buffer_calc.MetadataCurrentLoadSegment().socket;
-                tempSendRingBuffer.sequence = (int)buffer_calc.MetadataCurrentLoadSegment().sequence;
+                tempSendRingBuffer.length = buffer_calc.MetadataCurrentSaveSegment().accum_len;
+                tempSendRingBuffer.socket = buffer_calc.MetadataCurrentSaveSegment().socket;
+                tempSendRingBuffer.sequence = (int)buffer_calc.MetadataCurrentSaveSegment().sequence;
                 send_buffer[buffer] = tempSendRingBuffer;
                 Logging.log.Trace($"Got memory. goes to buffer:{buffer} data:0x{data:X2}");
                 buffer_calc.FinishFillingCurrentSaveSegment();
@@ -289,7 +292,8 @@ namespace TCPIP
                     // Get the metadata from the memory calculator, subtract the total by one, and
                     // Push it into the segment. This makes it possible to detect the last byte in the loaded data
                     tmp_send_inputdata = mem_calc.LoadMetaData(focused_memory_block);
-                    tmp_send_inputdata.accumulated_len -= 1;
+                    Logging.log.Info($"Decrementing {focused_memory_block} {tmp_send_inputdata.accum_len} done: {mem_calc.IsSegmentDone(focused_memory_block)}");
+                    tmp_send_inputdata.accum_len -= 1;
                     mem_calc.SaveMetaData(focused_memory_block,tmp_send_inputdata);
 
                     // We save the metadata onto the buffer
@@ -324,13 +328,13 @@ namespace TCPIP
                 int sequence = send_buffer[addr].sequence;
 
                 dataOutBufferProducerControlBusOut.valid = true;
-                dataOutBufferProducerControlBusOut.bytes_left = send_buffer[addr].length;
+                dataOutBufferProducerControlBusOut.bytes_left = (uint)(send_buffer[addr].length);
 
                 buffer_calc.FinishReadingCurrentLoadSegment();
 
                 send_preload = false;
 
-                Logging.log.Warn($"Sending(or preloading valid): "+
+                Logging.log.Trace($"Sending(or preloading valid): "+
                                  $"data: 0x{data:X2} " +
                                  $"buffer_addr: {addr} " +
                                  $"sequence number: {sequence} " +
@@ -339,7 +343,7 @@ namespace TCPIP
 
                 // If the segment is fully loaded, we remove it from the sequence dict.
                 if(send_buffer[addr].length == 0){
-                    Logging.log.Warn($"Deleting because all have been sent socket: {socket} sequence: {sequence}");
+                    Logging.log.Info($"Deleting because all have been sent socket: {socket} sequence: {sequence}");
                     sequence_dict.Delete(socket,sequence);
                 }
 

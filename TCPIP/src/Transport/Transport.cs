@@ -81,6 +81,7 @@ namespace TCPIP
             public byte high_byte; // High byte for checksum calculation
             public uint bytes_passed; // Number of bytes passed
             public uint checksum_acc;
+            public long frame_number;
         }
         private StateData stateData;
         private uint ip_id = 0x00; // Current ip_id
@@ -101,17 +102,17 @@ namespace TCPIP
             // DEBUG: Debug sockets
             pcbs[0].state = (byte)PCB_STATE.CONNECTED;
             pcbs[0].protocol = (byte)IPv4.Protocol.UDP;
-            pcbs[0].f_address = 0x0A000002; // 10.0.0.1
-            pcbs[0].f_port = 80;            
-            pcbs[0].l_address = 0x0A000001; // 10.0.0.1
-            pcbs[0].l_port = 80;
+            pcbs[0].f_address = 0x12345678; //0x0A000002; // 10.0.0.1
+            pcbs[0].f_port = 6666;
+            pcbs[0].l_address = 0xBCDE0123; // 10.0.0.1
+            pcbs[0].l_port = 6789;
 
-            pcbs[0].state = (byte)PCB_STATE.CONNECTED;
-            pcbs[0].protocol = (byte)IPv4.Protocol.UDP;
-            pcbs[0].f_address = 0x0A000002; // 10.0.0.1
-            pcbs[0].f_port = 21;            
-            pcbs[0].l_address = 0x0A000001; // 10.0.0.1
-            pcbs[0].l_port = 21;
+            pcbs[1].state = (byte)PCB_STATE.CONNECTED;
+            pcbs[1].protocol = (byte)IPv4.Protocol.UDP;
+            pcbs[1].f_address = 0x0A000002; // 10.0.0.1
+            pcbs[1].f_port = 6666;
+            pcbs[1].l_address = 0x0A000001; // 10.0.0.1
+            pcbs[1].l_port = 6543;
        }
 
 
@@ -201,12 +202,13 @@ namespace TCPIP
             // If we are receiving a new packet
             if (packetInBus.ip_id != ip_id)
             {
+                Logging.log.Info($"Reset! old ip_id: 0x{ip_id:X2} new: 0x{packetInBus.ip_id:X2}");
                 ip_id = packetInBus.ip_id;
                 read = true;
                 idx_in = 0;
             }
 
-            Logging.log.Info($"Got receive data: 0x{packetInBus.data:X2} ip_id: {packetInBus.ip_id}");
+            Logging.log.Info($"Got receive data: 0x{packetInBus.data:X2} ip_id: 0x{packetInBus.ip_id:X2}");
 
             if (idx_in < buffer_in.Length)
             {
@@ -252,6 +254,8 @@ namespace TCPIP
             stateData.socket = pcb_idx;
             stateData.sequence = sequence;
             stateData.length = length;
+            ///// Hack to get the framenumber in the state
+            stateData.frame_number = packetInBus.frame_number;
             stateData.bytes_passed = 0;
 
             // Set busses
@@ -264,7 +268,8 @@ namespace TCPIP
             Logging.log.Info($"Passing packetIn valid: {packetInBufferProducerControlBusIn.valid} " +
                              $"dataIn ready: {dataInComputeConsumerControlBusIn.ready} " +
                              $"bytes left packetIn: {packetInBufferProducerControlBusIn.bytes_left} " +
-                             $"data in bus: 0x{packetInBus.data:X2}");
+                             $"data in bus: 0x{packetInBus.data:X2} " +
+                             $"frame_number: {packetInBus.frame_number}");
             // If packetIn suddenly invalid, start idle
             if (packetInBufferProducerControlBusIn.valid == false)
             {
@@ -303,6 +308,7 @@ namespace TCPIP
             dataInWriteBus.data = packetInBus.data;
             dataInWriteBus.data_length = (int)stateData.length;
             dataInWriteBus.invalidate = false;
+            dataInWriteBus.frame_number = stateData.frame_number;
             // XXX Should look up in the PCB for the last sequence we can use
             dataInWriteBus.highest_sequence_ready = stateData.sequence;
             stateData.bytes_passed++;
@@ -326,6 +332,7 @@ namespace TCPIP
 
                 // Go to idle
                 Logging.log.Trace("Passing done");
+                packetInBufferConsumerControlBusOut.ready = false;
                 Finish();
             }
         }

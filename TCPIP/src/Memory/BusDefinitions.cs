@@ -31,10 +31,13 @@ namespace TCPIP
             byte data { get; set; }
             bool invalidate { get; set; }
             int data_length { get; set; }
+            long frame_number { get; set; }
         }
         public interface ReadBus : IBus
         {
+            [InitialValue(0x00)]
             int socket { get; set; }
+            [InitialValue(0x00)]
             byte data { get; set; }
         }
     }
@@ -45,7 +48,7 @@ namespace TCPIP
         public interface ReadBus : IBus
         {
             [InitialValue(0x00)]
-            long frame_number { get; set; } // Increments so we can distinguish between new packages
+            long frame_number { get; set; }
 
             [InitialValue(0x00)]
             byte protocol { get; set; }

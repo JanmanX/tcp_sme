@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# tcpdump -i lo port $CORRECT_PORT or port $INVALID_PORT -w dump.bin -U & PIDTCPDUMP=$!
+# tcpdump -i lo port 3456 or port 6543 or port 6789 -w dump.bin -U
+
+NETCATVER="ncat"
 
 # CONFIG
 NUM_PACKETS=32
@@ -13,14 +15,14 @@ INVALID_PORT=3456
 
 # Start listeners
 # UDP
-nc -u -l $CONNECTION1_PORT & PIDNC1=$!
-nc -u -l $CONNECTION2_PORT & PIDNC2=$!
-nc -u -l $INVALID_PORT & PIDNC3=$!
+$NETCATVER -u -l $CONNECTION1_PORT & PIDNC1=$!
+$NETCATVER -u -l $CONNECTION2_PORT & PIDNC2=$!
+$NETCATVER -u -l $INVALID_PORT & PIDNC3=$!
 
 # TCP
-nc -k -l $CONNECTION1_PORT & PIDNC4=$!
-nc -k -l $CONNECTION2_PORT & PIDNC5=$!
-nc -k -l $INVALID_PORT & PIDNC6=$!
+$NETCATVER -k -l $CONNECTION1_PORT & PIDNC4=$!
+$NETCATVER -k -l $CONNECTION2_PORT & PIDNC5=$!
+$NETCATVER -k -l $INVALID_PORT & PIDNC6=$!
 
 
 # send data
@@ -29,19 +31,19 @@ do
 	echo "Iteration $i"
 
 	# IPv4/UDP
-	echo $(python3 -c 'import string;print(string.ascii_uppercase*1000)') | nc -4 -u -p $SOURCE_PORT localhost $CONNECTION1_PORT & PIDTMP1=$!
-	echo $(python3 -c 'print("!"*26*1000)') | nc -4 -u -p $SOURCE_PORT localhost $INVALID_PORT & PIDTMP2=$!
-	echo $(python3 -c 'print("0123456789"*1000)') | nc -4 -u -p $SOURCE_PORT localhost $CONNECTION2_PORT & PIDTMP3=$!
+	echo $(python3 -c "import string;print(str($i)*10)") | $NETCATVER -4 -u -p $SOURCE_PORT localhost $CONNECTION1_PORT & PIDTMP1=$!
+	echo $(python3 -c 'print("!"*26*10)') | $NETCATVER -4 -u -p $SOURCE_PORT localhost $INVALID_PORT & PIDTMP2=$!
+	echo $(python3 -c "print(str($i*2)*10)") | $NETCATVER -4 -u -p $SOURCE_PORT localhost $CONNECTION2_PORT & PIDTMP3=$!
 
 	# IPv4/TCP
-	echo $(python3 -c 'print("!"*26*1000)') | nc -4 -p $SOURCE_PORT localhost $CONNECTION1_PORT& PIDTMP4=$!
-	echo $(python3 -c 'print("!"*26*1000)') | nc -4 -p $SOURCE_PORT localhost $INVALID_PORT & PIDTMP5=$!
-	echo $(python3 -c 'print("!"*26*1000)') | nc -4 -p $SOURCE_PORT localhost $CONNECTION2_PORT& PIDTMP6=$!
+	echo $(python3 -c 'print("!"*26*10)') | $NETCATVER -4 -p $SOURCE_PORT localhost $CONNECTION1_PORT& PIDTMP4=$!
+	echo $(python3 -c 'print("!"*26*10)') | $NETCATVER -4 -p $SOURCE_PORT localhost $INVALID_PORT & PIDTMP5=$!
+	echo $(python3 -c 'print("!"*26*10)') | $NETCATVER -4 -p $SOURCE_PORT localhost $CONNECTION2_PORT& PIDTMP6=$!
 
 
 	# IPv6/UDP. Should not matter that these throw error
-#	echo $(python3 -c 'print("!"*26*1000)') | nc -u -6 -p $SOURCE_PORT localhost $CORRECT_PORT & PIDTMP7=$!
-#	echo $(python3 -c 'print("!"*26*1000)') | nc -u -6 -p $SOURCE_PORT localhost $INVALID_PORT & PIDTMP8=$!
+#	echo $(python3 -c 'print("!"*26*1000)') | $NETCATVER -u -6 -p $SOURCE_PORT localhost $CORRECT_PORT & PIDTMP7=$!
+#	echo $(python3 -c 'print("!"*26*1000)') | $NETCATVER -u -6 -p $SOURCE_PORT localhost $INVALID_PORT & PIDTMP8=$!
 
 	# Wait for all processes
 	wait $PIDTMP1 $PIDTMP2 $PIDTMP3 $PIDTMP4 $PIDTMP5 $PIDTMP6
