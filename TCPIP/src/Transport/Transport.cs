@@ -331,6 +331,7 @@ namespace TCPIP
 
                 // Go to idle
                 Logging.log.Trace("Passing done");
+                packetInBufferConsumerControlBusOut.ready = false;
                 Finish();
             }
         }
