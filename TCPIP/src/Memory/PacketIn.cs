@@ -145,6 +145,7 @@ namespace TCPIP
 
                     Logging.log.Info($"New packet! frame_number: {packetInBus.frame_number} " +
                                      $"write_mem_id: {cur_write_block_id} " +
+                                     $"ip_id: 0x{tmp_write_info.ip_id:X2} " +
                                      $"segment_length: {packetInBus.data_length} ");
                 }
                 // Submit the data
@@ -255,7 +256,8 @@ namespace TCPIP
                 long frame_number = buffer_calc.MetadataCurrentLoadSegment().frame_number;
                 packetOutBus.frame_number = frame_number;
                 packetOutBus.fragment_offset = 0;
-                packetOutBus.ip_id = buffer_calc.MetadataCurrentLoadSegment().ip_id;
+                uint ip_id = buffer_calc.MetadataCurrentLoadSegment().ip_id;
+                packetOutBus.ip_id = ip_id;
                 packetOutBus.protocol = buffer_calc.MetadataCurrentLoadSegment().protocol;
                 int addr = buffer_calc.LoadData();
                 byte data = send_buffer[addr].data;
@@ -268,7 +270,7 @@ namespace TCPIP
 
                 send_preload = false;
 
-                Logging.log.Info($"Sending: data: 0x{data:X2} buffer_addr: {addr} frame_number: {frame_number}");
+                Logging.log.Info($"Sending: data: 0x{data:X2} ip_id: 0x{ip_id:X2} buffer_addr: {addr} frame_number: {frame_number} bytes_left: {send_buffer[addr].length}");
 
             }
         }
