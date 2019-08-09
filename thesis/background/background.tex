@@ -7,6 +7,14 @@ for the implementation.
 
 
 \section{Internet Protocol Suite (TCP/IP)}
+\begin{figure}
+\centering
+\includegraphics[scale=0.425]{background/frame.eps}
+\caption{Layout of a typical frame sent through the network.}
+\label{fig:frame_layout}
+\end{figure}
+
+
 Internet Protocol Suite, better known as simply TCP/IP, is a conceptual
 model providing end-to-end communication between computers. It consists of
 a collection of protocols specifying the communication between multiple
@@ -152,12 +160,15 @@ such as reliability, ordering, error- and flow-control, application addressing
 While it is possible to bypass the protocols in this layer on most modern
 network stacks, the protocols in the transport layer provide such essential
 and useful services that it hardly ever makes sense to implement in the
-application layer.\\
+application layer.
+
+\subsubsection{Transmission Control Protocol}
 While there are numerous protocols defined in the Transport Layer, perhaps the
-most well-known protocol in the stack is the Transmission Control Protocol (TCP).
+most well-known protocol in the stack is the \gls{tcp}.
 Being one of the most used transport protocol for its reliability and congestion
 control systems, it is rightly justified to refer to the whole Internet Protocol
-Suite as simply "TCP/IP".
+Suite as simply "TCP/IP".\\
+
 
 
 \subsection{Application Layer}
