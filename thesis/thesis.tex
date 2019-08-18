@@ -1,4 +1,4 @@
-                                  \documentclass[11pt, twocolumn]{report}
+\documentclass[11pt, twocolumn]{report}
 \usepackage[a4paper, hmargin={2.8cm, 2.8cm}, vmargin={2.5cm, 2.5cm}]{geometry}
 %\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
@@ -18,6 +18,7 @@
 \usepackage{cite}
 \usepackage{color}
 \usepackage{svg}
+\usepackage{makecell}
 \usepackage{array}
 \usepackage{multicol}
 \usepackage{subcaption}
@@ -35,13 +36,17 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{subcaption}
+\usepackage{pbox}
 \usepackage{glossaries}
+\usepackage{xargs}
+\usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
 \input{acronyms.tex}
 \makeglossaries
 
 
-\usepackage{coffee4} % Comment me out
-
+%\usepackage{coffee4} % Comment me out
+% minted styles
+%\newmintinline['mintedinlineitem']{csharp}{breaklines}
 
 % Define Listings
 \definecolor{codegreen}{rgb}{0,0.6,0}
@@ -95,6 +100,7 @@
 
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \setlength{\columnsep}{1cm}
+\newcommand*\tablerot{\rotatebox{90}}
 
 
 \author{
@@ -104,6 +110,7 @@
   \and
   Jacobi, Mark Jan\\
   \texttt{dcz738@alumni.ku.dk}
+  \texttt{mark@jacobi.pm}
 }
 
 \title{
@@ -177,6 +184,9 @@
 % Make acronym page
 \printglossary[type=\acronymtype,title=Abbrevations]
 \newpage
+
+% Notes, uncomment in release report
+\input{notes.tex}
 
 
 \twocolumn
