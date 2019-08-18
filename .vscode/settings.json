@@ -7,5 +7,8 @@
         "ospc",
         "tcpip",
         "vhdl"
-    ]
+    ],
+    "[latex]": {
+        "editor.rulers": [80]
+    }
 }
