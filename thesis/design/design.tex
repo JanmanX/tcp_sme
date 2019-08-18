@@ -261,6 +261,7 @@ the parallel arrangement of the process blocks.
     \includegraphics[scale=0.45]{design/design_2.eps}
     \caption{The final design. The rectangles represent "compute" processes,
 while the cylinders represent the buffers.}
+\notechange[inline]{Fix Link Interface to be the same as Interface}
     \label{fig:final_design}
 \end{figure}
 
@@ -390,7 +391,7 @@ Therefore, the two read and write interfaces would simply stream one byte at a
 time, and it is up to the user to be prepared to read or write the data.
 
 
-\subsubsection{Interface Control Bus}
+\subsubsection{Interface Control Bus}\label{subsubsec:interface_control}
 The Interface Control Bus controls all the "business" logic of the network --
 maintaining the active connections, starting and closing connections, and various
 other protocol-specific control on each connection.\\
@@ -422,7 +423,7 @@ The first version of the stack should support the following functions:
     socket is immediatelly put into listen mode.
     Returns error if protocol is not supported, if port taken, or if no free sockets
     are available.
-\item[\texttt{connect(protocol, ip, r\_port , l\_port])}]\hfill\\
+\item[\texttt{connect(protocol, ip, r\_port , l\_port)}]\hfill\\
     Connects to a remote endpoint on \texttt{ip:remote\_port} using \texttt{protocol}.
     This call is used mainly by connection-based protocols that need to
     establish a connection before exchangning data, although it can also be used
