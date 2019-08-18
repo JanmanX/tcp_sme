@@ -213,9 +213,209 @@ current build.
 
 
 \section{Buffers}
-\subsection{Internal memory}
-\subsection{IPv4 de-fragmentation and segment unification}
-\subsection{Allocation}
+Problems such as packet fragmentation and out of order insertion are solved in
+the memory buffers.\\
+All of the buffers needs to handle input and output of
+memory at the same time. If not, the system would slow down by a factor of two,
+since the input would need to wait for the output to finish submitting, and
+vice versa. This requires the underlying memory to handle read and write at the
+same time. \\
+Each of the memory buffers have slightly different variations. In general, there
+are several problems to solve:
+
+\begin{itemize}
+    \item \textbf{Fragmentation}\\
+    In \texttt{Segment In} and \texttt{Data In} there are segmentation. In
+    \texttt{Segment In} IP segments may arrive out of order, and is therefore only
+    sent through the system when all segments are received. \texttt{Data In} is
+    essentially the same, just with other protocols such as TCP.\\
+    In both cases we want the order to be concurrent. Packets that are not
+    fragmented is in FIFO order. Fragmented packets in \texttt{Segment In} are
+    held back, until all segments are received. Then all data segments are sent
+    as a single block to \texttt{Transport}. In \texttt{Data In}, the segments are
+    handled as a stream, where the last valid segment ID is known. The buffer
+    only sends data when the last valid segment is set. This way, the buffer
+    can contain segments with an higher ID than the valid, and know not to send it.
+
+
+    \item \textbf{Unknown size}\\
+    Some of the buffers do not get information about how much data has to be
+    allocated. This happens in \texttt{Segment Out} and \texttt{Data Out}.
+    In \texttt{Data Out} we do not know how much data the user sends into
+    the system. (see: \autoref{subsubsec:interface_control}). In
+    \texttt{Segment Out} we do not know some of the packet sizes, since
+    \texttt{Transport} may not know how big the packet is going to be, for
+    example when constructing an response packet.
+
+
+    \item \textbf{Out-of-order submission}\\
+    In Some cases the header of an packet can only be created after the data
+    has been received. An example of this is the calculation of the checksum.\\
+    This feature is required on \texttt{Frame Out} and \texttt{Frame Out}.
+    This only applies to buffers where data is sent out and where calculations
+    are done.
+
+    \item \textbf{Data ready}\\
+    When The buffer indicates that data is ready to be read, the next clock
+    should also be ready and contain data. If not, the consumer would request
+    data, wait at least 2 clocks for the data, and then request new data,
+    slowing down the data transfer process significantly.
+
+\end{itemize}
+An oversight of this can be seen in \autoref{tab:buffer_requirements}.\\
+\begin{table}[htpb]
+  \begin{center}
+      \begin{tabular}{l|c|c|c|c|}
+          & \tablerot{Fragmentation}
+          & \tablerot{\makecell{Unknown size}}
+          & \tablerot{\makecell{Out-of-order \\ submission}}
+          & \tablerot{\makecell{Data ready}} \\\hline
+          \texttt{Frame Out}   &            &             & \checkmark & \checkmark \\ \hline
+          \texttt{Segment In}  & \checkmark &             &            & \checkmark \\ \hline
+          \texttt{Segment Out} &            & \checkmark  & \checkmark & \checkmark \\ \hline
+          \texttt{Data In}     & \checkmark &             &            & \checkmark \\ \hline
+          \texttt{Data Out}    &            & \checkmark  &            & \checkmark \\ \hline
+      \end{tabular}
+  \end{center}
+  \caption{The requirements for the buffers} \label{tab:buffer_requirements}
+\end{table}
+\subsection{Components}
+This section describes the components briefly to give a better overview of the
+general structures of the buffers. The specific components are described in
+detail in the following chapters.\\
+To solve fragmentation the system uses "segments" in the memory.
+A segment is an abstract structure consisting of metadata and two memory
+addresses pointing to the start and end of the actual data.\\
+To handle these segments, two interfaces are created, one to handle fixed size
+allocations, and one to handle dynamic allocations, where the size is unknown.
+Out-of-order submissions are solved simply by having an address sent beside the
+data, which are added to the beginning of that respective segment.
+See \autoref{subsec:memory_segments} for a in depth explanation.
+\\
+To keep order of the segments, a simple directory of keys and linked lists
+are needed. The linked list are ordered at insertion time, so the fist element
+always is the smallest. This makes lookup to the next element constant time, and
+insertions of new at most $O(n)$ time. See \autoref{subsec:dictionary}.
+\\
+To have the data ready, a small internal buffer is needed. This small buffer
+starts filling as soon as a segment is ready.
+See \autoref{subsec:memory_types}.
+
+\subsection{Memory segments} \label{subsec:memory_segments}
+The memory segment structures consists of two types width slightly different
+implementations. These are called Multi memory segments and Single memory
+segments.
+\\Their differences are explained in the end of this section.\\
+Both types consists of an lookup table, where each table entry contains the
+meta data and head and tail pointers. A Illustration of this can be seen in
+\autoref{fig:memory_segments_explained}\\
+In the implementation, the memory is not actually read, but an address is
+returned. This makes it possible to use any memory type, since the latency issues
+are in the submission and retrieval of the data itself, but not the calculations
+for the address.\\
+The lookup table consist of multiple segments references. A segment reference
+contains meta data(Not illustrated in the figure) and a start and stop pointer.\\
+In the illustration segments 0,1 and 4 are used, and 2 and 3 are free. Note that
+segment 4 wraps around. If address 2 is requested from segment 4, memory address
+15 is returned. If address 3 is requested, memory address 0 is returned.\\
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{implementation/memory_segments.eps}
+	\caption{The general structure of the memory segments in use.}
+	\label{fig:memory_segments_explained}
+\end{figure}
+
+\subsubsection{Multi memory segments}
+Each segment has three states, indicated by two boolean values; \texttt{Done}
+and \texttt{Full}. When none are true, the segment is currently being filled
+with data. When it is filled, and ready to be read, filled is marked as true,
+and the data can now be read from. When the reading has ended, both \texttt{Done}
+and \texttt{Full} are set to true, and the segment is now ready to be reused in
+the lookup table. See \autoref{tab:memory_states_multi}.
+\begin{table}[htpb]
+  \begin{center}
+      \begin{tabular}{l|c|c|}
+          & \tablerot{\texttt{Full}}
+          & \tablerot{\texttt{Done}} \\\hline
+          \texttt{Filling}  &            &            \\ \hline
+          \texttt{Reading}  & \checkmark &            \\ \hline
+          \texttt{Done}     & \checkmark & \checkmark \\ \hline
+      \end{tabular}
+  \end{center}
+  \caption{The memory states of "Multi memory segments"} \label{tab:memory_states_multi}
+\end{table}
+To describe the operation of the memory module, all the interface functions
+are listed, and their operation explained.
+The memory segment interface consists of the following functions:
+\begin{description}
+  \item[\mintinline{csharp}{int AllocateSegment(int size)}]\hfill\\
+  When a segment is allocated, the new data is saved in the segment table
+  head by looking at the \texttt{Table Head} pointer.\\
+  The start and end pointers are calculated based on the \texttt{Mem Head}
+  pointer. If the range between \texttt{Mem Head} and \texttt{Mem Tail} is
+  smaller than \mintinline{csharp}{int size}, -1 is returned, indicating
+  error. If not, the segment table id is
+  returned(\mintinline{csharp}{int seg_ID}).
+
+  \item[\mintinline{csharp}{int FocusSegment()}]\hfill\\
+  A segment is classified as a focus segment if the data is ready to be sent
+  (\texttt{Reading} state). It will automatically find the next segment, by
+  increasing ... \notechange(Finish!)
+
+  \item[\mintinline{csharp}{int SaveData(int seg_ID, int offset)}]\hfill\\
+  Returns the memory address for that specific segment with an offset.
+  This is calculated by finding the start address in the segment table, and
+  adding the offset. If the segment is not in "Saving" state, an error
+  is returned of -1.
+
+  \item[\mintinline{csharp}{int LoadData(int seg_ID, int offset)}]\hfill\\
+  The same as \mintinline{csharp}{int SaveData(...)}, with the exception
+  that an error is returned if we are not in the loading state.
+
+  \item[\mintinline{csharp}{int DelaySegment(int seg_ID)}]\hfill\\
+  This function delays a focus segment by copying it to the table head
+
+  \item[{\mintinline[breakanywhere]{csharp}{void SaveMetaData(int seg_ID, MetaData meta)}}]\hfill\\
+    \noteerror{Fix overrunning item name}
+  XXXX
+
+  \item[\mintinline{csharp}{MetaData LoadMetaData(int seg_ID)}]\hfill\\
+  XXXX
+  \item[\mintinline{csharp}{void SegmentFull(int segment_ID)}]\hfill\\
+  XXXX
+
+  \item[\mintinline{csharp}{void SegmentDone(int segment_ID)}]\hfill\\
+  XXXX
+
+  \item[\mintinline{csharp}{int AllocateSegment(int size)}]\hfill\\
+  XXXX
+\end{description}
+
+\subsubsection{Single memory segments}
+
+
+\subsection{Dictionary} \label{subsec:dictionary}
+
+\subsection{Memory types}  \label{subsec:memory_types}
+Block ram on FPGA chips from companies such as Xilinx have a low latency, high
+throughput but low capacity.\cite{xilinx_fpga_memory_resources}
+The capacity limitation is a problem. Worst case the
+system would have to hold multiple packets of the maximum size for that specific
+protocol. For example, an \gls{ipv4} packet may have an max size of 65,535
+bytes.\cite{RFC0791} If a lot of packets accumulate in the system, or the user
+rarely empties the \texttt{Data In} buffer, we may run out of memory.\\
+An additional solution would be the to use external memory with high latency,
+low(or high) throughput and high capacity. The throughput would have to be equal
+or bigger than the stream from the system itself, to not be an bottle neck.\\
+In both cases, the memory takes at least one clock to get results back from
+memory. To guarantee that the data is avaliable as soon as possible
+(see: \autoref{sec:interface_signal_protocol}) one must use perfecting of the
+memory.\\
+This is solvable by using small internal buffers that use the fast registers.
+The size of these small buffers would be based on the latency between the
+request and response from memory. This would make it easier to
+replace the underlying memory, by simply increasing the buffer size to that
+of the memory latency.
 
 
 \section{Interface Signal protocols}
