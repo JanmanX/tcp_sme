@@ -1,2 +1,75 @@
 \chapter{Future work}
 \label{chap:future_work}
+
+\section{Improvements}
+Although the current implementation of the networking stack has enough
+functionality to be useful in certain applications, there are a lot of
+improvements that can be carried out in order to better the project.
+
+
+\subsection{Wider data-channels between processes and buffers}
+One of the main bottlenecks for the throughput is the raw amount of data the
+networking stack is working with at any given moment. Currently, the channels in
+the SME busses carrying data are only a byte wide, that is, at any given clock,
+a process will only have at most 8 bits to work with.
+This 1-byte width has been used because it is the most intuitive to work with,
+as packet-header fields usually span a factor of 8 bits.\\
+Extending the width of the data-channel in the busses might improve the
+throughput manyfold, but it might also introduce more logic to the bit-shifting
+and masking to parse the headers. Additionally, this change does not only affect
+the parsing and the headers, but also the logic in the addressing for storage
+in the buffers, as well as, for instance, the checksum calculation.
+
+\subsection{Add external verification tool}
+The tests performed and described in chapter \ref{chap:evaluation} on the
+current implementation have shown no major nor breaking bugs or errors for
+the supported subset of protocols in the internet protocol suite.
+Since the existence of undiscovered bugs cannot be ruled out with the
+custom-made testing suite, it is better to use an external verification tool in
+order to not transfer any wrong implementation-details over to the
+test-tools.\\
+There are a multitude of ways to TCP/IP implementation with both regards to
+bandwidth and throughput, stability, loss, etc.
+One such tool is the \texttt{iperf3}, which is a "TCP, UDP, and SCTP network
+bandwidth measurement tool"\cite{iperf3}. It is a highly efficient tool for
+both performance test, but also verify the correctness of a networking stack.
+By introducing iperf3 as a means to test the implementation of the networking
+stack, a much better insight of the correctess of the stack can be gained.
+
+
+
+
+\section{New features}
+As discussed in chapter \ref{chap:design}, the networking stack is designed
+with extensibility in mind, with a separation for the link-, the internet-, and
+the transport-layer. Given a protocol following the classic internet protocol
+suite 4-layer model, it should be possible to implement this protocol in the
+networking stack without major changes to the underlying structure of the whole
+codebase.\\
+The implementation only supports \gls{udp} in the transport layer, which is
+still a great streaming protocol for a multitude of viable scenarios. However,
+situations where packet loss or out-of-order data-stream is not acceptable,
+\gls{tcp} is the ideal choice of protocol to implement in the stack. With the
+ability to share state across sockets in the \texttt{Transport} module, the
+parser for the \gls{tcp} header can be implemented, and the out-of-order nature
+of the incoming data is already handled in the \texttt{Data In} buffer.\\
+Likewise, the newer version of the Internet Protocol, the \gls{ipv6}, is slowly, but
+surely, seeing adoption on the internet. Fortunately, the protocol itself is
+actually slightly less complex compared to its predecessor, the \gls{ipv4}.
+For instance, multiple flags from the older \gls{ipv4} header have been moved
+into the optional section of the \gls{ipv6}. Furthermore, fragmentation of
+\gls{ipv6} packets have been restricted somewhat, and not all hosts are required
+to support it\cite{ipv6_proposed}.
+
+
+\section{Integration with a firewall}
+\begin{figure*}
+\centering
+\includegraphics[scale=0.50]{future_work/firewall_integration_design.eps}
+\caption{The proposed design for integrating the network stack with the
+accompanying firewall}
+\label{fig:firewall_integration_design}
+\end{figure*}
+
+
+In tandem with this project,
