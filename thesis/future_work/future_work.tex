@@ -55,14 +55,14 @@ parser for the \gls{tcp} header can be implemented, and the out-of-order nature
 of the incoming data is already handled in the \texttt{Data In} buffer.\\
 Likewise, the newer version of the Internet Protocol, the \gls{ipv6}, is slowly, but
 surely, seeing adoption on the internet. Fortunately, the protocol itself is
-actually slightly less complex compared to its predecessor, the \gls{ipv4}.
+actually slightly easier to parse compared to its predecessor, the \gls{ipv4}.
 For instance, multiple flags from the older \gls{ipv4} header have been moved
 into the optional section of the \gls{ipv6}. Furthermore, fragmentation of
 \gls{ipv6} packets have been restricted somewhat, and not all hosts are required
 to support it\cite{ipv6_proposed}.
 
 
-\section{Integration with a firewall}
+\section{Adding a firewall}
 \begin{figure*}
 \centering
 \includegraphics[scale=0.50]{future_work/firewall_integration_design.eps}
@@ -72,4 +72,50 @@ accompanying firewall}
 \end{figure*}
 
 
-In tandem with this project,
+In tandem with this project, a FPGA firewall has been developed by
+Patrick Dyhrberg Sørensen and Emil Sander Bak. Just like the networking stack,
+the firewall is implemented in \gls{sme}, with the intent to be easily
+integrated with networking stacks, such as this one\cite{fpga_firewall}.\\
+The firewall consists of whitelist rules, connection states, "deciding"
+processes, and busses for communication and synchronization\cite{fpga_firewall}.\\
+The processes making the actual decisions are split into 3 state processe:
+\begin{itemize}
+\item \textbf{Incoming IPv4}\\
+The first point where the firewall can do any decisions is when the internet
+protocol header is parsed. This header provides information such as the source
+and destination address, and the firewall can do basic checks for blacklisted
+or whitelisted addresses, as well as detecting some suspiciously formatted
+packets.
+\item \textbf{Incoming Transport}\\
+The transport-part of the firewall is perhaps a bit more interesting. Here,
+the firewall can not only check on the source and destination ports of a packet,
+but also verify that there are no malicious intents with regards to the protocol
+specification itself. For example, the firewall can detect and stop a SYN-flood
+attack, which is a form of \gls{dos attack} where the attacker sends a large
+number of TCP SYN-request to a host in order to consume all the host
+computational resources.
+
+\item \textbf{Outgoing}\\
+The last point that the firewall monitors is the outgoing traffic. This is in
+place for situations where the networking stack tries to communicate with
+malicious or forbidden hosts.
+\end{itemize}
+
+\subsection{Proposal for the design of incorporating the firewall}
+Although both projects have been designed to be combined with each other,
+there have not yet been any attempts at uniting them.  That being said, both
+projects can run self-sufficiently, and all the essential information can
+be easily shared across the processes with SME busses.  The proposed design
+for incorporation can be seen on figure \ref{fig:firewall_integration_design},
+where the parsing processes send information to the firewall, and the firewall
+in turn shares its decision with the consequent buffer. This way, the parsing
+process has to add all the parsed fields in the bus, and the firewall can mark
+the current packet in the bus as \texttt{valid} or \texttt{invalid}.\\
+The main tasks to implement firewall into the networking stack are:
+\begin{itemize}
+\item TODO
+\end{itemize}
+
+
+
+
