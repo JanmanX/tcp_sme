@@ -185,9 +185,9 @@ namespace TCPIP
                 // If we do not have to wait one clock
                 if(!dataInWaitNextClock && dataInBufferProducerControlBusIn.valid)
                 {
-                    if(!packetGraph.GatherDataIn(dataIn.data,(int)dataInBufferProducerControlBusIn.bytes_left))
+                    if(!packetGraph.GatherDataIn(dataIn.data,(int)dataInBufferProducerControlBusIn.bytes_left,dataIn.socket))
                     {
-                        Logging.log.Error("Wrong data, see log");
+                        Logging.log.Error($"Wrong data, see log. frame number: {dataIn.socket}");
                         //throw new Exception("Wrong data, see log");
                     }
                     dataInWaitNextClock = true;

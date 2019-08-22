@@ -306,7 +306,7 @@ namespace TCPIP
 
         private IEnumerator<(ushort type,byte data,uint bytes_left,Packet packet)> dataIn;
         private (ushort type,byte data,uint bytes_left,Packet packet) lastDataIn;
-        public bool GatherDataIn(byte compare, int byte_number)
+        public bool GatherDataIn(byte compare, int byte_number, int socket)
         {
             if (dataIn == null){
                 dataIn = IterateOver(PacketInfo.DataIn,0).GetEnumerator();
@@ -315,11 +315,15 @@ namespace TCPIP
             if(dataIn.MoveNext()){
                 byte excact = dataIn.Current.data;
                 lastDataIn = dataIn.Current;
-                if(excact == compare && byte_number == dataIn.Current.bytes_left)
+                if(excact == compare &&
+                   byte_number == dataIn.Current.bytes_left &&
+                   socket.ToString() == dataIn.Current.packet.additional_data)
                 {
                     Logging.log.Info($"Good comparison of input data from datain. " +
-                                     $"correct: 0x{excact:X2} index: {dataIn.Current.bytes_left} " +
-                                     $"observed: 0x{compare:X2} index: {byte_number}");
+                                     $"data correct: 0x{excact:X2} index: {dataIn.Current.bytes_left} " +
+                                     $"data observed: 0x{compare:X2} index: {byte_number} " +
+                                     $"socket correct: 0x{dataIn.Current.packet.additional_data} " +
+                                     $"socket observed: 0x{socket} ");
                     if(byte_number == 0)
                     {
                         dataIn.MoveNext();
@@ -329,8 +333,10 @@ namespace TCPIP
                 else
                 {
                     Logging.log.Fatal($"Wrong comparison of input data from datain. " +
-                                      $"correct: 0x{excact:X2} index: {dataIn.Current.bytes_left} " +
-                                      $"observed: 0x{compare:X2} index: {byte_number}");
+                                      $"data correct: 0x{excact:X2} index: {dataIn.Current.bytes_left} " +
+                                      $"data observed: 0x{compare:X2} index: {byte_number} "+
+                                     $"socket correct: 0x{dataIn.Current.packet.additional_data} " +
+                                     $"socket observed: 0x{socket} " );
                     return false;
                 }
 
@@ -339,7 +345,7 @@ namespace TCPIP
                 if(ReadyDataIn()){
                     dataIn.MoveNext();
                     dataIn = null;
-                    return GatherDataIn(compare, byte_number);
+                    return GatherDataIn(compare, byte_number,socket);
                 }
             }
             Logging.log.Warn($"No packet found for GatherDataIn. compared to: 0x{compare:X2}");
