@@ -43,7 +43,11 @@ namespace TCPIP
         [InputBus]
         public ConsumerControlBus dataOutComputeConsumerControlBusIn;
 
+        private const string DUMP_STATE_FOLDER = "DumpState";
+        private const string DUMP_DATA_IN_FOLDER = "DumpDataIn";
+        private const string DUMP_RECEIVE_FOLDER = "DumpReceive";
 
+        private const int CLOCK_PRINT = 100;
 
         // Simulation fields
         private readonly String dir;
