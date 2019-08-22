@@ -147,6 +147,7 @@ namespace TCPIP
         }
         private bool receiveWaitNextClock = true;
 
+        int counter  = 0;
         private void PacketReceive()
         {
             datagramBusOutBufferConsumerControlBusOut.ready = false;
@@ -157,10 +158,27 @@ namespace TCPIP
                 {
                     if(!packetGraph.GatherReceive(datagramBusOut.data,(int)datagramBusOutBufferProducerControlBusIn.bytes_left))
                     {
-                        //Logging.log.Error("Wrong data, see log");
+                        Logging.log.Error("Wrong data, see log");
                         //throw new Exception("Wrong data, see log");
                     }
                     receiveWaitNextClock = true;
+                    if(debug)
+                    {
+                        string filename;
+                        if(counter == 0)
+                        {
+                            filename = counter.ToString() + "2-receive";
+                        }
+                        else
+                        {
+                            filename = counter.ToString() +"2_" + (counter - 1).ToString() + "2-receive";
+                        }
+                        DumpPacketInFile(DUMP_RECEIVE_FOLDER,filename,datagramBusOut.data);
+                        if(datagramBusOutBufferProducerControlBusIn.bytes_left == 0)
+                        {
+                            counter++;
+                        }
+                    }
                 }
                 if(datagramBusOutBufferProducerControlBusIn.valid)
                 {
@@ -190,7 +208,13 @@ namespace TCPIP
                         Logging.log.Error($"Wrong data, see log. frame number: {dataIn.socket}");
                         //throw new Exception("Wrong data, see log");
                     }
+
                     dataInWaitNextClock = true;
+                    if(debug)
+                    {
+                        var d = packetGraph.PeekDataIn();
+                        DumpPacketInFile(DUMP_DATA_IN_FOLDER,d.packet.id.ToString(),d.data);
+                    }
                 }
                 if(dataInBufferProducerControlBusIn.valid)
                 {
@@ -264,4 +288,21 @@ namespace TCPIP
             {
                 writer.Write(packetGraph.GraphwizState());
     }
+}
+        public void DumpPacketInFile(string dir_inside_current_dir,string packetID, byte data)
+        {
+            // Get the path and create the folder if needed
+            string path = System.IO.Path.Combine(this.dir, dir_inside_current_dir);
+            System.IO.Directory.CreateDirectory(path);
+
+            string fullfilepath = System.IO.Path.Combine(path, $"{packetID}" + ".bin");
+
+            using (StreamWriter writer = new StreamWriter(fullfilepath, true))
+            {
+                byte[] bytes = new byte[] {data};
+                writer.BaseStream.Write(bytes, 0, bytes.Length);
+            }
+        }
+    }
+
 }
