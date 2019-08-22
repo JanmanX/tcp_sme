@@ -58,7 +58,7 @@ namespace TCPIP
             this.dir = dir;
             this.max_clocks = max_clocks;
             this.debug = debug;
-            this.packetGraph = new PacketGraph(this.dir);
+            this.packetGraph = new PacketGraph(this.dir,this.debug);
             if(this.debug){
                 this.packetGraph.Info();
             }

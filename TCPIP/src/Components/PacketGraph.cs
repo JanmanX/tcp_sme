@@ -70,12 +70,14 @@ namespace TCPIP
         private int clock = -1;
         private string dir;
 
+        private bool debug = false;
 
-        public PacketGraph(string dir){
+        public PacketGraph(string dir, bool debug){
             string[] filePaths = Directory.GetFiles(dir);
             var simPackets = from c in filePaths
                              select GenerateSimPacket(c);
             this.dir = dir;
+            this.debug = debug;
             // Find the end points in the graph
             var dependsOn = new HashSet<int>();
             var allNodes = new HashSet<int>();
