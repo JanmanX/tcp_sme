@@ -110,12 +110,39 @@ for incorporation can be seen on figure \ref{fig:firewall_integration_design},
 where the parsing processes send information to the firewall, and the firewall
 in turn shares its decision with the consequent buffer. This way, the parsing
 process has to add all the parsed fields in the bus, and the firewall can mark
-the current packet in the bus as \texttt{valid} or \texttt{invalid}.\\
+the current packet in the bus if it needs to be removed.\\
 The main tasks to implement firewall into the networking stack are:
 \begin{itemize}
-\item TODO
-\end{itemize}
+\item \textbf{The bus connection and protocol}\\
+The first task is to create the busses for the communication, and to agree on
+a signal protocol. Since only one data-transaction with the header info is
+needed for each packet, this should not pose a too big of a challenge.
 
+\item \textbf{Connection and packet identification}\\
+The networking stack relies on multiple methods of identifying packets.
+Once a packet reaches the transport layer, the networking stack can identify
+which connection (if any) the packet belongs to. To delimit network-frames, a
+frame-number is used, which is supplied by the interface. An \gls{ipv4}
+datagram is identified with its \texttt{Identification} header field, and
+transport connections are identified by their socket number.
+Depending on the implementation of the firewall, there needs to be made an
+agreement on the identifiers used to distinguish connections across the
+projects.
+
+\item \textbf{Buffer support for packet removal}\\
+Apart from the packet itself, the buffer holds additional meta-data used both
+by the next parsing layer, but also by the buffer itself to do
+de-fragmentation, segmentation, and so on. If a packet is detected to be
+malicious by the firewall, a flag should be added to the entry in the buffer to
+indicate the removal of it.
+
+\item \textbf{User interface support to control the firewall}\\
+It is reasonable to think that the network user would want to control the
+firewall live by adding new rules to the white-list, or block certain port
+numbers. To simplify this process, new function-calls can be added to the
+\texttt{Interface}, and this interface can be connected to the global
+state-table in the firewall.
+\end{itemize}
 
 
 
