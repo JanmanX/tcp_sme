@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using SME;
 using SME.Components;
 
@@ -73,8 +75,8 @@ namespace TCPIP
         {
             if(debug){
                 //Console.WriteLine(this.packetGraph.GraphwizState());
+                this.DumpStateInFile(DUMP_STATE_FOLDER);
                 //return;
-                packetGraph.DumpStateInFile("Test");
             }
             //return;
             // Get initial conditions
@@ -83,16 +85,18 @@ namespace TCPIP
 
             for(int i = 0; i < this.max_clocks; i++){
                 //Warning! this will fill up your disk fast!
+                if(i % CLOCK_PRINT == 0)
+                {
                 Logging.log.Warn($"---------------------------------------------vvvvv-CLOCK {packetGraph.GetClock()}-vvvvv---------------------------------------");
-
+                }
                 PacketSend();
                 PacketReceive();
                 PacketDataIn();
                 PacketDataOut();
                 PacketWait();
                 PacketCommand();
-                if(debug){
-                    packetGraph.DumpStateInFile("Test");
+                if(debug && i % CLOCK_PRINT == 0){
+                    //this.DumpStateInFile(DUMP_STATE_FOLDER);
                 }
                 //Logging.log.Warn($"---------------------------------------------^^^^^-CLOCK {packetGraph.GetClock()}-^^^^^---------------------------------------");
                 packetGraph.NextClock();
@@ -102,9 +106,11 @@ namespace TCPIP
                     break;
                 }
             }
+            if(debug){
+                this.DumpStateInFile(DUMP_STATE_FOLDER);
+            }
             Logging.log.Warn($"---------------------------------------------vvvvv-CLOCK {packetGraph.GetClock()}-vvvvv---------------------------------------");
-            Logging.log.Info($"End of simulation with {frame_number_send} packets sent");
-            //Console.WriteLine("---------------------------------------------END-------------------------------------------");
+            Logging.log.Warn($"End of simulation with {frame_number_send} packets sent");
         }
 
 
