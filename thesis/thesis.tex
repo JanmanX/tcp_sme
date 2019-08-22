@@ -23,7 +23,7 @@
 \usepackage{multicol}
 \usepackage{subcaption}
 \usepackage[toc,page]{appendix}
-\usepackage[breaklinks=true]{hyperref}
+\usepackage[breaklinks=true,pdfusetitle]{hyperref}
 \usepackage{float}
 \usepackage{xcolor}
 \usepackage{tablefootnote}
@@ -43,6 +43,10 @@
 \input{acronyms.tex}
 \makeglossaries
 
+%Hyperref setup
+\pdfstringdefDisableCommands{%
+  \let\vspace\@gobble
+}
 
 %\usepackage{coffee4} % Comment me out
 % minted styles
@@ -103,20 +107,20 @@
 \newcommand*\tablerot{\rotatebox{90}}
 
 
-\author{
-  Meznik, Jan\\
-  \texttt{pzj895@alumni.ku.dk}\\
-  \texttt{jan@meznik.dk}
-  \and
-  Jacobi, Mark Jan\\
-  \texttt{dcz738@alumni.ku.dk}\\
-  \texttt{mark@jacobi.pm}
+\author{%
+Meznik, Jan\\%
+\texttt{pzj895@alumni.ku.dk}\\%
+\texttt{jan@meznik.dk}%
+\and%
+Jacobi, Mark Jan\\%
+\texttt{dcz738@alumni.ku.dk}\\%
+\texttt{mark@jacobi.pm}%
 }
 
-\title{
-	\vspace{3cm}
+\title{%
+\vspace{3cm}%
 	\huge{TCP/IP in hardware using SME}\\
-		\vspace{0.5cm}
+\vspace{0.5cm}%
 %	\Large{Write something clever here}
 }
 
