@@ -302,6 +302,10 @@ namespace TCPIP
             Logging.log.Error($"No packet found for GatherReceive. compared to: 0x{compare:X2}");
             return false;
         }
+        public (ushort type,byte data,uint bytes_left,Packet packet) PeekReceive()
+        {
+            return lastReceive;
+        }
 
 
         private IEnumerator<(ushort type,byte data,uint bytes_left,Packet packet)> dataIn;
@@ -351,6 +355,11 @@ namespace TCPIP
             Logging.log.Warn($"No packet found for GatherDataIn. compared to: 0x{compare:X2}");
             return false;
         }
+        public (ushort type,byte data,uint bytes_left,Packet packet) PeekDataIn()
+        {
+            return lastDataIn;
+        }
+
         public bool StepWait()
         {
             var toWait = packetPointers.Where(
