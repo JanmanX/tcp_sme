@@ -418,6 +418,11 @@ namespace TCPIP
             return clock;
         }
 
+        public bool Finished()
+        {
+            return packetList.Where(a => (a.Value.info & PacketInfo.Valid) > 0).Count() == packetList.ToList().Count;
+        }
+
 
         ///////////////////////////////////////////////////
         // Helper Functions
