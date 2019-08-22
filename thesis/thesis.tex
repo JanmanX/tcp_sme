@@ -51,6 +51,8 @@
 %\usepackage{coffee4} % Comment me out
 % minted styles
 %\newmintinline['mintedinlineitem']{csharp}{breaklines}
+\setminted[csharp]{escapeinside={*@}{@*}}
+\newmintinline[csharpextend]{minted-lexers/csharp.py:MDCSharpLexer -x}{breaklines}
 
 % Define Listings
 \definecolor{codegreen}{rgb}{0,0.6,0}
