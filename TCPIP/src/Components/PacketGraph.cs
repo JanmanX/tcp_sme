@@ -722,19 +722,5 @@ namespace TCPIP
             ret += "}\n";
             return ret;
         }
-        public void DumpStateInFile(string dir_inside_current_dir)
-        {
-            // Get the path and create the folder if needed
-            string path = System.IO.Path.Combine(this.dir, dir_inside_current_dir);
-            System.IO.Directory.CreateDirectory(path);
-
-            string fullfilepath = System.IO.Path.Combine(path, $"{this.clock:D8}"  +  ".dot");
-
-            //Logging.log.Trace($"Adding dot graph to: {fullfilepath}");
-            using (StreamWriter writer = new StreamWriter(fullfilepath, true))
-            {
-                writer.Write(this.GraphwizState());
-            }
-        }
     }
 }
