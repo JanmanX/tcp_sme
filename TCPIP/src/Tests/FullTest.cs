@@ -47,7 +47,7 @@ namespace TCPIP
 
                 var internet_in = new InternetIn();
                 var internet_out = new InternetOut();
-                var transport = new Transport();
+                var transport = new Transport(128);
                 //var interface = new Interface();
 
                 // Wire L(Simulator) to Internet_in
