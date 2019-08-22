@@ -19,7 +19,8 @@ namespace TCPIP
 
                 // Graph simulator
                 //var simulator = new GraphFileSimulator("data/graphsimulation/udp_out_test/",450,true);
-                var simulator = new GraphFileSimulator("data/graphsimulation/multi_in_test/",55000,false);
+                var simulator = new GraphFileSimulator("data/graphsimulation/advanced_udp_test/",1000000,true);
+                //var simulator = new GraphFileSimulator("data/graphsimulation/test/",1000000,true);
 
                 // Allocate memory blocks
                 int packet_out_mem_size = 8192;
