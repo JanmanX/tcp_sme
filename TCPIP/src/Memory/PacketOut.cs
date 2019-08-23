@@ -117,6 +117,7 @@ namespace TCPIP
                     tmp_write_ip_info.ip_src_addr_0 = packetIn.ip_src_addr_0;
                     tmp_write_ip_info.ip_src_addr_1 = packetIn.ip_src_addr_1;
                     tmp_write_ip_info.protocol = packetIn.protocol;
+                    Logging.log.Trace($"protocol 0x{packetIn.protocol:X2}");
                     tmp_write_ip_info.ip_id = packetIn.ip_id;
                     tmp_write_ip_info.frame_number = packetIn.frame_number;
 
@@ -135,7 +136,7 @@ namespace TCPIP
                 controlA.IsWriting = true;
                 int addr = mem_calc.SaveData(packetIn.addr);
                 controlA.Address = addr;
-                Logging.log.Warn($"Receiving: data: 0x{packetIn.data:X2} "+
+                Logging.log.Info($"Receiving: data: 0x{packetIn.data:X2} "+
                                   $"addr: {addr} "+
                                   $"data left: {packetInComputeProducerControlBusIn.bytes_left}");
                 controlA.Data = packetIn.data;

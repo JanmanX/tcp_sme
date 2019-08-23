@@ -43,6 +43,9 @@
 \input{acronyms.tex}
 \makeglossaries
 
+%Footnote setup
+%\counterwithout*{footnote}{chapter}
+
 %Hyperref setup
 \pdfstringdefDisableCommands{%
   \let\vspace\@gobble
@@ -51,6 +54,7 @@
 %\usepackage{coffee4} % Comment me out
 % minted styles
 %\newmintinline['mintedinlineitem']{csharp}{breaklines}
+%\setmintedinline{breaklines}
 \setminted[csharp]{escapeinside={*@}{@*}}
 \newmintinline[csharpextend]{minted-lexers/csharp.py:MDCSharpLexer -x}{breaklines}
 
@@ -124,7 +128,7 @@ Jacobi, Mark Jan\\%
 
 \title{%
 \vspace{3cm}%
-	\huge{TCP/IP in hardware using SME}\\
+\huge{TCP/IP in hardware using SME}\\
 \vspace{0.5cm}%
 %	\Large{Write something clever here}
 }

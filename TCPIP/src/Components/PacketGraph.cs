@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace TCPIP
 {
@@ -70,12 +71,14 @@ namespace TCPIP
         private int clock = -1;
         private string dir;
 
+        private bool debug = false;
 
-        public PacketGraph(string dir){
+        public PacketGraph(string dir, bool debug){
             string[] filePaths = Directory.GetFiles(dir);
             var simPackets = from c in filePaths
                              select GenerateSimPacket(c);
             this.dir = dir;
+            this.debug = debug;
             // Find the end points in the graph
             var dependsOn = new HashSet<int>();
             var allNodes = new HashSet<int>();
@@ -84,25 +87,25 @@ namespace TCPIP
                 dependsOn.UnionWith(new HashSet<int>(simPacket.dependsOn));
                 packetList.Add(simPacket.id,simPacket);
             }
-
+            Logging.log.Warn("Packets loaded");
             // Append the end packets
             exitPackets = new SortedSet<int>(allNodes.Except(dependsOn));
             foreach(int x in exitPackets)
             {
                 packetList[x].info |= PacketInfo.End;
             }
+            Logging.log.Warn("End packets marked");
             // Calculate which packets are required
-            foreach(var x in packetList.OrderBy(a => a.Key))
+            Logging.log.Warn("Finding required packets(can take a long time)");
+            Parallel.ForEach(packetList.OrderBy(a => a.Key), x =>
             {
-                var requiredBy = new HashSet<int>();
-                foreach(var y in packetList.OrderBy(a => a.Key))
-                {
-                    if(y.Value.dependsOn.Contains(x.Key)){
-                        requiredBy.Add(y.Key);
-                    }
-                }
-                packetList[x.Key].requiredBy = new SortedSet<int>(requiredBy);
-            }
+                //Logging.log.Warn($"Test {x.Key}");
+                var test = packetList.Where(a => a.Value.dependsOn.Contains(x.Key));
+                packetList[x.Key].requiredBy = new SortedSet<int>(test.Select(a => a.Key));
+            });
+            Logging.log.Warn("Requested packets loaded");
+
+
 
             // Print the current packet information
             int maxDepends = 0;
@@ -123,7 +126,9 @@ namespace TCPIP
             }
 
             // Calculate the clusters
+            Logging.log.Warn("Calculating clusters");
             CalculateClusters();
+            Logging.log.Warn("Clusters calculated");
         }
 
         private Packet GenerateSimPacket(string filePath){
@@ -302,11 +307,15 @@ namespace TCPIP
             Logging.log.Error($"No packet found for GatherReceive. compared to: 0x{compare:X2}");
             return false;
         }
+        public (ushort type,byte data,uint bytes_left,Packet packet) PeekReceive()
+        {
+            return lastReceive;
+        }
 
 
         private IEnumerator<(ushort type,byte data,uint bytes_left,Packet packet)> dataIn;
         private (ushort type,byte data,uint bytes_left,Packet packet) lastDataIn;
-        public bool GatherDataIn(byte compare, int byte_number)
+        public bool GatherDataIn(byte compare, int byte_number, int socket)
         {
             if (dataIn == null){
                 dataIn = IterateOver(PacketInfo.DataIn,0).GetEnumerator();
@@ -315,11 +324,15 @@ namespace TCPIP
             if(dataIn.MoveNext()){
                 byte excact = dataIn.Current.data;
                 lastDataIn = dataIn.Current;
-                if(excact == compare && byte_number == dataIn.Current.bytes_left)
+                if(excact == compare &&
+                   byte_number == dataIn.Current.bytes_left &&
+                   socket.ToString() == dataIn.Current.packet.additional_data)
                 {
                     Logging.log.Info($"Good comparison of input data from datain. " +
-                                     $"correct: 0x{excact:X2} index: {dataIn.Current.bytes_left} " +
-                                     $"observed: 0x{compare:X2} index: {byte_number}");
+                                     $"data correct: 0x{excact:X2} index: {dataIn.Current.bytes_left} " +
+                                     $"data observed: 0x{compare:X2} index: {byte_number} " +
+                                     $"socket correct: 0x{dataIn.Current.packet.additional_data} " +
+                                     $"socket observed: 0x{socket} ");
                     if(byte_number == 0)
                     {
                         dataIn.MoveNext();
@@ -329,8 +342,10 @@ namespace TCPIP
                 else
                 {
                     Logging.log.Fatal($"Wrong comparison of input data from datain. " +
-                                      $"correct: 0x{excact:X2} index: {dataIn.Current.bytes_left} " +
-                                      $"observed: 0x{compare:X2} index: {byte_number}");
+                                      $"data correct: 0x{excact:X2} index: {dataIn.Current.bytes_left} " +
+                                      $"data observed: 0x{compare:X2} index: {byte_number} "+
+                                     $"socket correct: 0x{dataIn.Current.packet.additional_data} " +
+                                     $"socket observed: 0x{socket} " );
                     return false;
                 }
 
@@ -339,12 +354,17 @@ namespace TCPIP
                 if(ReadyDataIn()){
                     dataIn.MoveNext();
                     dataIn = null;
-                    return GatherDataIn(compare, byte_number);
+                    return GatherDataIn(compare, byte_number,socket);
                 }
             }
             Logging.log.Warn($"No packet found for GatherDataIn. compared to: 0x{compare:X2}");
             return false;
         }
+        public (ushort type,byte data,uint bytes_left,Packet packet) PeekDataIn()
+        {
+            return lastDataIn;
+        }
+
         public bool StepWait()
         {
             var toWait = packetPointers.Where(
@@ -401,6 +421,11 @@ namespace TCPIP
         public int GetClock()
         {
             return clock;
+        }
+
+        public bool Finished()
+        {
+            return packetList.Where(a => (a.Value.info & PacketInfo.Valid) > 0).Count() == packetList.ToList().Count;
         }
 
 
@@ -526,12 +551,18 @@ namespace TCPIP
             {
                 string depends = String.Join(",",x.Value.dependsOn);
                 string required = String.Join(",",x.Value.requiredBy);
-                Logging.log.Info($"PacketID: {x.Key,5} " +
-                                 $"Ready: {isReady(x.Key),5} " +
-                                 $"Depends: {depends,7} " +
-                                 $"Required: {required,7} " +
-                                 $"Extra: {x.Value.additional_data,4} " +
-                                 $"Flags:" + x.Value.info);
+                Logging.log.Warn($"PacketID: {x.Key} " +
+                                 $"Ready: {isReady(x.Key)} " +
+                                 $"Depends: {depends} " +
+                                 $"Required: {required} " +
+                                 $"Extra: {x.Value.additional_data} " +
+                                 $"Flags: " + x.Value.info);
+            }
+            foreach (int i in Enum.GetValues(typeof(PacketInfo)))
+            {
+                PacketInfo t = (PacketInfo)i;
+                int c = packetList.Where(a => (a.Value.info & t) > 0).Count();
+                Logging.log.Warn($"Type: {t,10} count: {c}");
             }
         }
         // Dumps the current state as a graphwiz string
@@ -693,20 +724,6 @@ namespace TCPIP
 
             ret += "}\n";
             return ret;
-        }
-        public void DumpStateInFile(string dir_inside_current_dir)
-        {
-            // Get the path and create the folder if needed
-            string path = System.IO.Path.Combine(this.dir, dir_inside_current_dir);
-            System.IO.Directory.CreateDirectory(path);
-
-            string fullfilepath = System.IO.Path.Combine(path, $"{this.clock:D8}"  +  ".dot");
-
-            //Logging.log.Trace($"Adding dot graph to: {fullfilepath}");
-            using (StreamWriter writer = new StreamWriter(fullfilepath, true))
-            {
-                writer.Write(this.GraphwizState());
-            }
         }
     }
 }
