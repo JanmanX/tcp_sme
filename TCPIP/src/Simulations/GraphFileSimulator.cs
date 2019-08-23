@@ -73,9 +73,10 @@ namespace TCPIP
 
         public override async Task Run()
         {
+            Logging.log.Warn("Running");
             if(debug){
                 //Console.WriteLine(this.packetGraph.GraphwizState());
-                this.DumpStateInFile(DUMP_STATE_FOLDER);
+                //this.DumpStateInFile(DUMP_STATE_FOLDER);
                 //return;
             }
             //return;
