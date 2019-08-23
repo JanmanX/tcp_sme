@@ -226,7 +226,7 @@ are several problems to solve:
 \begin{itemize}
     \item \textbf{Fragmentation}\\
     In \texttt{Segment In} and \texttt{Data In} there are segmentation. In
-    \texttt{Segment In} IP segments may arrive out of order, and is therefore only
+    \texttt{Segment In} IP fragments may arrive out of order, and is therefore only
     sent through the system when all segments are received. \texttt{Data In} is
     essentially the same, just with other protocols such as TCP.\\
     In both cases we want the order to be concurrent. Packets that are not
