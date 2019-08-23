@@ -226,7 +226,7 @@ are several problems to solve:
 \begin{itemize}
     \item \textbf{Fragmentation}\\
     In \texttt{Segment In} and \texttt{Data In} there are segmentation. In
-    \texttt{Segment In} IP segments may arrive out of order, and is therefore only
+    \texttt{Segment In} IP fragments may arrive out of order, and is therefore only
     sent through the system when all segments are received. \texttt{Data In} is
     essentially the same, just with other protocols such as TCP.\\
     In both cases we want the order to be concurrent. Packets that are not
@@ -347,54 +347,112 @@ the lookup table. See \autoref{tab:memory_states_multi}.
 To describe the operation of the memory module, all the interface functions
 are listed, and their operation explained.
 The memory segment interface consists of the following functions:
+
 \begin{description}
-  \item[\mintinline{csharp}{int AllocateSegment(int size)}]\hfill\\
+  \item[\csharpextend{int AllocateSegment(int size)}]\hfill\\
   When a segment is allocated, the new data is saved in the segment table
   head by looking at the \texttt{Table Head} pointer.\\
   The start and end pointers are calculated based on the \texttt{Mem Head}
   pointer. If the range between \texttt{Mem Head} and \texttt{Mem Tail} is
-  smaller than \mintinline{csharp}{int size}, -1 is returned, indicating
+  smaller than \csharpextend{int size}, -1 is returned, indicating
   error. If not, the segment table id is
-  returned(\mintinline{csharp}{int seg_ID}).
+  returned(\csharpextend{int seg_ID}).
 
-  \item[\mintinline{csharp}{int FocusSegment()}]\hfill\\
+  \item[\csharpextend{int FocusSegment()}]\hfill\\
   A segment is classified as a focus segment if the data is ready to be sent
   (\texttt{Reading} state). It will automatically find the next segment, by
-  increasing ... \notechange{Finish!}
+  incrementing the pointer by one, and if needed wrapping back to 0. The
+  \texttt{Table Tail} is also moved by this action, to always point on the first
+  instance of an active segment.
 
-  \item[\mintinline{csharp}{int SaveData(int seg_ID, int offset)}]\hfill\\
+  \item[\csharpextend{int SaveData(int seg_ID, int offset)}]\hfill
   Returns the memory address for that specific segment with an offset.
   This is calculated by finding the start address in the segment table, and
   adding the offset. If the segment is not in "Saving" state, an error
   is returned of -1.
 
-  \item[\mintinline{csharp}{int LoadData(int seg_ID, int offset)}]\hfill\\
-  The same as \mintinline{csharp}{int SaveData(...)}, with the exception
+  \item[\csharpextend{int LoadData(int seg_ID, int offset)}]\hfill
+  The same as \csharpextend{int SaveData(...)}, with the exception
   that an error is returned if we are not in the loading state.
 
-  \item[\mintinline{csharp}{int DelaySegment(int seg_ID)}]\hfill\\
-  This function delays a focus segment by copying it to the table head
+  \item[\csharpextend{int DelaySegment(int seg_ID)}]\hfill\\
+  This function delays a focus segment by copying it to the table head, and
+  freeing the current \csharpextend{int seg_ID}. When this happens, the
+  chronological order of the segments gets mixed.\\
+  It is now impossible to tell if the next segment in the segment table contains
+  the actual continuation of the memory. The next segment may be out of order,
+  and point to memory anywhere. To get around this, each block gets an
+  incremental ID at creation time. Since the creation of blocks always uses
+  memory from the range \texttt{Mem Head} to \texttt{Mem Tail} the memory must
+  be consumed in order.
 
-  \item[{\mintinline[breakanywhere]{csharp}{void SaveMetaData(int seg_ID, MetaData meta)}}]\hfill\\
-    \noteerror{Fix overrunning item name}
-  XXXX
+  \item[{\pbox[c][1.7\baselineskip][b]{\linewidth}{{\csharpextend{void SaveMetaData(int seg_ID, MetaData meta)}}}}]\hfill
 
-  \item[\mintinline{csharp}{MetaData LoadMetaData(int seg_ID)}]\hfill\\
-  XXXX
-  \item[\mintinline{csharp}{void SegmentFull(int segment_ID)}]\hfill\\
-  XXXX
+  Saves the \csharpextend{MetaData} into the current segment.
 
-  \item[\mintinline{csharp}{void SegmentDone(int segment_ID)}]\hfill\\
-  XXXX
+  \item[\csharpextend{MetaData LoadMetaData(int seg_ID)}]\hfill\\
+  Loads the \csharpextend{MetaData} from the current segment.
 
-  \item[\mintinline{csharp}{int AllocateSegment(int size)}]\hfill\\
-  XXXX
+  \item[\csharpextend{void SegmentFull(int seg_ID)}]\hfill\\
+  Returns if the segment is \texttt{Full}.
+
+  \item[\csharpextend{void SegmentDone(int seg_ID)}]\hfill\\
+  Returns if the segment is \texttt{Full}(See \autoref{tab:memory_states_multi}).
+
+  \item[\csharpextend{int AllocateSegment(int size)}]\hfill\\
+  Allocates a segment by getting the first available from \texttt{Table Head}.
+  If none are available, return
 \end{description}
 
-\subsubsection{Single memory segments}
 
+
+
+\subsubsection{Single memory segments}
+The single memory segments are a bit different compared to the multi segments.
+The single segments does not return an \csharpextend{int seg_ID} at any point,
+because the focused segments are controlled internally. This is done to limit
+the complexity for of the model, and to insure that segments are not accessed
+out of order. Knowing and keeping the order makes it possible to allocate
+segments without knowing the size beforehand.\\
+The internal segment control
+consists of three pointers. A pointer for the segment that is currently being
+saved to, a pointer for the segment that is currently being read from, and
+a pointer to the next segment ready for allocation.\\
+This model is used as the internal buffers(see \autoref{subsec:memory_types}).
+This requires that the metadata can be saved before saving the data.\\
+Since segments in this implementation have undefined length before being marked
+as \texttt{Full}, only one segment can be filled at a time. To save metadata,
+the "allocation" method from "Multi memory segments" are reused. Instead
+of giving the size of the segment, the metadata is given. This marks the segment
+as \texttt{Active}. An \texttt{Active} segment is ready to receive data, but only
+when the currently receiving segment is done filling. See
+\autoref{tab:memory_states_single} for the different states.\\
+
+\begin{table}[htpb]
+  \begin{center}
+      \begin{tabular}{l|c|c|c|}
+          & \tablerot{\texttt{Full}}
+          & \tablerot{\texttt{Done}}
+          & \tablerot{\texttt{Active}} \\\hline
+          \texttt{Inactive}
+          %\tablefootnote{Internal state only used to detect if too many
+          %segments are allocated, filling up the segment table.}
+                            &            &            &            \\ \hline
+          \texttt{Filling}  &            &            & \checkmark \\ \hline
+          \texttt{Reading}  & \checkmark &            & \checkmark \\ \hline
+          \texttt{Done}     & \checkmark & \checkmark & \checkmark \\ \hline
+      \end{tabular}
+  \end{center}
+  \caption{The memory states of "Single memory segments"} \label{tab:memory_states_single}
+\end{table}
+\notechange{Finish!}
 
 \subsection{Dictionary} \label{subsec:dictionary}
+The dictionary are used to keep track of out of order memory segments.
+\notechange{Finish!}
+
+
+
 
 \subsection{Memory types}  \label{subsec:memory_types}
 Block ram on FPGA chips from companies such as Xilinx have a low latency, high
@@ -416,6 +474,7 @@ The size of these small buffers would be based on the latency between the
 request and response from memory. This would make it easier to
 replace the underlying memory, by simply increasing the buffer size to that
 of the memory latency.
+\notechange{Talk about how metadata is needed before the data itself}
 
 
 \section{Interface Signal protocols}

@@ -87,7 +87,7 @@ namespace TCPIP
         private uint ip_id = 0x00; // Current ip_id
 
         // WRITE
-        private const int MAX_PACKET_DATA_SIZE = 8;
+        private readonly int MAX_PACKET_DATA_SIZE;
         private const int BUFFER_OUT_SIZE = 100;
         private byte[] buffer_out = new byte[BUFFER_OUT_SIZE];
         private uint idx_out = 0x00;
@@ -95,10 +95,10 @@ namespace TCPIP
 
         private bool offset_received = false;
 
-        public Transport()
+        public Transport(int max_packet_size = 8)
         {
             // ...
-
+            this.MAX_PACKET_DATA_SIZE = max_packet_size;
             // DEBUG: Debug sockets
             pcbs[0].state = (byte)PCB_STATE.CONNECTED;
             pcbs[0].protocol = (byte)IPv4.Protocol.UDP;
@@ -223,7 +223,7 @@ namespace TCPIP
                     // End of header, start parsing
                     if (idx_in == TCP.HEADER_SIZE)
                     {
-                        Logging.log.Error("TCP CURRENTLY NOT SUPPORTED!");
+                        Logging.log.Info("TCP CURRENTLY NOT SUPPORTED!");
                         // ParseTCP();
                     }
                     break;
@@ -361,10 +361,10 @@ namespace TCPIP
             {
                 SendData();
 
-	     if(stateData.bytes_passed >= MAX_PACKET_DATA_SIZE)
-		{
-			dataOutBufferConsumerControlBusOut.ready = false;
-		}
+                if(stateData.bytes_passed >= MAX_PACKET_DATA_SIZE)
+                {
+                    dataOutBufferConsumerControlBusOut.ready = false;
+                }
             }
             else
             {
@@ -386,6 +386,8 @@ namespace TCPIP
         {
             packetOutComputeProducerControlBusOut.valid = true;
             packetOutComputeProducerControlBusOut.bytes_left = 1; // at least one more
+
+            // XXXX Should index what pcb to gather data from, and stuff like the address offset based on that
 
             packetOutWriteBus.data = dataOutReadBus.data;
             packetOutWriteBus.addr = (int)(UDP.HEADER_SIZE + stateData.bytes_passed++); // XXX: hardcoded for UDP fixed size header

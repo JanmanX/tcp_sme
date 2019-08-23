@@ -2,3 +2,9 @@
 *.dot
 *.dot.png
 *.mp4
+*/DumpState/*
+*/DumpDataIn/*
+*/DumpReceive/*
+*/DumpState
+*/DumpDataIn
+*/DumpReceive
