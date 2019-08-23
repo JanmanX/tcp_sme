@@ -608,6 +608,162 @@ opportunity to drop the transaction, but it might also continue till the end.
 
 
 \section{Interface Control}
+The \texttt{Interface} is a collection of 3 busses provided to the user. Two of
+the busses are direct connections to the data-buffer, used to transfer the
+actual data to and from the network. As seen on \ref{fig:final_design}, the
+connecting going to \texttt{Data In} follows the Compute-Producer interface
+signal protocol, while the connection from \texttt{Data Out} follows the
+Buffer-Producer protocol.\\
+The connection going from the interface into the \texttt{Transport} process is
+a bit more interesting. It is simply called the \texttt{InterfaceBus}, and it
+is used to control the whole networking stack. As per usual, the connection
+actually consists of a \texttt{InterfaceBus} controlled by the user, and the
+\texttt{InterfaceControlBus}, used by the networking stack itself to respond to
+the user requests.\\
+Unlike the connection between buffers and processes where chunks of data are
+transmitted over multiple clock-cycles, the interface connection is more of a
+request-response model with only 1 clock-cycle required to submit the request
+or send the response. However, after submitting the request, the user
+\textit{should} keep the data in the bus until a response is received, because
+the \texttt{Transport} process might be busy at the moment handling in- or
+out-going packets, and not have time to process the request.\\
+Figure \ref{fig:interfacebus_code} shows the definitions of the busses. Note
+the \texttt{interface\_function} byte containing the type of "function" to
+call, defined in the \texttt{InterfaceFunction enum} on figure
+\ref{fig:interfacefunction_code}.
+
+
+\begin{figure*}[t]
+    \centering
+
+    \begin{subfigure}[b]{0.45\textwidth}
+	\centering
+	 \begin{lstlisting}[language={[Sharp]C}]
+enum InterfaceFunction : byte
+{
+    INVALID = 0,
+//    BIND = 1,
+    LISTEN = 2,
+    CONNECT = 3,
+    ACCEPT = 4,
+    CLOSE = 7,
+    // ...
+    OPEN = 255,
+}
+
+struct InterfaceData
+{
+    public int socket;
+    public uint ip;
+    public byte protocol;
+    public ushort port;
+}\end{lstlisting}
+
+        \caption{Definitions of the structures used in the interface busses}
+	\label{fig:interfacefunction_code}
+    \end{subfigure}
+\hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+	\centering
+	 \begin{lstlisting}[language={[Sharp]C}]
+interface InterfaceBus : IBus
+{
+    bool valid;
+    byte interface_function;
+    InterfaceData request;
+}
+
+interface InterfaceControlBus : IBus
+{
+    bool valid;
+
+    byte exit_status;
+    byte interface_function;
+    InterfaceData request;
+    InterfaceData response;
+}\end{lstlisting}
+	\caption{The definitions of the interface busses.}
+	\label{fig:interfacebus_code}
+    \end{subfigure}
+    \caption{Pseudocode of the definitions used for the interface connection.}
+	\label{fig:interface_definition}
+\end{figure*}
+
+
+
+
 \subsection{Usage}
+The usage of this interface is very basic and primitive. The user sets the
+appropriate values in the \texttt{InterfaceBus}, and raising the \texttt{valid}
+flag. For example, to start listening on port $81$ using the \gls{udp}
+protocol, the user would put these values in the bus:
+\begin{Verbatim}[frame=single,samepage=true]
+InterfaceBus {
+  .interface_function = CONNECT
+  .request {
+    .ip = 10.0.0.2
+    .protocol = UDP
+    .port = 81
+  }
+  .valid = True
+}
+\end{Verbatim}
+If the port is available under the \gls{udp} protocol and sockets are available
+for allocation in the stack, the user should eventually receive a response.
+Here, the user gets an \texttt{OK} response with the \texttt{socket = 2}:
+\begin{Verbatim}[frame=single,samepage=true]
+InterfaceControlBus {
+  .valid = True
+  .exit_status = OK
+  .interface_function = CONNECT
+  .request {
+    .ip = 10.0.0.2
+    .protocol = UDP
+    .port = 81
+  }
+  .response {
+    .socket = 2
+  }
+}
+\end{Verbatim}
+
+Once the user has received a valid socket, they can use the it at heart's
+content for sending and receiving. For example, to send a byte:
+\begin{Verbatim}[frame=single,samepage=true]
+DataOut.WriteBus {
+  .socket = 2
+  .byte = "A"
+}
+DataOut.ComputeProducerBus {
+  .valid = True
+  .bytes_left = 0
+}
+\end{Verbatim}
+The user is not required to wait for any response, as the Compute-Producer
+interface signal protocol is used.
+
+
 \subsection{Limitations}
+As briefly mentioned, a big limitation of the interface control is that only
+one request can be proposed at a time, and the user has to wait an arbitrary
+number of clocks before the response arrives. The issue is that the
+\texttt{Transport} might be occupied processing in-going and out-going
+packets.\\
+To circumvent this, experimental features of creating a queue of requests in
+the \texttt{Transport}-process was made. However, this only added complexity to
+the code, increased the resource-consumption of the process by a large margin
+just in order to maintain the queue data-structure, and apart from convenience,
+it added no improved performance. For these reasons, the initial approach was
+kept.
+
+
+
+
+
+
+
+
+
+
+
 
