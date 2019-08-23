@@ -79,7 +79,7 @@ other bugs. As such, the loop unrolling has to be done by the programmer, and
 the performance of the finished product relies solely on the ability of the
 programmer to unroll and pipeline the loops efficiently and without errors.\\
 The architecture of the Xilinx TCP/IP stack, seen on figure \ref{fig:fccm2015},
-is very similar to the one described in the implementation chapter.
+is very similar to the one described in the implementation chapter.\\
 \ref{chap:implementation}.
 \begin{figure}[h]
 \centering
@@ -89,5 +89,16 @@ is very similar to the one described in the implementation chapter.
 in FCCM’15}\cite{sidler2015tcp}.}
 \label{fig:fccm2015}
 \end{figure}
+
+Fernando Lu{\'i}s Herrmann et al. have also created an UDP/IP network stack
+in FPGA, achieving 1960 Mbps full-duplex throughput through their UDP/IP
+network on a Spartan-3E XC3S500e-4FG320 FPGA\cite{Herrmann2009ANU}.\\
+With a design able to both send and receive 8 bits per clock cycle, this
+project was able to clock at $122.76 MHz$, limited by the IP transmitter, which
+had the lowest speed. Interestingly, the whole system utilized only $14.19\%$
+of the resources on the modest Xilinx Spartan 3E, costing in the ranges from
+150 to 500 USD\cite{spartan_3e}.
+
+
 
 
