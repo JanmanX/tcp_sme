@@ -1,0 +1,8 @@
+digraph G{
+    graph [fontname = "Courier"];
+    node [fontname = "Courier",fixedsize = true,width = 1,height = 1];
+    edge [fontname = "Courier"];
+    labelloc="t";
+    fontsize=35;
+    1[label="ID\nState",shape=house];
+}

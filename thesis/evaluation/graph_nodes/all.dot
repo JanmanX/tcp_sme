@@ -1,0 +1,13 @@
+digraph G{
+    graph [fontname = "Courier"];
+    node [fontname = "Courier",fixedsize = true,width = 1,height = 1];
+    edge [fontname = "Courier"];
+    labelloc="t";
+    fontsize=35;
+    0[label="ID\nState",shape=invhouse];
+    1[label="ID\nState",shape=invtriangle];
+    2[label="ID\nState",shape=triangle];
+    3[label="ID\nState",shape=house];
+    4[label="ID\nState",shape=octagon];
+    5[label="ID\nState",shape=trapezium];
+}
