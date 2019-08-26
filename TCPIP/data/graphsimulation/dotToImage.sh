@@ -9,6 +9,7 @@ dotconvert () {
     then
         echo "Doing $1"
         dot -Tpng $1 -o $1.png;
+        dot -Teps $1 -o $1.eps;
     fi
 }
 
