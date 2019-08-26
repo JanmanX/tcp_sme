@@ -8,15 +8,71 @@ of SME for this project is examined.
 
 
 \section{Performance}
-\noteimprovement{Write this section}
+In the test chapter \ref{chap:evaluation}, we ran the simulation for
+multiple hours. In about 10 million clock cycles, the networking stack was able
+to handle 118400 packets in total, where 1280 of the packets were valid
+connections intended for the user of the stack. During the test, the valid
+data-stream was also sent out in identical 1280 packets.\\
+If the network stack was clocked at a very modest clock-rate of 10 MHz of the
+maximum 866 MHz on the Xilinx Zynq-7000 series\cite{xilinx_zynq_7000}, the
+network is theoretically able to run at:
+$$10 000 000\, \mathbf{bytes} = 10 000\, \mathbf{KB} = 10\,\mathbf{MB}$$
+$$\frac{10\:\mathbf{MB}}{10\:\mathbf{MHz}} = 8\:\mathbf{Mbps}$$
+
+These speeds are by no means exceptional, in fact, they are very slow compare
+to even common ethernet network adapters found in consumer server hardware, such
+as the Intel Ethernet I210 series\cite{intel_1gbps_nic}.\\
+
+However, the network stack never reached the actual hardware, so the
+theoretical speed is questionable. Furthermore, since the most resource-heavy
+processes cannot be investigated, optimization of the stack would be premature
+as of now.
+
+
+% 118400 packets in total
+% 1280 ingoing
+% 1280 sent
+% clocks: 10 000 000 mio.
+
 
 \subsection{Improving performance}
+
+
 \begin{figure}
 \centering
-\includegraphics[scale=0.50]{discussion/design_stacked.eps}
-\caption{Stacking the system}
+\includegraphics[scale=0.45]{discussion/design_stacked.eps}
+\caption{Replicating the "inner" part of the design in order to multiply the
+performance. }
 \label{fig:design_stacked}
 \end{figure}
+
+
+Even though many optimizations can be done on the network stack codebase
+itself, there are other ways of achieving better performance from the project.
+
+During the design-phase, it was important to ensure the active connections
+arrived on the same stack, since the IP fragments have to be collected on the
+same buffer, and the TCP state has to be synchronized.
+
+The \texttt{Transport} is especially burdensome, as it has to handle both
+ingoing- and outgoing-packets, as well as the user interface calls and
+protocol-specific handshakes and other operations. Finding a way of getting
+around this congestion, it should be possible to parallelize the system for
+better performance.
+
+By replicating the networking stack and assign a unique IP address to each, it
+should be possible to create a "Load Distributor", distributing the packets
+across multiple networking stacks. Figure \ref{fig:design_stacked} shows a
+prototype design, wherethe inner part of the networking stack is duplicated on
+the FPGA itself. The \texttt{Load Distributor} conveys the packets to the
+appropriate network-stack.
+
+On the other side of the same figure, the \texttt{Load Collector} ensures that
+the replicated network stacks work as one, and that they are abstracted away
+in the \texttt{User Interface}, so that the user does not have to make up for
+the separation. Even though the \texttt{Transport} processes do not share any
+information across the stacks, they can have hardcoded \texttt{socket} numbers,
+assigning a block of sockets to each stack, so that overlap does not happen.
 
 
 
@@ -38,10 +94,6 @@ For instance, other SME projects, such as the "High Throughput Image Processing 
 Imaging" developed by Troels Skjøttgaard Ynddal\cite{troels}, which does
 real-time image processing on x-ray images, could benefit from a network stack
 by sending the processed images to a server for further analysis and backup.
-
-\noteimprovement{Ask Carl about the size of the stack on FPGA -- does it fit on
-small devices? (embedded and the like)}
-
 
 \subsection{Existing solutions}
 Sadly, the developed networking stack could not be brought onto an \gls{fpga},
@@ -72,6 +124,111 @@ suggests that this connection with networking hardware can indeed work.
 Not only had the use of C\# with \gls{sme} a great impact on the design, but the
 whole project as a whole.
 
+\subsection{Concurrency}
+As was the intent of the \gls{sme} project, the messaging framework was
+indispensable during the development of the networking stack. Besides not
+having to concerns ourselves with the synchronization across processes, the
+"Shared Nothing" property of \gls{sme} was a great help during the design, and
+forced the design to be neatly isolated in the appropriate layers.
 
+The isolation of each \texttt{Process} object gave a great overview of what each
+"thread" of the system was doing. Likewise, the information exchange was very
+clear, since it was nicely collected in one place -- the bus.
+
+Sadly, the parsing of network packets is excessively sequential, and the
+project does not utilize the full potential of SME in that regard.
+
+\subsection{Cumbersome initialization and alternation}
+% Parallelism hard from software
+% Initialization of busses is cumbersome
+The way projects are written in SME with C\#, the programmer has to
+choose a design hardware architecture beforehand, since adding new SME
+processes after the fact is cumbersome, and requires a lot of manual
+modifications.
+For instance, injecting a new process in between two existing processes
+requires potentially adding new busses to the system and set these up correctly
+in the code. Although this is a trivial task, the process itself is prone to
+typos and oversights from the programmer.
+
+
+\subsection{Using the C\# language}
+In the beginning, it was pleasant to use a familiar language for the
+implementation of the networking stack. Yet, as the code-base grew in size, the
+flaws started to surface.
+
+The C\# programming language is a very actively developed language with many
+modern features, it is widely used with a very active community, and it has a lot
+of useful packages and frameworks.
+
+Unfortunately, almost none of these features are available with \gls{sme},
+as most of these require dynamic constructs, such as instantiation of new
+classes or use of dynamic collections. Although this restriction is caused
+by the hardware and not \gls{sme} itself, the C\# language started to be
+much less intuitive. Instead of applying best practices and exploring new
+features in a well-known and established language, we had to limit ourselves
+to the viable subset of the working features, and create the design around
+it. While it is understandable why a proven language is used to test out a
+new message passing framework, the C\# language did not always feel right
+for hardware development, and the upcoming \gls{smeil} might prove itself
+to be a welcome addition to the \gls{sme} project.\cite{github_smeil}.
+
+
+\subsubsection{Pre-written components and modules}
+The \gls{sme} framework already contains premade objects for use, such as the
+\texttt{TrueDualPortMemory}, which is a process that helps the programmer write
+code interfacing with the built-in block memory on the \gls{fpga}.\\
+As of yet, only a few memory components are included in the \gls{sme}
+framework.
+
+During development, there was a pattern of prevailing components and systems
+reused in multiple processes:
+\begin{itemize}
+\item \textbf{Generic buffer process}\\
+As documented in the design section, the buffers make up a big part of
+functionality in the whole system. However, these \gls{fifo} constructs
+are very commonly used during FPGA development\cite{fpga_fifo}. A generic
+\gls{fifo} buffer component would be a very useful feature during the
+development of the networking stack.
+
+\item \textbf{AXI4 communication process}\\
+In the processes, the programmer is free to implement any bus interface signal
+protocol. Although a custom protocol was implemented for the system, it has
+been cumbersome and challenging to implement two processes with a shared signal
+protocol. Pre-written processes with support for established signal protocols
+could be a valuable addition to the \gls{sme} ecosystem.
+
+\end{itemize}
+
+
+\subsection{State modelling}
+
+
+
+\subsection{Bugs and other lesser issues}
+The\gls{sme} framework has been surprisingly stable, albeit with a few minor
+bugs. Although most of these issues are being fixed at the time of writing,
+they were still a noticeable hindrance during development:
+\begin{itemize}
+\item \textbf{Reserved VHDL keywords}\\
+Certain words in the C\# code were reserved in\gls{vhdl}. While this is a
+non-issue if the project is not being compiled to \gls{vhdl} code, this needed
+to be taken into consideration during development. One such reserved word  was
+the "Transport", used to denote the \texttt{Transport} process class.
+
+\item \textbf{C\# structs}\\
+A lot of information has to be passed between the buffers and processes. For
+the sake of readability and maintainability of the codebase, this data is best
+encapsulated in namespaces for a hierarchical organization.
+Luckily, \texttt{struct}s became available shortly after the discovery of this
+requirement, and are used in the project. For instance, the
+\texttt{InterfaceBus} uses two of the \texttt{InterfaceData} struct.
+
+\item \textbf{Slow simulation}\\
+The tests carried out during the evaluation of the system were astonishingly
+slow. While the simulation ran at an acceptable rate in the beginning, it
+started slowing down as the test progressed. A simulation lasting multiple
+hours only managed to simulate a few millions of clock-cycles.
+
+\end{itemize}
 
 
