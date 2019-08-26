@@ -58,16 +58,27 @@
 \setminted[csharp]{escapeinside={*@}{@*}}
 \newmintinline[csharpextend]{minted-lexers/csharp.py:MDCSharpLexer -x}{breaklines}
 
-% Define Listings
+% Define colorboxes
+\newcommand\textcolorbox[2][]{\tikz[overlay]\node[inner sep=2pt, anchor=text, rectangle,draw=black,thick , rounded corners=2mm,#1] {#2};\phantom{#2}}
+\newcommand\statecolorbox[1]{\textcolorbox[fill=#1]{\phantom{\boxfillertext}}}
+\newcommand{\boxfillertext}{XXX}
+
+% Define colors
 \definecolor{codegreen}{rgb}{0,0.6,0}
-
-
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
 \definecolor{codeblue}{rgb}{0,0,0.95}
 \definecolor{backcolour}{rgb}{0.95,0.95,0.95}
+\definecolor{graph_isready}{HTML}{00ffff}
+\definecolor{graph_active}{HTML}{cdad00}
+\definecolor{graph_inactive}{HTML}{ee6a50}
+\definecolor{graph_valid}{HTML}{76ee00}
+\definecolor{graph_dormant}{HTML}{ffffff}
 
 
+
+
+% Define Listings
 \lstdefinestyle{sme}{
     backgroundcolor=\color{backcolour},
     commentstyle=\color{codegreen},
