@@ -156,10 +156,10 @@ namespace TCPIP
         // Set an IPv4 from an ulong
         private void SetIP(uint offset, ulong ip)
         {
-            buffer[offset++] = (byte)(ip & IPv4.ADDRESS_MASK_0);
-            buffer[offset++] = (byte)((ip & IPv4.ADDRESS_MASK_1) >> 0x08);
-            buffer[offset++] = (byte)((ip & IPv4.ADDRESS_MASK_2) >> 0x10);
-            buffer[offset] = (byte)((ip & IPv4.ADDRESS_MASK_3) >> 0x18);
+            buffer[offset++] = (byte)((ip & IPv4.ADDRESS_MASK_0) >> 0x18);
+            buffer[offset++] = (byte)((ip & IPv4.ADDRESS_MASK_1) >>  0x10);
+            buffer[offset++] = (byte)((ip & IPv4.ADDRESS_MASK_2) >>  0x8);
+            buffer[offset] = (byte)(ip & IPv4.ADDRESS_MASK_3);
         }
 
 

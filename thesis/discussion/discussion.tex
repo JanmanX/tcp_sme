@@ -16,8 +16,12 @@ data-stream was also sent out in identical 1280 packets.\\
 If the network stack was clocked at a very modest clock-rate of 10 MHz of the
 maximum 866 MHz on the Xilinx Zynq-7000 series\cite{xilinx_zynq_7000}, the
 network is theoretically able to run at:
-$$10 000 000\, \mathbf{bytes} = 10 000\, \mathbf{KB} = 10\,\mathbf{MB}$$
-$$\frac{10\:\mathbf{MB}}{10\:\mathbf{MHz}} = 8\:\mathbf{Mbps}$$
+$$1\:\mathbf{Byte}*10\:\mathbf{MHz}= 80\:\mathbf{Mbps}$$
+
+
+If the system was clocked at the highest clock supported by the FPGA on the
+board, it would run at:
+$$1\:\mathbf{Byte} * 866 \: \mathbf{MHz} =6.928\:\mathbf{Gbps}$$
 
 These speeds are by no means exceptional, in fact, they are very slow compare
 to even common ethernet network adapters found in consumer server hardware, such
