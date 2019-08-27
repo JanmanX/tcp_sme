@@ -1,8 +1,6 @@
 \chapter{Evaluation}
 \label{chap:evaluation}
-
-\noteinfo[inline]{Remember to describe that we could not get the network stack
-down on the FPGA}
+%\noteinfo[inline]{Remember to describe that we could not get the network stack down on the FPGA}
 \section{Setup}
 In the initial stages of testing, the components had simulation processes between
 block. This made it possible to implement different blocks of the system
@@ -94,17 +92,18 @@ vertex with outgoing edges to that vertex needs to be \texttt{Done}.\\
             \makecell{Vertex is done\\ and validated.}
         \end{tabular}
     \end{center}
-    \caption{The different states of the nodes, and their respective colors} \label{tab:graph_node_states}
+    \caption{The different states of the nodes, and their respective colors
+    used for illustration} \label{tab:graph_node_states}
   \end{table}
 }\\
 Each vertex have their own type, defining what input source or output sink to
 use. The graph file simulator consists of multiple input sources and output sinks
 as seen in \autoref{fig:packet_dot_files}.\\
-There are three inputs, giving data to the system:
+There are three inputs giving data to the system:
 Data in(\subref{fig:packet_graph_datain}),
 Send(\subref{fig:packet_graph_send}) and
 Command(\subref{fig:packet_graph_command}).
-There are two sinks, getting data from the system
+There are two sinks getting data from the system
 Data out(\subref{fig:packet_graph_dataout}) and
 Receive(\subref{fig:packet_graph_receive}).
 The node type Wait(\subref{fig:packet_graph_wait}) is special, since
@@ -139,10 +138,77 @@ An example of a graph can be seen in
     \label{fig:graph_simulation_running_examples}
 \end{figure*}
 
+\subsection{VHDL code}
+\notejan{should we add more to this?}
+One of the biggest advantages of \gls{sme} is its easy testing, and its
+compilation to VHDL code. By using the GHDL project \cite{github_ghdl}.
+Unfortunately, our code does not compile into \gls{vhdl}.
+\noteimprovement{Actually test with last revision of code}
 
 
 \section{Test}
-\subsection{Latency}\label{subsec:latency}
+To test the system we recorded a setup of packets containing both \gls{udp} and
+\gls{tcp} packets, with focus on the \gls{udp} packets.
 
 \section{Verification}
+\subsection{Latency}\label{subsec:latency}
+There are several factors when calculating the latency of the system.
+\begin{description}
+    \item[$n_{\mathtt{D}}$]:\quad
+    The number of bytes in the data part of the protocol. This excludes both
+    headers from transport and internet.
+    \item[$n_{\mathtt{I}}$]:\quad
+    The internet header size.
+    \item[$n_{\mathtt{T}}$]:\quad
+    The transport header size.
+    \item[$n$]:\quad
+    The total packet size.
+\end{description}
+When a packet is propagating through the system, most
+of the latency comes from the buffers. All processes that connects
+to a buffer, does work, and submits to a buffer works on the data in real time.
+When possible, processes will pass the data straight ahead. For example, the
+\texttt{Transport} process will first pass the data from \texttt{Data Out} to
+the \texttt{Segment Out}, and then send the header. The passing state happens
+while reading from the buffer. This only adds two clock cycles of delay between
+\texttt{Data Out} and \texttt{Segment out}.
+In the following cases, we assume simple system where either only packets are
+being sent, or packets are being received.
+
+\subsubsection{From Recive to Data In}
+When the system starts to receive the first byte of a packet, to the last byte read from
+the user. This case uses \gls{ipv4} internet header, and \gls{udp} transport
+header. This formular can also be used in other transport headers, such as \gls{tcp}.
+To make it work with \gls{tcp}, one would need to calculate the constant $C$,
+based on \gls{tcp} specific features such as how long are the sequence of
+SYN/ACK \notemark{Ask jan about this} takes.
+\begin{equation*}
+    2 + n + 2 + (n_{\mathtt{D}} + n_{\mathtt{T}}) + 2 + n_{\mathtt{D}}  + C
+\end{equation*}
+That simplifies down to
+\begin{equation} \label{eq:receive_to_datain}
+    C + 6 + n_{\mathtt{I}} + 2n_{\mathtt{T}} + 3n_{\mathtt{D}}
+\end{equation}
+\subsubsection{From Data out to Send}
+Making the system send out data makes the formular a bit different. The outgoing
+packets goes through an extra buffer.
+\begin{equation*}
+   2 + n_{\mathtt{D}} + 2 + (n_{\mathtt{D}} + n_{\mathtt{T}}) + 2 + n + 2 + n + C
+\end{equation*}
+That simplifies down to
+\begin{equation} \label{eq:dataout_to_send}
+    C + 8 + 2n_{\mathtt{I}} + 3n_{\mathtt{T}} + 4n_{\mathtt{D}}
+\end{equation}
+
+\subsubsection{Observations}
+It is clear when comparing \autoref{eq:dataout_to_send} and
+\autoref{eq:receive_to_datain} that sending packets have a higher latency than
+receiving packets. This is clearly because of the added buffer. It is not clear
+from the latency formulars that receiving data "cuts" off data from the packet
+at each buffer step. This makes it possible to receive data at a constant pace,
+without filling the buffers. On the other hand sending out packets are
+problematic. \\
+Since each step adds additional information to the packet, the \texttt{Data Out}
+buffer may fill faster than it can be emptied.
+
 
