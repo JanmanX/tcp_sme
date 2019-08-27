@@ -38,7 +38,21 @@ stack, a much better insight of the correctess of the stack can be gained.
 
 
 \subsection{Unsupported Transport protocol pass-through to Application layer}
-\noteimprovement{Write this}
+Even though the networking stack should be easily modifiable, it is conceivable
+that certain users would rather parse certain transport protocols directly in
+"user-space" by reading raw transport segments from the interface.
+
+This is a fairly common phenomenon to first test a conceptual protocol in
+user-applications, and then implementing them in the appropriate layers. For
+example, this is the reason why the Linux kernel provides raw packet reception
+and transmission in the user-space directly from the kernel network
+stack\cite[Version~Linux 5.3-rc6, \texttt{Documentation/networking/tuntap.txt}]{linux}.
+
+While passing segments directly through \texttt{Transport} to the \texttt{Data
+In} buffer, new functions need to be introduced in the interface busses to
+enable the user to flag which connections need not be parsed.
+
+
 
 \section{New features}
 As discussed in chapter \ref{chap:design}, the networking stack is designed
