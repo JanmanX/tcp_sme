@@ -69,11 +69,12 @@
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
 \definecolor{codeblue}{rgb}{0,0,0.95}
 \definecolor{backcolour}{rgb}{0.95,0.95,0.95}
+
 \definecolor{graph_isready}{HTML}{00ffff}
 \definecolor{graph_active}{HTML}{cdad00}
 \definecolor{graph_inactive}{HTML}{ee6a50}
-\definecolor{graph_valid}{HTML}{76ee00}
-\definecolor{graph_dormant}{HTML}{ffffff}
+\definecolor{graph_done}{HTML}{76ee00}
+\definecolor{graph_waiting}{HTML}{ffffff}
 
 
 
@@ -162,6 +163,8 @@ Jacobi, Mark Jan\\%
 %\chead{}
 \rhead{TCP/IP in SME}
 
+% Table of content depth
+% \setcounter{secnumdepth}{5}
 
 \begin{document}
 \onecolumn
@@ -205,8 +208,10 @@ Jacobi, Mark Jan\\%
 
 % \newpage
 
-% Make acronym page
+% Make pages for acronyms,figures and tables
 \printglossary[type=\acronymtype,title=Abbrevations]
+%\listoffigures
+%\listoftables
 \newpage
 
 % Notes, uncomment in release report
