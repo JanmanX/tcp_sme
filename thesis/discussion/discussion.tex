@@ -236,8 +236,19 @@ pre-checks can be run prior to enter state-specific code. This adds a lot to
 the length of the "code-path", but it avoids a lot of repetition in the code.
 
 
+\subsubsection{Complicated state changes}
+Another common issue with modelling state-machines with \gls{sme} was certain
+state-changes. In situations where a process is executing the last cycle of a
+state that writes to some bus, a state-change is often desired in the end.
+However, most state-transitions need to do some cleanup, for instance resetting
+variables or re-initialize busses. If this cleanup happens in the same clock as
+the last byte is written to the bus, this value will never arrive at the other
+end. To circumvent this, the \texttt{Finish} state was utilized, which delays
+the state-transition a single clock, giving the busses a clock-cycle window to
+propagate correctly.
 
-
+While this solution worked fine, the code itself was identical across processes
+with this issue, and re-implementing was cumbersome and error-prone.
 
 \subsection{Bugs and other lesser issues}
 The\gls{sme} framework has been surprisingly stable, albeit with a few minor
