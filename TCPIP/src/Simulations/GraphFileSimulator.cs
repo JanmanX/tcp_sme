@@ -179,11 +179,11 @@ namespace TCPIP
                         string filename;
                         if(counter == 0)
                         {
-                            filename = counter.ToString() + "2-receive";
+                            filename = counter.ToString() + "3-receive";
                         }
                         else
                         {
-                            filename = counter.ToString() +"2_" + (counter - 1).ToString() + "2-receive";
+                            filename = counter.ToString() +"3_" + (counter - 1).ToString() + "3-receive";
                         }
                         DumpPacketInFile(DUMP_RECEIVE_FOLDER,filename,datagramBusOut.data);
                         if(datagramBusOutBufferProducerControlBusIn.bytes_left == 0)
