@@ -11,7 +11,7 @@ When the modules where done, they where wired together and a simulator
 where created to handle all input and output of the system.
 
 \subsection{Graph file simulator}
-\begin{figure*}[t!]
+\begin{figure*}%[!ht]
     \centering
     \begin{subfigure}[b]{0.16\textwidth}
         \centering
@@ -28,7 +28,7 @@ where created to handle all input and output of the system.
     \begin{subfigure}[b]{0.16\textwidth}
         \centering
         \includegraphics[scale=0.45]{evaluation/dot_files/command.eps}
-        \caption{Command}
+        \caption{Command \protect\footnotemark}
         \label{fig:packet_graph_command}
     \end{subfigure}%
     \begin{subfigure}[b]{0.16\textwidth}
@@ -74,7 +74,7 @@ vertex with outgoing edges to that vertex needs to be \texttt{Done}.\\
 {\renewcommand{\arraystretch}{1.3}
 \begin{table}[htpb]
     \begin{center}
-        \begin{tabular}{lcl}
+        \begin{tabular}{lcc}
             State & Color&Description\\ \hline \hline
             \texttt{Waiting}& \statecolorbox{graph_waiting} &
             \makecell{Vertex is not in use.}\\ \hline
@@ -147,10 +147,35 @@ Unfortunately, our code does not compile into \gls{vhdl}.
 
 
 \section{Test}
+\footnotetext{This block is not implemented in the codebase}
+% OBS, footnote text here from fig:packet_dot_files. needs to be on same page to work
 To test the system we recorded a setup of packets containing both \gls{udp} and
-\gls{tcp} packets, with focus on the \gls{udp} packets.
+\gls{tcp} packets, with focus on the \gls{udp} packets. There are three
+\gls{udp} connections, and three \gls{tcp} connections. Two of the \gls{udp}
+connections contain valid ports(6543,6789) and one contains an invalid port (3456).\\
+Each of the valid udp connections where hardcoded into the test, so there where no
+need for command blocks(\autoref{fig:packet_graph_command}).
+In the illustration at \autoref{fig:graph_simulation_running_examples} the
+same test is run, but with only $4*2$ good \gls{udp} packets, $4$ bad, and
+no \gls{tcp} packets\\
+When data is received from \texttt{Data In}, the same data is copied and
+sent to \texttt{Data Out}. \\
+In the example 6 packets have been sent into the system, and number 7(Id 70)
+is \texttt{Active}. The active \texttt{Send} block is giving its 30'th byte
+with a hex value of 0x21.\\
+The real test had 17283 packets in total, where 1920 of those where udp packets.
+Of the udp packets $2/3$ (1280) where the valid ports. The data sent
+through \texttt{Internet In} totals 1832958 Bytes.\\
+The test took around 1.83 million clocks to finish. This indicates that the system
+did handle all incoming packets in real time without having to break the input,
+even when sending limited amounts of data out.
+
+
 
 \section{Verification}
+\subsection{Correctness}\label{subsec:correctness}
+\notejan{Fill in the validation stuff here}
+
 \subsection{Latency}\label{subsec:latency}
 There are several factors when calculating the latency of the system.
 \begin{description}
