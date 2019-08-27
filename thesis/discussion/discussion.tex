@@ -200,7 +200,42 @@ could be a valuable addition to the \gls{sme} ecosystem.
 \end{itemize}
 
 
-\subsection{State modelling}
+\subsection{Process state modelling}
+Most processes in the system have multiple states, some containing fairly
+complex state-transitions, as seen on figure \ref{fig:statemachines_internetin_transport}
+in chapter \ref{chap:implementation}.\\
+Introduced in the implementation chapter, \gls{sme} provides the
+\texttt{StateProcess} class to simplify the creation of processes with
+multiple states. This class proved itself to be immensely helpful in the
+\texttt{Internet Out} process, which consist solely of sequential states.
+Unfortunately, this construct is inadequate and incomplete to model the rest of
+the computing processes, which were slightly more complex state-machines, as
+those used in the system.
+
+\subsubsection{Repeated code}
+\begin{figure}
+\centering
+\includegraphics[scale=0.45]{discussion/fsm_prestates.eps}
+\caption{An example of a process state-machine with pre-checks regardless of
+the current state.}
+\label{fig:fsm_prestates}
+\end{figure}
+
+The first identified issue was that most processes need to run certain checks on the
+start of each clock cycle, such as checking the validity of the busses,
+ensuring that there were no errors in the data-stream, maintain a bus signal
+protocol, or make sure that some other limitations are met.
+With the conventional \texttt{StateMachine}, this is intricate to write these
+checks without much repetition. Instead, in this project, regular processes are
+used in combination with an internal variable keeping track of the state.
+This subtle difference lets the programmer have a unified entry-point to the
+code, and branching code can be written to enter the appropriate
+state-functions in the code.
+For instance, figure \ref{fig:fsm_prestates} visualizes that a unified
+pre-checks can be run prior to enter state-specific code. This adds a lot to
+the length of the "code-path", but it avoids a lot of repetition in the code.
+
+
 
 
 
