@@ -20,8 +20,8 @@ namespace TCPIP
                 // Graph simulator
                 //var simulator = new GraphFileSimulator("data/graphsimulation/udp_out_test/",450,true);
                 //var simulator = new GraphFileSimulator("data/graphsimulation/advanced_udp_test/",1000000,true);
-                var simulator = new GraphFileSimulator("data/graphsimulation/big_advanced_udp_test/",1000000000,true);
-                //var simulator = new GraphFileSimulator("data/graphsimulation/test/",1000000,true);
+                //var simulator = new GraphFileSimulator("data/graphsimulation/big_advanced_udp_test/",1000000000,true);
+                var simulator = new GraphFileSimulator("data/graphsimulation/small_advanced_udp_test/",1000000,true);
 
                 // Allocate memory blocks
                 int packet_out_mem_size = 8192;
@@ -44,9 +44,6 @@ namespace TCPIP
                 var data_in_mem = new TrueDualPortMemory<byte>(data_in_mem_size);
                 var data_in = new DataIn(data_in_mem,data_in_mem_size);
 
-
-
-
                 var internet_in = new InternetIn();
                 var internet_out = new InternetOut();
                 var transport = new Transport(128);
@@ -56,6 +53,7 @@ namespace TCPIP
                 simulator.datagramBusInBufferConsumerControlBusIn = internet_in.datagramBusInBufferConsumerControlBusOut;
                 internet_in.datagramBusInBufferProducerControlBusIn = simulator.datagramBusInBufferProducerControlBusOut;
                 internet_in.datagramInBus = simulator.datagramBusIn;
+                //simulator.AddBlock(GraphFileSimulator.BlockInfo.INTERNET_IN,internet_in);
 
                 // Wire Internet_in to packet_in
                 packet_in.packetInComputeProducerControlBusIn = internet_in.packetInComputeProducerControlBusOut;
