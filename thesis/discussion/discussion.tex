@@ -200,9 +200,55 @@ could be a valuable addition to the \gls{sme} ecosystem.
 \end{itemize}
 
 
-\subsection{State modelling}
+\subsection{Process state modelling}
+Most processes in the system have multiple states, some containing fairly
+complex state-transitions, as seen on figure \ref{fig:statemachines_internetin_transport}
+in chapter \ref{chap:implementation}.\\
+Introduced in the implementation chapter, \gls{sme} provides the
+\texttt{StateProcess} class to simplify the creation of processes with
+multiple states. This class proved itself to be immensely helpful in the
+\texttt{Internet Out} process, which consist solely of sequential states.
+Unfortunately, this construct is inadequate and incomplete to model the rest of
+the computing processes, which were slightly more complex state-machines, as
+those used in the system.
+
+\subsubsection{Repeated code}
+\begin{figure}
+\centering
+\includegraphics[scale=0.45]{discussion/fsm_prestates.eps}
+\caption{An example of a process state-machine with pre-checks regardless of
+the current state.}
+\label{fig:fsm_prestates}
+\end{figure}
+
+The first identified issue was that most processes need to run certain checks on the
+start of each clock cycle, such as checking the validity of the busses,
+ensuring that there were no errors in the data-stream, maintain a bus signal
+protocol, or make sure that some other limitations are met.
+With the conventional \texttt{StateMachine}, this is intricate to write these
+checks without much repetition. Instead, in this project, regular processes are
+used in combination with an internal variable keeping track of the state.
+This subtle difference lets the programmer have a unified entry-point to the
+code, and branching code can be written to enter the appropriate
+state-functions in the code.
+For instance, figure \ref{fig:fsm_prestates} visualizes that a unified
+pre-checks can be run prior to enter state-specific code. This adds a lot to
+the length of the "code-path", but it avoids a lot of repetition in the code.
 
 
+\subsubsection{Complicated state changes}
+Another common issue with modelling state-machines with \gls{sme} was certain
+state-changes. In situations where a process is executing the last cycle of a
+state that writes to some bus, a state-change is often desired in the end.
+However, most state-transitions need to do some cleanup, for instance resetting
+variables or re-initialize busses. If this cleanup happens in the same clock as
+the last byte is written to the bus, this value will never arrive at the other
+end. To circumvent this, the \texttt{Finish} state was utilized, which delays
+the state-transition a single clock, giving the busses a clock-cycle window to
+propagate correctly.
+
+While this solution worked fine, the code itself was identical across processes
+with this issue, and re-implementing was cumbersome and error-prone.
 
 \subsection{Bugs and other lesser issues}
 The\gls{sme} framework has been surprisingly stable, albeit with a few minor
