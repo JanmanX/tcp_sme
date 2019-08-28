@@ -135,7 +135,7 @@ protected override void OnTick()
  	\label{fig:sme_example_process_fsm}
 \end{subfigure}
     \caption{A simple state-machine implemented in the asynchronous (left) and
-asynchronous (right) approach in SME using C\#}
+synchronous (right) approach in SME using C\#}
     \label{fig:example_fsm}
 \end{figure*}
 
@@ -162,7 +162,7 @@ public override async Task OnTickAsync()
   }
 
   while header_available() {
-    pass_header();
+    send_header();
     await ClockAsync();
   }
 }
@@ -208,9 +208,6 @@ current build.
     \caption{Statemachines for \texttt{Internet In} and \texttt{Transport}}
     \label{fig:statemachines_internetin_transport}
 \end{figure*}
-
-\subsubsection{\texttt{Internet Out} state machine}
-
 
 \subsection{Internal memory}
 
