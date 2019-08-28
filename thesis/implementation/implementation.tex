@@ -51,7 +51,9 @@ either the \texttt{Process} abstract class, or the more simple
 The latter class is, as its name states, a simpler version of the former. This
 class implements an \texttt{OnTick()} method, which is invoked once for every
 clock-cycle.\\
-The more advanced, but also more capable \texttt{Process} class provides
+The more advanced, but also more capable \texttt{Process}
+\notecarl{En Process kan ikke oversættes med async. Det i beskriver er dog funktionalitet som StateProcess med OnTickAsync, som godt kan oversættes}
+class provides
 an abstract method \texttt{Run} which is to be overriden and filled
 with the code desired to be run in the process. The interesting feature
 about this method is that it is asynchronous, meaning that the code can
@@ -69,7 +71,7 @@ state has to be analysed and the inteded function to be called based on the
 value. This approach requires a lot of approach and boilerplate code, especialy
 if there are several states.\\
 The asynchronous approach on subfigure
-\ref{sme_example_process_async_code} on the other hand can do with only
+\ref{fig:sme_example_process_async_code} on the other hand can do with only
 single \texttt{Run()} method split into three parts -- A, B, and C.
 After each code-segment, the process waits for the clock signal, and
 continues with the execution of the next segment.  This functionality
@@ -566,7 +568,7 @@ master and slave respectively in the AXI4 specification.}\cite{arm_axi4}.
 \centering
 \includegraphics[scale=0.8]{implementation/axi4_handshake.eps}
 \caption{The AXI4 handshake process, adapted from “AMBA 4 AXI4 Stream-Protocol
-specification” by ARM, 2010, p. 19.}
+specification” by ARM, 2010, p. 19. \notecarl[inline]{Ref?}}
 \label{fig:axi4_handshake}
 \end{figure}
 
@@ -582,7 +584,9 @@ it can proceed with the next byte, or in this case, de-assert the
 
 The information transferred in the AXI4 protocol can be defined by the user,
 but it usually is a payload consisting of multiple element, such as a byte
-location or the type of the data.\\
+location or the type of the data.
+\notecarl{?}
+\\
 
 The Buffer-Producer protocol draws heavy inspiration from this model, as it
 provides a simple flow-protocol with only a few flags. In the BP protocol,
@@ -596,7 +600,9 @@ data by finding a known delimiter, such as the ID of the IPv4 packet, or the
 sequence number of the TCP header. Unfortunately, this solution is very
 dependent on the scenario where different delimiters might appear, or not be
 present at all. To generalize this issue, an additional signal
-\texttt{bytes\_left} is added to the control bus of the protocol, which
+\texttt{bytes\_left}
+\notecarl{Kan axi stream ikke også have den her? Må jeg lige få læst op på}
+is added to the control bus of the protocol, which
 indicates the end of a current data-block by setting \texttt{bytes\_left = 0}.
 The final Buffer-Producer protocol can be summed up in these following rules:
 \begin{itemize}

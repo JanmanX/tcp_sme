@@ -135,6 +135,7 @@ the number of the outgoing packets very rarely resemble the in-going packets.\\
 Furthermore, the general purposeness of the memory makes it very hard to
 structure. Without very complex memory management, the memory can get very
 fragmented and slow.
+\notecarl{Gør fragmenteret data block ram langsomt?}
 
 
 \section{Revised design}
@@ -261,7 +262,7 @@ the parallel arrangement of the process blocks.
     \includegraphics[scale=0.45]{design/design_2.eps}
     \caption{The final design. The rectangles represent "compute" processes,
 while the cylinders represent the buffers.}
-\notechange[inline]{Fix Link Interface to be the same as Interface}
+%\notechange[inline]{Fix Link Interface to be the same as Interface}
     \label{fig:final_design}
 \end{figure}
 
@@ -350,7 +351,9 @@ FIFO order. It is important to notice that even though the package looks
 structurally right when reading backwards (the frame header is in the beginning,
 then Internet header and so on), the ordering of the bytes is not correct! For
 example, if reading the right-hand on figure \ref{fig:sending_packet_order}
-packet in reverse order, the data section would begin with the very last byte!\\
+packet in reverse order, the data section would begin with the very last byte!
+\notecarl{var highlighted?}
+\\
 Here, the intermediate buffers once again offload this problem, as one of the
 brilliant features is that they enable the system to pass bytes out of order.
 In that case, the sending process can begin in the middle of a package, and then
