@@ -529,7 +529,7 @@ low(or high) throughput and high capacity. The throughput would have to be equal
 or bigger than the stream from the system itself, to not be an bottle neck.\\
 In both cases, the memory takes at least one clock to get results back from
 memory. To guarantee that the data is available as soon as possible
-(see: \autoref{sec:interface_signal_protocol}) one must use perfecting of the
+(see: \autoref{sec:interface_signal_protocol}) one must use prefetching of the
 memory.\\
 This is solvable by using small internal buffers that use the fast registers.
 The size of these small buffers would be based on the latency between the
