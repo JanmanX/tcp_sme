@@ -293,8 +293,8 @@ Out-of-order submissions are solved simply by having an address sent beside the
 data, which are added to the beginning of that respective segment.
 See \autoref{subsec:memory_segments} for a in depth explanation.
 \\
-To keep order of the segments, a simple directory of keys and linked lists
-are needed. The linked list are ordered at insertion time, so the fist element
+To keep order of the segments, a simple directory of keys and lists
+are needed. The list are ordered at insertion time, so the fist element
 always is the smallest. This makes lookup to the next element constant time, and
 insertions of new at most $O(n)$ time. See \autoref{subsec:dictionary}.
 \\
@@ -446,12 +446,73 @@ when the currently receiving segment is done filling. See
   \end{center}
   \caption{The memory states of "Single memory segments"} \label{tab:memory_states_single}
 \end{table}
-\notechange{Finish!}
+\noteimprovement{Maybe add stuff like }
+
 
 \subsection{Dictionary} \label{subsec:dictionary}
 The dictionary are used to keep track of out of order memory segments.
-\notechange{Finish!}
+It works by keeping two tables, one for the keys and one for the actual values.
+In this model, contrary to the memory buffers, the value table actually exists
+since each value needs additional data. \\
+The list implementation uses a sparse list, where each element consists of an
+offset to the next element, and an pointer to the next element. In the example in
+\autoref{fig:memory_dictionary_explained}, The first key "0" consists of indexes
+$(1,3,5,10)$, where their respective values is saved in
+addresses $(0,3,1,4)$. As an example,
+if the code requests index 5 of the sparse list, address 1 is returned. If an
+non existing index is requested, before being inserted , -1 is returned.
+\begin{description}
+  \item[\csharpextend{bool New(int key)}]\hfill\\
+  When a new key is created, the key table is iterated over until a free element
+  is found. If all are already used, false is returned.
 
+  \item[\csharpextend{bool Free(int key)}]\hfill\\
+  Removes a key and deletes and resets the values in their table. This will
+  worst case iterate over all elements in the value table.
+
+  \item[\csharpextend{bool ContainsKey(int key)}]\hfill\\
+  Test if the key table have the key.
+
+  \item[\csharpextend{int GetFirstValue(int key)}]\hfill\\
+  Returns the first value of a key element. Finding the key in the key table takes
+  n tries, but finding the first element takes constant time.
+
+  \item[\csharpextend{int ListLength(int key)}]\hfill\\
+  Get the length of the list with the offsets included. For example in
+  \autoref{fig:memory_dictionary_explained}, the length of the list in
+  key "0" is 10;
+
+  \item[\csharpextend{int Insert(int key, int index)}]\hfill\\
+  The insert creates a new entry in the value table. If it already exist, the
+  same address is returned. If not, a new is returned. \\
+  If a new value entry is returned, a free is found in the value table.
+  The element before and after in the sparse list is found , and the new element
+  gets injected between those.
+
+  \item[\csharpextend{int Delete(int key, int index)}]\hfill\\
+  Delete finds the element in the list and clears it up. If none are found, -1 is
+  returned. The entries in the value table before and after the deleted element
+  are merged together by changing the offset and pointer in the before entry.
+
+
+  \item[\csharpextend{int Observe(int key, int index)}]\hfill\\
+  Observe just returns the address if it exists, or -1 if not.
+
+  \item[{\pbox[c][1.7\baselineskip][b]{\linewidth}{{\csharpextend{void SaveMetaData(int key, MetaData meta_data)}}}}]\hfill
+
+  The keys have space for metadata, that can be loaded and saved.
+
+  \item[\csharpextend{MetaData LoadMetaData(int key)}]\hfill\\
+  Load the metadata.
+
+\end{description}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{implementation/memory_dictionary.eps}
+	\caption{The general structure of the memory dictionary in use.}
+	\label{fig:memory_dictionary_explained}
+\end{figure}
 
 
 
@@ -467,7 +528,7 @@ An additional solution would be the to use external memory with high latency,
 low(or high) throughput and high capacity. The throughput would have to be equal
 or bigger than the stream from the system itself, to not be an bottle neck.\\
 In both cases, the memory takes at least one clock to get results back from
-memory. To guarantee that the data is avaliable as soon as possible
+memory. To guarantee that the data is available as soon as possible
 (see: \autoref{sec:interface_signal_protocol}) one must use perfecting of the
 memory.\\
 This is solvable by using small internal buffers that use the fast registers.
@@ -475,7 +536,7 @@ The size of these small buffers would be based on the latency between the
 request and response from memory. This would make it easier to
 replace the underlying memory, by simply increasing the buffer size to that
 of the memory latency.
-\notechange{Talk about how metadata is needed before the data itself}
+%\notechange{Talk about how metadata is needed before the data itself}
 
 
 \section{Interface Signal protocols}
