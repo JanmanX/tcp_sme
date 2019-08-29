@@ -5,10 +5,10 @@
 In the initial stages of testing, the components had simulation processes between
 block. This made it possible to implement different blocks of the system
 independent of each other.\\
-These tests where changing a lot, because the initial design where not
-reached yet.
-When the modules where done, they where wired together and a simulator
-where created to handle all input and output of the system.
+These tests were changing a lot because the initial design was not
+reached.
+When the modules were done, they were wired together and a simulator
+was created to handle all input and output of the system.
 
 \subsection{Graph file simulator}
 \begin{figure*}%[!ht]
@@ -141,7 +141,8 @@ An example of a graph can be seen in
 \subsection{VHDL code}
 \notejan{should we add more to this?}
 One of the biggest advantages of \gls{sme} is its easy testing, and its
-compilation to VHDL code. By using the GHDL project \cite{github_ghdl}.
+compilation to VHDL code. By using the GHDL project
+\cite{github_ghdl}\notemark{"By using the GHDL project, the generated VHDL code can be simulated to ensure that it is clock cycle accurate with the SME simulation" - eller noget i den dur}.
 Unfortunately, our code does not compile into \gls{vhdl}.
 \noteimprovement{Actually test with last revision of code}
 
@@ -203,7 +204,8 @@ the user. This case uses \gls{ipv4} internet header, and \gls{udp} transport
 header. This formular can also be used in other transport headers, such as \gls{tcp}.
 To make it work with \gls{tcp}, one would need to calculate the constant $C$,
 based on \gls{tcp} specific features such as how long are the sequence of
-SYN/ACK \notemark{Ask jan about this} takes.
+SYN/ACK \notemark{Carl var ogsaa forvirret over denne del. Jeg synes vi skal
+slette TCP fra beregningen, for den er slet ikke implementeret.} takes.
 \begin{equation*}
     2 + n + 2 + (n_{\mathtt{D}} + n_{\mathtt{T}}) + 2 + n_{\mathtt{D}}  + C
 \end{equation*}
@@ -222,7 +224,7 @@ That simplifies down to
     C + 8 + 2n_{\mathtt{I}} + 3n_{\mathtt{T}} + 4n_{\mathtt{D}}
 \end{equation}
 
-\subsubsection{Observations}
+\subsubsection{Observations}\notemark{Noget andet, som i ikke har nævnt, at det i skriver er latency fra data kommer ind/ud til den er færdig. Jeres løsning er vel pipelinet, så efter start latency, så kan i vel blive ved med at feede netværket (hvad enten det er ind eller ud) ? }
 It is clear when comparing \autoref{eq:dataout_to_send} and
 \autoref{eq:receive_to_datain} that sending packets have a higher latency than
 receiving packets. This is clearly because of the added buffer. It is not clear

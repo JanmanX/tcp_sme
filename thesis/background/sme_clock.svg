@@ -115,14 +115,14 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.8"
-     inkscape:cx="184.17997"
-     inkscape:cy="1041.0691"
+     inkscape:cx="112.7514"
+     inkscape:cy="1039.6405"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="true"
      showguides="true"
-     inkscape:window-width="1916"
-     inkscape:window-height="1051"
+     inkscape:window-width="2556"
+     inkscape:window-height="1411"
      inkscape:window-x="2"
      inkscape:window-y="27"
      inkscape:window-maximized="1">
@@ -260,30 +260,41 @@
          y="29.608364"
          style="font-size:2.11666656px;stroke-width:0.26458332">Propagate</tspan></text>
     <path
-       style="fill:none;stroke:#0000ff;stroke-width:0.25;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;marker-start:url(#StopL);marker-end:url(#marker1123)"
-       d="m 10.583333,33.739584 h 31.75"
+       style="fill:none;stroke:#0000ff;stroke-width:0.25;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#StopL);marker-end:url(#marker1123)"
+       d="m 26.458343,33.739584 h 31.75"
        id="path843"
        inkscape:connector-curvature="0" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:2.11666656px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="19.371279"
+       x="35.246292"
        y="36.952381"
        id="text1471"><tspan
          sodipodi:role="line"
          id="tspan1469"
-         x="19.371279"
+         x="35.246292"
          y="36.952381"
          style="fill:#0000ff;fill-opacity:1;stroke-width:0.26458332">Clock cycle</tspan></text>
     <path
        style="fill:none;stroke:#0000ff;stroke-width:0.25;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#StopL-3);marker-end:url(#marker1123-7)"
-       d="M 42.333332,33.739583 H 74.083333"
+       d="M 58.208342,33.739583 H 89.958343"
        id="path843-3"
        inkscape:connector-curvature="0" />
     <path
        style="fill:none;stroke:#0000ff;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 74.083332,33.739584 h 15.875"
+       d="M 10.583305,33.739583 H 26.458333"
        id="path11984"
        inkscape:connector-curvature="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:2.11666656px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="66.467148"
+       y="36.952377"
+       id="text1471-3"><tspan
+         sodipodi:role="line"
+         id="tspan1469-6"
+         x="66.467148"
+         y="36.952377"
+         style="fill:#0000ff;fill-opacity:1;stroke-width:0.26458332">Clock cycle</tspan></text>
   </g>
 </svg>

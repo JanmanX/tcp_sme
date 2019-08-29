@@ -18,12 +18,7 @@ maximum 866 MHz on the Xilinx Zynq-7000 series\cite{xilinx_zynq_7000}, the
 network is theoretically able to run at:
 $$1\:\mathbf{Byte}*10\:\mathbf{MHz}= 80\:\mathbf{Mbps}$$
 
-
-If the system was clocked at the highest clock supported by the FPGA on the
-board, it would run at:
-$$1\:\mathbf{Byte} * 866 \: \mathbf{MHz} =6.928\:\mathbf{Gbps}$$
-
-These speeds are by no means exceptional, in fact, they are very slow compare
+This speed is by no means exceptional, in fact, it is very slow compared
 to even common ethernet network adapters found in consumer server hardware, such
 as the Intel Ethernet I210 series\cite{intel_1gbps_nic}.\\
 
@@ -39,7 +34,8 @@ as of now.
 % clocks: 10 000 000 mio.
 
 
-\subsection{Improving performance}
+\subsection{Improving performance}\notejan{Describe wider busses (or move
+section from future work}
 
 
 \begin{figure}
@@ -155,7 +151,8 @@ in the code. Although this is a trivial task, the process itself is prone to
 typos and oversights from the programmer.
 
 
-\subsection{Using the C\# language}
+\subsection{Using the C\# language}\notejan{Skriv om at C\# hjaelper uden for
+selve simulationen}
 In the beginning, it was pleasant to use a familiar language for the
 implementation of the networking stack. Yet, as the code-base grew in size, the
 flaws started to surface.
@@ -240,7 +237,7 @@ pre-checks can be run prior to enter state-specific code. This adds a lot to
 the length of the "code-path", but it avoids a lot of repetition in the code.
 
 
-\subsubsection{Complicated state changes}
+\subsubsection{Complicated state changes}\notejan{Spoerg Carl om hans kommentar}
 Another common issue with modelling state-machines with \gls{sme} was certain
 state-changes. In situations where a process is executing the last cycle of a
 state that writes to some bus, a state-change is often desired in the end.
@@ -273,7 +270,8 @@ Luckily, \texttt{struct}s became available shortly after the discovery of this
 requirement, and are used in the project. For instance, the
 \texttt{InterfaceBus} uses two of the \texttt{InterfaceData} struct.
 
-\item \textbf{Slow simulation}\\
+\item \textbf{Slow simulation}\notejan{Naevn at det stadig kan vaere hurtigere
+	end VHDL}\\
 The tests carried out during the evaluation of the system were astonishingly
 slow. While the simulation ran at an acceptable rate in the beginning, it
 started slowing down as the test progressed. A simulation lasting multiple

@@ -119,7 +119,7 @@ be considered.\\
 \gls{ipv4} provides two basic functions: addressing and fragmentation. By using
 32-bit addresses located as one of the last fields in the header on figure
 \ref{fig:ipv4_header}, the nodes use the destination address to transmit
-internet datagrams towards their destination. The process of selection a path
+internet datagrams towards their destination. The process of selecting a path
 on the network is called routing\cite{RFC0791}.\\
 Fragmentation on the other hand is used to split large datagrams and transmit
 these through nodes supporting smaller packets. The \texttt{Fragment Offset} in
@@ -274,8 +274,8 @@ as the device is turned on\cite{xilinx_cpld}.\\
 Unfortunately, with the introduction of the pre-made functionality in the
 macrocells, a bit of flexibility and extensibility is lost compared to
 \gls{fpga}. For instance, while it is easy to integrate \gls{fpga} with
-external memory chips, \gls{cpld} can only utilize built-in non-volatile
-memory.
+external memory chips, \gls{cpld} has no on-die dedicated hardware (IP)
+available for offloading\cite{numatolab_cpld_vs_fpga}.
 
 \subsection{Choosing \gls{fpga} for prototyping}
 In this thesis, only FPGAs will be taken into consideration for
@@ -346,18 +346,24 @@ the most interesting units in SME model, as they not only propagate
 information between processes using the underlying \textit{channels},
 but also introduce an implicit clock between the processes.\\
 
-\subsection{Process execution flow} The execution flow of a process is
+\subsection{Process execution flow}
+The default execution flow of a process is
 fairly simple, and relates very closely to that of the actual hardware. At
 the beginning of a clock-cycle, the input-ports are read into the busses
 they are connected to. Then, the process executes its "compute" stage, and
 the results, if any, are written to the output-port, which will be read
 by the following bus. A visualization of the execution flow can be seen
-on figure \ref{fig:sme_clock}.  \pic{0.5}{background/sme_clock}{An
-illustration of a typical SME clock-cycle}{fig:sme_clock}
+on figure \ref{fig:sme_clock}.
+\pic{0.5}{background/sme_clock}{An illustration of a typical SME clock-cycle}{fig:sme_clock}
 It is important to note that although certain channels might be written earlier
 than others in a process clock, the subsequent processes connected to said bus
-will first see the values change in the beginning of the next clock cycle.
+will first see the values change in the beginning of the next clock
+cycle.
 
+However, it is important to note that in the newer \gls{sme} model, the network
+supports clock-multipliers. In certain situations, it is desirable to clock the
+processes faster than the parent network. Here, \gls{sme} will clock the
+network at an integer multiplier of the parent network.
 
 \subsection{Using SME}
 SME has undergone multiple iterations, reworks, and extensions. While

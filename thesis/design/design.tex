@@ -26,10 +26,11 @@ In the same vein, the design should be as FPGA-agnostic as possible. While this 
 mainly guaranteed by the SME framework used to develop the system, the underlying
 systems, operations, and features should be easily portable across FPGA manufacturers.\\
 Lastly, the design of the networking stack should be interoperable with other
-systems on the FPGA, or even FPGAs. It is to be seen how easy it us to modify
+systems on the FPGA, or even other FPGAs. It is to be seen how easy it us to modify
 and extend the versatility of the system without any major modifications or
 even extensible knowledge of the system. As an example, the networking stack
-can be expanded with a firewall, developed alongside this project.
+can be expanded with a firewall, developed alongside this
+project\cite{fpga_firewall}.
 
 \subsection{Initial requirements}
 Following our design principles, initial requirements and goals for the
@@ -81,7 +82,7 @@ to aid with early identification of potential issues and problems.
 The basic idea of the initial design is to minimize the number of memory
 operations carried out. Under the assumption that the Ethernet interface used in the network
 stack will likely have limited memory, everything needs to be copied directly to
-the stack. Figure \ref{fig:initial_design} shows the initial design, where the
+the network stack. Figure \ref{fig:initial_design} shows the initial design, where the
 leftmost module Ethernet connects to the memory for direct access, and each
 parsing layers listens to this connection and performs accordingly. Each parsing
 layer also connects to the subsequent layer in order to flag when the subsequent
@@ -334,7 +335,8 @@ passing a packet along the network stack.
     \label{fig:sending_packet_order}
 \end{figure}
 On the right side of figure \ref{fig:sending_packet_order}, the data is sent
-from the last byte first, indicated by the red arrow from bottom up. Then, the
+from the last byte first, indicated by the red arrow from bottom
+up.\noteimprovement{There is no red arrow. Update this description.} Then, the
 transport-, internet-, and lastly, the frame-header is built and sent with it
 in the same order, from the last byte of the header till the first.
 While this method is fairly simple, it has two problems that are hard to work
@@ -351,8 +353,7 @@ FIFO order. It is important to notice that even though the package looks
 structurally right when reading backwards (the frame header is in the beginning,
 then Internet header and so on), the ordering of the bytes is not correct! For
 example, if reading the right-hand on figure \ref{fig:sending_packet_order}
-packet in reverse order, the data section would begin with the very last byte!
-\notecarl{var highlighted?}
+packet in reverse order, the data section would begin with the very last byte.
 \\
 Here, the intermediate buffers once again offload this problem, as one of the
 brilliant features is that they enable the system to pass bytes out of order.
