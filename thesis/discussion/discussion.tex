@@ -34,8 +34,7 @@ as of now.
 % clocks: 10 000 000 mio.
 
 
-\subsection{Improving performance}\notejan{Describe wider busses (or move
-section from future work}
+\subsection{Improving performance}
 
 
 \begin{figure}
@@ -50,6 +49,41 @@ performance. }
 Even though many optimizations can be done on the network stack codebase
 itself, there are other ways of achieving better performance from the project.
 
+\subsection{Increasing the throughput by widening the data channel in the
+busses}
+Perhaps the most instinctual way of improving the performance of a network
+stack is by increasing the throughput. By increasing the width of the
+\texttt{data} channel in the buses carrying information, the throughput could
+potentially increase manyfold.
+
+While this change is perfectly doable in the hardware and easy to implement in
+the code, it might also have some unexpected consequences on the logic of the
+processing modules.
+
+For example, while not strictly a requirement, most, if not all, header sizes
+are a multiple of 8 bits. By transferring only 1 byte at a time, the system is
+sure to never cross the boundary of a header in the same clock cycle. If,
+however, the data-bus transferred 2 bytes at a time, the first byte might be
+the last part of a header, while the next byte is a data-byte. In that case,
+the process has to not only parse the finished header, but also forward the
+second byte down to the next process. Here again will the processes need
+additional logic needs to check how much of the data-bus actually contains
+valid data. Figure \ref{fig:bus_width_boundaries} illustrates the problem of a
+data-segment not aligning with the bus-width.
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.45]{discussion/bus_width_boundaries.eps}
+\caption{the design in order to multiply the
+performance. }
+\label{fig:bus_width_boundaries}
+\end{figure}
+
+
+
+
+
+\subsection{Replicating the system}
 During the design-phase, it was important to ensure the active connections
 arrived on the same stack, since the IP fragments have to be collected on the
 same buffer, and the TCP state has to be synchronized.
@@ -73,7 +107,6 @@ in the \texttt{User Interface}, so that the user does not have to make up for
 the separation. Even though the \texttt{Transport} processes do not share any
 information across the stacks, they can have hardcoded \texttt{socket} numbers,
 assigning a block of sockets to each stack, so that overlap does not happen.
-
 
 
 \section{Usability}

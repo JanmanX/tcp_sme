@@ -577,7 +577,7 @@ master and slave respectively in the AXI4 specification.}\cite{arm_axi4}.
 \centering
 \includegraphics[scale=0.8]{implementation/axi4_handshake.eps}
 \caption{The AXI4 handshake process, adapted from “AMBA 4 AXI4 Stream-Protocol
-specification” by ARM, 2010, p. 19. \notecarl[inline]{Ref?}}
+	specification” by ARM, 2010, p. 19.\cite{arm_axi4}}
 \label{fig:axi4_handshake}
 \end{figure}
 
@@ -591,11 +591,9 @@ propagates back to the master, it knows that the information was read, and that
 it can proceed with the next byte, or in this case, de-assert the
 \texttt{TVALID} to indicate no more bytes available\cite{arm_axi4}.
 
-The information transferred in the AXI4-Stream protocol can be defined by the user,
-but it usually is a payload consisting of multiple element, such as a byte
-location or the type of the data\notejan{Rephrase this paragraph}.
-\notecarl{?}
-\\
+The information transferred in the AXI4-Stream protocol is defined by the user,
+as long as the width of the payload is an integer multiple of
+bytes\cite{arm_axi4}.\\
 
 The Buffer-Producer protocol draws heavy inspiration from this model, as it
 provides a simple flow-protocol with only a few flags. In the BP protocol,
