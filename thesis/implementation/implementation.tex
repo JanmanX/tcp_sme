@@ -397,11 +397,14 @@ The memory segment interface consists of the following functions:
   Returns if the segment is \texttt{Full}.
 
   \item[\csharpextend{void SegmentDone(int seg_ID)}]\hfill\\
-	  Returns if the segment is \texttt{Full}\notemark{Mener du "Done" her?}(See \autoref{tab:memory_states_multi}).
+    Returns if the segment is \texttt{Done}
+    %\notemark{Mener du "Done" her?}(See \autoref{tab:memory_states_multi}).
 
   \item[\csharpextend{int AllocateSegment(int size)}]\hfill\\
   Allocates a segment by getting the first available from \texttt{Table Head}.
-		If none are available, return\notemark{Retur hvad?}
+  Returns the \csharpextend{int seg_ID} if a space is available.
+  If none are available, return -1.
+  %\notemark{Retur hvad?}
 \end{description}
 
 
