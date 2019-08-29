@@ -397,11 +397,14 @@ The memory segment interface consists of the following functions:
   Returns if the segment is \texttt{Full}.
 
   \item[\csharpextend{void SegmentDone(int seg_ID)}]\hfill\\
-	  Returns if the segment is \texttt{Full}\notemark{Mener du "Done" her?}(See \autoref{tab:memory_states_multi}).
+    Returns if the segment is \texttt{Done}
+    %\notemark{Mener du "Done" her?}(See \autoref{tab:memory_states_multi}).
 
   \item[\csharpextend{int AllocateSegment(int size)}]\hfill\\
   Allocates a segment by getting the first available from \texttt{Table Head}.
-		If none are available, return\notemark{Retur hvad?}
+  Returns the \csharpextend{int seg_ID} if a space is available.
+  If none are available, return -1.
+  %\notemark{Retur hvad?}
 \end{description}
 
 
@@ -479,8 +482,10 @@ non existing index is requested, before being inserted , -1 is returned.
   \item[\csharpextend{int ListLength(int key)}]\hfill\\
   Get the length of the list with the offsets included. For example in
   \autoref{fig:memory_dictionary_explained}, the length of the list in
-		key "0" is 10\notemark{Markeret af Carl. Jeg kan hellere ikke
-		helt se det fra tabellen...};
+    key "0" is 10. This is calculated by adding all
+    the offsets together from the key table, to the last element in the
+    value table, with a pointer of -1.
+    %\notemark{Markeret af Carl. Jeg kan hellere ikke helt se det fra tabellen...}
 
   \item[\csharpextend{int Insert(int key, int index)}]\hfill\\
   The insert creates a new entry in the value table. If it already exist, the
@@ -524,10 +529,15 @@ system would have to hold multiple packets of the maximum size for that specific
 protocol. For example, an \gls{ipv4} packet may have an max size of 65,535
 bytes.\cite{RFC0791} If a lot of packets accumulate in the system, or the user
 rarely empties the \texttt{Data In} buffer, we may run out of memory.\\
-An additional solution would be the to use external memory with high latency,
-low(or high)\notemark{Hvorfor begge? Betyder det noget?} throughput and high capacity. The throughput would have to be equal
+An additional solution would be the to use external memory with high latency
+and high capacity. The throughput would have to be equal
 or bigger than the stream from the system itself, to not be an bottle
-neck.\notemark{DDR3 paa Pynq boarded er 1050Mbps}\\
+neck. For example, the DDR3 ram on the
+TUL PYNQ\texttrademark-Z2\cite{tul_pynq} FPGA module could be used as external memory.
+This memory have a max bandwidth of 1050Mbps, which would be a bottleneck
+at 10 or 100 Gbps connections. The latency of these modules are also higher
+than the internal block ram.
+%\notemark{DDR3 paa Pynq boarded er 1050Mbps}\\
 In both cases, the memory takes at least one clock to get results back from
 memory. To guarantee that the data is available as soon as possible
 (see: \autoref{sec:interface_signal_protocol}) one must use prefetching of the

@@ -139,10 +139,14 @@ An example of a graph can be seen in
 \end{figure*}
 
 \subsection{VHDL code}
-\notejan{should we add more to this?}
+%\notejan{should we add more to this?}
 One of the biggest advantages of \gls{sme} is its easy testing, and its
 compilation to VHDL code. By using the GHDL project
-\cite{github_ghdl}\notemark{"By using the GHDL project, the generated VHDL code can be simulated to ensure that it is clock cycle accurate with the SME simulation" - eller noget i den dur}.
+\cite{github_ghdl}.
+By using the GHDL project, the generated VHDL code can be simulated to ensure
+that it is clock cycle accurate with the SME simulation. SME generates a table
+of signals on a clock by clock basis, that is tested up against the GHDL code.
+%\notemark{"By using the GHDL project, the generated VHDL code can be simulated to ensure that it is clock cycle accurate with the SME simulation" - eller noget i den dur}
 Unfortunately, our code does not compile into \gls{vhdl}.
 \noteimprovement{Actually test with last revision of code}
 
@@ -201,33 +205,40 @@ being sent, or packets are being received.
 \subsubsection{From Recive to Data In}
 When the system starts to receive the first byte of a packet, to the last byte read from
 the user. This case uses \gls{ipv4} internet header, and \gls{udp} transport
-header. This formular can also be used in other transport headers, such as \gls{tcp}.
-To make it work with \gls{tcp}, one would need to calculate the constant $C$,
-based on \gls{tcp} specific features such as how long are the sequence of
-SYN/ACK \notemark{Carl var ogsaa forvirret over denne del. Jeg synes vi skal
-slette TCP fra beregningen, for den er slet ikke implementeret.} takes.
+header.
+% This formular can also be used in other transport headers, such as \gls{tcp}.
+% To make it work with \gls{tcp}, one would need to calculate the constant $C$,
+% based on \gls{tcp} specific features such as how long are the sequence of
+% SYN/ACK \notemark{Carl var ogsaa forvirret over denne del. Jeg synes vi skal
+% slette TCP fra beregningen, for den er slet ikke implementeret.} takes.
 \begin{equation*}
-    2 + n + 2 + (n_{\mathtt{D}} + n_{\mathtt{T}}) + 2 + n_{\mathtt{D}}  + C
+    2 + n + 2 + (n_{\mathtt{D}} + n_{\mathtt{T}}) + 2 + n_{\mathtt{D}}
 \end{equation*}
 That simplifies down to
 \begin{equation} \label{eq:receive_to_datain}
-    C + 6 + n_{\mathtt{I}} + 2n_{\mathtt{T}} + 3n_{\mathtt{D}}
+     6 + n_{\mathtt{I}} + 2n_{\mathtt{T}} + 3n_{\mathtt{D}}
 \end{equation}
 \subsubsection{From Data out to Send}
 Making the system send out data makes the formular a bit different. The outgoing
 packets goes through an extra buffer.
 \begin{equation*}
-   2 + n_{\mathtt{D}} + 2 + (n_{\mathtt{D}} + n_{\mathtt{T}}) + 2 + n + 2 + n + C
+   2 + n_{\mathtt{D}} + 2 + (n_{\mathtt{D}} + n_{\mathtt{T}}) + 2 + n + 2 + n
 \end{equation*}
 That simplifies down to
 \begin{equation} \label{eq:dataout_to_send}
-    C + 8 + 2n_{\mathtt{I}} + 3n_{\mathtt{T}} + 4n_{\mathtt{D}}
+    8 + 2n_{\mathtt{I}} + 3n_{\mathtt{T}} + 4n_{\mathtt{D}}
 \end{equation}
 
-\subsubsection{Observations}\notemark{Noget andet, som i ikke har nævnt, at det i skriver er latency fra data kommer ind/ud til den er færdig. Jeres løsning er vel pipelinet, så efter start latency, så kan i vel blive ved med at feede netværket (hvad enten det er ind eller ud) ? }
+\subsubsection{Observations}
+%\notemark{Noget andet, som i ikke har nævnt, at det i skriver er latency fra data kommer ind/ud til den er færdig. Jeres løsning er vel pipelinet, så efter start latency, så kan i vel blive ved med at feede netværket (hvad enten det er ind eller ud) ? }
 It is clear when comparing \autoref{eq:dataout_to_send} and
 \autoref{eq:receive_to_datain} that sending packets have a higher latency than
-receiving packets. This is clearly because of the added buffer. It is not clear
+receiving packets. This is clearly because of the added buffer.\\
+It is also important to note that the first packet through the system gets the
+full latency. However the next packet will not have to wait for the first packet
+to propagate through the system. Since the system is pipelined, the packet
+can be gathered by the buffers right after the last packet.\\
+It is not clear
 from the latency formulars that receiving data "cuts" off data from the packet
 at each buffer step. This makes it possible to receive data at a constant pace,
 without filling the buffers. On the other hand sending out packets are
