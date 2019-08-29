@@ -482,8 +482,10 @@ non existing index is requested, before being inserted , -1 is returned.
   \item[\csharpextend{int ListLength(int key)}]\hfill\\
   Get the length of the list with the offsets included. For example in
   \autoref{fig:memory_dictionary_explained}, the length of the list in
-		key "0" is 10\notemark{Markeret af Carl. Jeg kan hellere ikke
-		helt se det fra tabellen...};
+    key "0" is 10. This is calculated by adding all
+    the offsets together from the key table, to the last element in the
+    value table, with a pointer of -1.
+    %\notemark{Markeret af Carl. Jeg kan hellere ikke helt se det fra tabellen...}
 
   \item[\csharpextend{int Insert(int key, int index)}]\hfill\\
   The insert creates a new entry in the value table. If it already exist, the
