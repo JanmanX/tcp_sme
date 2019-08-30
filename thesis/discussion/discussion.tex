@@ -278,7 +278,7 @@ pre-checks can be run prior to enter state-specific code. This adds a lot to
 the length of the "code-path", but it avoids a lot of repetition in the code.
 
 
-\subsubsection{Complicated state changes}\notejan{Spoerg Carl om hans kommentar}
+\subsubsection{Complicated state changes}
 Another common issue with modelling state-machines with \gls{sme} was certain
 state-changes. In situations where a process is executing the last cycle of a
 state that writes to some bus, a state-change is often desired in the end.
@@ -311,12 +311,16 @@ Luckily, \texttt{struct}s became available shortly after the discovery of this
 requirement, and are used in the project. For instance, the
 \texttt{InterfaceBus} uses two of the \texttt{InterfaceData} struct.
 
-\item \textbf{Slow simulation}\notejan{Naevn at det stadig kan vaere hurtigere
-	end VHDL}\\
+\item \textbf{Slow simulation}\\
 The tests carried out during the evaluation of the system were astonishingly
 slow. While the simulation ran at an acceptable rate in the beginning, it
 started slowing down as the test progressed. A simulation lasting multiple
 hours only managed to simulate a few millions of clock-cycles.
+
+It is important to note that this SME/C\# simulation speed can still be faster
+than other VHDL simulators under certain scenarios, but it is property to
+improve nonetheless.
+
 
 \end{itemize}
 
