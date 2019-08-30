@@ -1,25 +1,151 @@
-<svg class="bob" font-family="arial" font-size="14" height="256" width="520" xmlns="http://www.w3.org/2000/svg">
-<defs>
-<marker id="triangle" markerHeight="8" markerWidth="8" orient="auto" refX="4" refY="2" viewBox="0 0 8 4">
-<polygon fill="black" points="0,0 0,4 8,2 0,0"/>
-</marker>
-<marker id="clear_triangle" markerHeight="10" markerWidth="10" orient="auto" refX="1" refY="7" viewBox="0 0 20 14">
-<polygon fill="none" points="2,2 2,12 18,7 2,2" stroke="black" stroke-width="2"/>
-</marker>
-<marker id="circle" markerHeight="5" markerWidth="5" orient="auto" refX="10" refY="10" viewBox="0 0 20 20">
-<circle cx="10" cy="10" fill="black" r="8"/>
-</marker>
-<marker id="square" markerHeight="5" markerWidth="5" orient="auto" refX="10" refY="10" viewBox="0 0 20 20">
-<rect fill="black" height="20" width="20" x="0" y="0"/>
-</marker>
-<marker id="open_circle" markerHeight="10" markerWidth="10" orient="auto" refX="10" refY="10" viewBox="0 0 20 20">
-<circle cx="10" cy="10" fill="white" r="4" stroke="black" stroke-width="2"/>
-</marker>
-<marker id="big_open_circle" markerHeight="20" markerWidth="20" orient="auto" refX="20" refY="20" viewBox="0 0 40 40">
-<circle cx="20" cy="20" fill="white" r="6" stroke="black" stroke-width="2"/>
-</marker>
-</defs>
-<style type="text/css">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   class="bob"
+   font-family="arial"
+   font-size="14"
+   height="256"
+   width="520"
+   version="1.1"
+   id="svg288"
+   sodipodi:docname="tcp.svg"
+   inkscape:version="0.92.4 (unknown)">
+  <metadata
+     id="metadata292">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1916"
+     inkscape:window-height="1026"
+     id="namedview290"
+     showgrid="false"
+     inkscape:zoom="2.4153846"
+     inkscape:cx="270.72233"
+     inkscape:cy="76.620946"
+     inkscape:window-x="2"
+     inkscape:window-y="52"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg288" />
+  <defs
+     id="defs20">
+    <marker
+       id="triangle"
+       markerHeight="8"
+       markerWidth="8"
+       orient="auto"
+       refX="4"
+       refY="2"
+       viewBox="0 0 8 4">
+      <polygon
+         fill="black"
+         points="0,0 0,4 8,2 0,0"
+         id="polygon2" />
+    </marker>
+    <marker
+       id="clear_triangle"
+       markerHeight="10"
+       markerWidth="10"
+       orient="auto"
+       refX="1"
+       refY="7"
+       viewBox="0 0 20 14">
+      <polygon
+         fill="none"
+         points="2,2 2,12 18,7 2,2"
+         stroke="black"
+         stroke-width="2"
+         id="polygon5" />
+    </marker>
+    <marker
+       id="circle"
+       markerHeight="5"
+       markerWidth="5"
+       orient="auto"
+       refX="10"
+       refY="10"
+       viewBox="0 0 20 20">
+      <circle
+         cx="10"
+         cy="10"
+         fill="black"
+         r="8"
+         id="circle8" />
+    </marker>
+    <marker
+       id="square"
+       markerHeight="5"
+       markerWidth="5"
+       orient="auto"
+       refX="10"
+       refY="10"
+       viewBox="0 0 20 20">
+      <rect
+         fill="black"
+         height="20"
+         width="20"
+         x="0"
+         y="0"
+         id="rect11" />
+    </marker>
+    <marker
+       id="open_circle"
+       markerHeight="10"
+       markerWidth="10"
+       orient="auto"
+       refX="10"
+       refY="10"
+       viewBox="0 0 20 20">
+      <circle
+         cx="10"
+         cy="10"
+         fill="white"
+         r="4"
+         stroke="black"
+         stroke-width="2"
+         id="circle14" />
+    </marker>
+    <marker
+       id="big_open_circle"
+       markerHeight="20"
+       markerWidth="20"
+       orient="auto"
+       refX="20"
+       refY="20"
+       viewBox="0 0 40 40">
+      <circle
+         cx="20"
+         cy="20"
+         fill="white"
+         r="6"
+         stroke="black"
+         stroke-width="2"
+         id="circle17" />
+    </marker>
+  </defs>
+  <style
+     type="text/css"
+     id="style22">
 
     line,path {
       stroke: black;
@@ -56,306 +182,613 @@
     }
     
 </style>
-<rect fill="white" height="256" width="520" x="0" y="0"/>
-<g>
-<line x1="4" x2="4" y1="56" y2="248"/>
-<line x1="4" x2="516" y1="56" y2="56"/>
-<line x1="4" x2="516" y1="248" y2="248"/>
-<line x1="516" x2="516" y1="56" y2="248"/>
-</g>
-<g>
-<line x1="4" x2="516" y1="88" y2="88"/>
-</g>
-<g>
-<line x1="4" x2="516" y1="120" y2="120"/>
-</g>
-<g>
-<line x1="4" x2="516" y1="152" y2="152"/>
-</g>
-<g>
-<line x1="4" x2="516" y1="184" y2="184"/>
-</g>
-<g>
-<line x1="4" x2="516" y1="216" y2="216"/>
-</g>
-<g>
-<line x1="132" x2="132" y1="160" y2="176"/>
-</g>
-<g>
-<line x1="260" x2="260" y1="64" y2="80"/>
-</g>
-<g>
-<line x1="260" x2="260" y1="160" y2="176"/>
-</g>
-<g>
-<line x1="260" x2="260" y1="192" y2="208"/>
-</g>
-<g>
-<line x1="388" x2="388" y1="224" y2="240"/>
-</g>
-<g>
-<text x="9" y="28">
+  <rect
+     fill="white"
+     height="256"
+     width="520"
+     x="0"
+     y="0"
+     id="rect24" />
+  <g
+     id="g34">
+    <line
+       x1="4"
+       x2="4"
+       y1="56"
+       y2="248"
+       id="line26" />
+    <line
+       x1="4"
+       x2="516"
+       y1="56"
+       y2="56"
+       id="line28" />
+    <line
+       x1="4"
+       x2="516"
+       y1="248"
+       y2="248"
+       id="line30" />
+    <line
+       x1="516"
+       x2="516"
+       y1="56"
+       y2="248"
+       id="line32" />
+  </g>
+  <g
+     id="g38">
+    <line
+       x1="4"
+       x2="516"
+       y1="88"
+       y2="88"
+       id="line36" />
+  </g>
+  <g
+     id="g42">
+    <line
+       x1="4"
+       x2="516"
+       y1="120"
+       y2="120"
+       id="line40" />
+  </g>
+  <g
+     id="g46">
+    <line
+       x1="4"
+       x2="516"
+       y1="152"
+       y2="152"
+       id="line44" />
+  </g>
+  <g
+     id="g50">
+    <line
+       x1="4"
+       x2="516"
+       y1="184"
+       y2="184"
+       id="line48" />
+  </g>
+  <g
+     id="g54">
+    <line
+       x1="4"
+       x2="516"
+       y1="216"
+       y2="216"
+       id="line52" />
+  </g>
+  <g
+     id="g58"
+     transform="matrix(1,0,0,1.6633822,0,-111.28518)">
+    <line
+       x1="132"
+       x2="132"
+       y1="160"
+       y2="176"
+       id="line56"
+       style="fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1" />
+  </g>
+  <g
+     id="g62"
+     transform="matrix(1,0,0,1.8328671,0,-60.76855)">
+    <line
+       x1="260"
+       x2="260"
+       y1="64"
+       y2="80"
+       id="line60"
+       style="fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1" />
+  </g>
+  <g
+     id="g66"
+     transform="matrix(1,0,0,3.7174009,0,-440.75331)">
+    <line
+       x1="260"
+       x2="260"
+       y1="160"
+       y2="176"
+       id="line64"
+       style="fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1" />
+  </g>
+  <g
+     id="g70">
+    <line
+       x1="260"
+       x2="260"
+       y1="192"
+       y2="208"
+       id="line68" />
+  </g>
+  <g
+     id="g74"
+     transform="matrix(1,0,0,1.6878023,0,-159.60247)">
+    <line
+       x1="388"
+       x2="388"
+       y1="224"
+       y2="240"
+       id="line72"
+       style="fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1" />
+  </g>
+  <g
+     id="g78">
+    <text
+       x="9"
+       y="28"
+       id="text76">
 0
 </text>
-</g>
-<g>
-<text x="9" y="44">
+  </g>
+  <g
+     id="g82">
+    <text
+       x="9"
+       y="44"
+       id="text80">
 0
 </text>
-</g>
-<g>
-<text x="17" y="172">
+  </g>
+  <g
+     id="g86">
+    <text
+       x="17"
+       y="172"
+       id="text84">
 Offset|
 </text>
-</g>
-<g>
-<text x="25" y="44">
+  </g>
+  <g
+     id="g90">
+    <text
+       x="25"
+       y="44"
+       id="text88">
 1
 </text>
-</g>
-<g>
-<text x="41" y="44">
+  </g>
+  <g
+     id="g94">
+    <text
+       x="41"
+       y="44"
+       id="text92">
 2
 </text>
-</g>
-<g>
-<text x="57" y="44">
+  </g>
+  <g
+     id="g98">
+    <text
+       x="57"
+       y="44"
+       id="text96">
 3
 </text>
-</g>
-<g>
-<text x="73" y="44">
+  </g>
+  <g
+     id="g102">
+    <text
+       x="73"
+       y="44"
+       id="text100">
 4
 </text>
-</g>
-<g>
-<text x="89" y="44">
+  </g>
+  <g
+     id="g106">
+    <text
+       x="89"
+       y="44"
+       id="text104">
 5
 </text>
-</g>
-<g>
-<text x="89" y="76">
+  </g>
+  <g
+     id="g110">
+    <text
+       x="89"
+       y="76"
+       id="text108">
 Source
 </text>
-</g>
-<g>
-<text x="89" y="172">
+  </g>
+  <g
+     id="g114">
+    <text
+       x="89"
+       y="172"
+       id="text112">
 Res.
 </text>
-</g>
-<g>
-<text x="105" y="44">
+  </g>
+  <g
+     id="g118">
+    <text
+       x="105"
+       y="44"
+       id="text116">
 6
 </text>
-</g>
-<g>
-<text x="105" y="204">
+  </g>
+  <g
+     id="g122">
+    <text
+       x="105"
+       y="204"
+       id="text120">
 Checksum
 </text>
-</g>
-<g>
-<text x="121" y="44">
+  </g>
+  <g
+     id="g126">
+    <text
+       x="121"
+       y="44"
+       id="text124">
 7
 </text>
-</g>
-<g>
-<text x="137" y="44">
+  </g>
+  <g
+     id="g130">
+    <text
+       x="137"
+       y="44"
+       id="text128">
 8
 </text>
-</g>
-<g>
-<text x="145" y="76">
+  </g>
+  <g
+     id="g134">
+    <text
+       x="145"
+       y="76"
+       id="text132">
 Port
 </text>
-</g>
-<g>
-<text x="153" y="44">
+  </g>
+  <g
+     id="g138">
+    <text
+       x="153"
+       y="44"
+       id="text136">
 9
 </text>
-</g>
-<g>
-<text x="169" y="28">
+  </g>
+  <g
+     id="g142">
+    <text
+       x="169"
+       y="28"
+       id="text140">
 1
 </text>
-</g>
-<g>
-<text x="169" y="44">
+  </g>
+  <g
+     id="g146">
+    <text
+       x="169"
+       y="44"
+       id="text144">
 0
 </text>
-</g>
-<g>
-<text x="169" y="236">
+  </g>
+  <g
+     id="g150">
+    <text
+       x="169"
+       y="236"
+       id="text148">
 Options
 </text>
-</g>
-<g>
-<text x="177" y="140">
+  </g>
+  <g
+     id="g154">
+    <text
+       x="177"
+       y="140"
+       id="text152">
 Acknowledgment
 </text>
-</g>
-<g>
-<text x="177" y="172">
+  </g>
+  <g
+     id="g158">
+    <text
+       x="177"
+       y="172"
+       id="text156">
 Flags
 </text>
-</g>
-<g>
-<text x="185" y="44">
+  </g>
+  <g
+     id="g162">
+    <text
+       x="185"
+       y="44"
+       id="text160">
 1
 </text>
-</g>
-<g>
-<text x="201" y="44">
+  </g>
+  <g
+     id="g166">
+    <text
+       x="201"
+       y="44"
+       id="text164">
 2
 </text>
-</g>
-<g>
-<text x="201" y="108">
+  </g>
+  <g
+     id="g170">
+    <text
+       x="201"
+       y="108"
+       id="text168">
 Sequence
 </text>
-</g>
-<g>
-<text x="217" y="44">
+  </g>
+  <g
+     id="g174">
+    <text
+       x="217"
+       y="44"
+       id="text172">
 3
 </text>
-</g>
-<g>
-<text x="233" y="44">
+  </g>
+  <g
+     id="g178">
+    <text
+       x="233"
+       y="44"
+       id="text176">
 4
 </text>
-</g>
-<g>
-<text x="249" y="44">
+  </g>
+  <g
+     id="g182">
+    <text
+       x="249"
+       y="44"
+       id="text180">
 5
 </text>
-</g>
-<g>
-<text x="265" y="44">
+  </g>
+  <g
+     id="g186">
+    <text
+       x="265"
+       y="44"
+       id="text184">
 6
 </text>
-</g>
-<g>
-<text x="273" y="108">
+  </g>
+  <g
+     id="g190">
+    <text
+       x="273"
+       y="108"
+       id="text188">
 Number
 </text>
-</g>
-<g>
-<text x="281" y="44">
+  </g>
+  <g
+     id="g194">
+    <text
+       x="281"
+       y="44"
+       id="text192">
 7
 </text>
-</g>
-<g>
-<text x="297" y="44">
+  </g>
+  <g
+     id="g198">
+    <text
+       x="297"
+       y="44"
+       id="text196">
 8
 </text>
-</g>
-<g>
-<text x="297" y="140">
+  </g>
+  <g
+     id="g202">
+    <text
+       x="297"
+       y="140"
+       id="text200">
 Number
 </text>
-</g>
-<g>
-<text x="313" y="44">
+  </g>
+  <g
+     id="g206">
+    <text
+       x="313"
+       y="44"
+       id="text204">
 9
 </text>
-</g>
-<g>
-<text x="329" y="28">
+  </g>
+  <g
+     id="g210">
+    <text
+       x="329"
+       y="28"
+       id="text208">
 2
 </text>
-</g>
-<g>
-<text x="329" y="44">
+  </g>
+  <g
+     id="g214">
+    <text
+       x="329"
+       y="44"
+       id="text212">
 0
 </text>
-</g>
-<g>
-<text x="329" y="76">
+  </g>
+  <g
+     id="g218">
+    <text
+       x="329"
+       y="76"
+       id="text216">
 Destination
 </text>
-</g>
-<g>
-<text x="337" y="204">
+  </g>
+  <g
+     id="g222">
+    <text
+       x="337"
+       y="204"
+       id="text220">
 Urgent
 </text>
-</g>
-<g>
-<text x="345" y="44">
+  </g>
+  <g
+     id="g226">
+    <text
+       x="345"
+       y="44"
+       id="text224">
 1
 </text>
-</g>
-<g>
-<text x="361" y="44">
+  </g>
+  <g
+     id="g230">
+    <text
+       x="361"
+       y="44"
+       id="text228">
 2
 </text>
-</g>
-<g>
-<text x="369" y="172">
+  </g>
+  <g
+     id="g234">
+    <text
+       x="369"
+       y="172"
+       id="text232">
 Window
 </text>
-</g>
-<g>
-<text x="377" y="44">
+  </g>
+  <g
+     id="g238">
+    <text
+       x="377"
+       y="44"
+       id="text236">
 3
 </text>
-</g>
-<g>
-<text x="393" y="44">
+  </g>
+  <g
+     id="g242">
+    <text
+       x="393"
+       y="44"
+       id="text240">
 4
 </text>
-</g>
-<g>
-<text x="393" y="204">
+  </g>
+  <g
+     id="g246">
+    <text
+       x="393"
+       y="204"
+       id="text244">
 Pointer
 </text>
-</g>
-<g>
-<text x="409" y="44">
+  </g>
+  <g
+     id="g250">
+    <text
+       x="409"
+       y="44"
+       id="text248">
 5
 </text>
-</g>
-<g>
-<text x="425" y="44">
+  </g>
+  <g
+     id="g254">
+    <text
+       x="425"
+       y="44"
+       id="text252">
 6
 </text>
-</g>
-<g>
-<text x="425" y="76">
+  </g>
+  <g
+     id="g258">
+    <text
+       x="425"
+       y="76"
+       id="text256">
 Port
 </text>
-</g>
-<g>
-<text x="425" y="236">
+  </g>
+  <g
+     id="g262">
+    <text
+       x="425"
+       y="236"
+       id="text260">
 Padding
 </text>
-</g>
-<g>
-<text x="441" y="44">
+  </g>
+  <g
+     id="g266">
+    <text
+       x="441"
+       y="44"
+       id="text264">
 7
 </text>
-</g>
-<g>
-<text x="457" y="44">
+  </g>
+  <g
+     id="g270">
+    <text
+       x="457"
+       y="44"
+       id="text268">
 8
 </text>
-</g>
-<g>
-<text x="473" y="44">
+  </g>
+  <g
+     id="g274">
+    <text
+       x="473"
+       y="44"
+       id="text272">
 9
 </text>
-</g>
-<g>
-<text x="489" y="28">
+  </g>
+  <g
+     id="g278">
+    <text
+       x="489"
+       y="28"
+       id="text276">
 3
 </text>
-</g>
-<g>
-<text x="489" y="44">
+  </g>
+  <g
+     id="g282">
+    <text
+       x="489"
+       y="44"
+       id="text280">
 0
 </text>
-</g>
-<g>
-<text x="505" y="44">
+  </g>
+  <g
+     id="g286">
+    <text
+       x="505"
+       y="44"
+       id="text284">
 1
 </text>
-</g>
+  </g>
 </svg>

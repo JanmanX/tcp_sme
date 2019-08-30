@@ -155,7 +155,6 @@ the packet header defines the offset of the data in the datagram with the
 
 
 \subsection{Transport Layer}
-\notecarl{Hvad med udp?}
 The transport layer establishes end-to-end data transfer between hosts.
 Protocols in the transport layer can provide additional services to the user,
 such as reliability, ordering, error- and flow-control, application addressing
@@ -166,13 +165,42 @@ and useful services that it hardly ever makes sense to implement in the
 application layer.
 
 \subsubsection{Transmission Control Protocol}
+\begin{figure}
+\includegraphics[scale=0.55]{background/tcp.eps}
+\caption{Layout of the TCP packet header}
+\label{fig:tcp_header}
+\end{figure}
+
 While there are numerous protocols defined in the Transport Layer, perhaps the
 most well-known protocol in the stack is the \gls{tcp}.
 Being one of the most used transport protocol for its reliability and congestion
 control systems, it is rightly justified to refer to the whole Internet Protocol
-Suite as simply "TCP/IP".\\
+Suite as simply "TCP/IP".
+
+Since \gls{tcp} prioritizes reliability of transmission rather than timely
+delivery, it is extensively used in applications which require these
+properties. For instance, this protocol is essential in key internet applications
+ such as the \gls{ftp}, \gls{ssh} and \gls{www}.
 
 
+\subsubsection{User Datagram Protocol}
+\begin{figure}
+\includegraphics[scale=0.55]{background/udp.eps}
+\caption{Layout of the UDP packet header}
+\label{fig:udp_header}
+\end{figure}
+
+The \gls{udp} is a stark opposite to \gls{tcp}, as it is connectionless and
+unreliable in the sense that a sent segment might never arrive.
+Additionally, there is no handshake process, and the segments might arrive in
+a different order than they have been sent.
+
+However, by removing all these features, \gls{udp} has a lot less overhead. The
+only thing the protocol needs to have is the source and destination port, the
+length of the data, and the checksum thereof, illustrated on figure
+\ref{fig:udp_header}. This simple nature of the protocol makes it possible to
+be very fast and responsive, and it has found its utility in \gls{voip},
+\gls{p2p} file-transfer, as well as online multiplayer games.
 
 \subsection{Application Layer}
 The application layer protocols are used by applications and services to
