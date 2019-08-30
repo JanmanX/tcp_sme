@@ -603,8 +603,7 @@ the producer has a \texttt{valid} flag, while the consumer has the
 \texttt{ready} flag. However, without any modifications, the AXI4-Stream protocol sees
 the data exchanged as being a single data-stream.
 In the case of the Buffer-Producer however, we want to differentiate between the
-end of a packet\notejan{AXI4-Stream has TLAST} (or simply just a segment of data), and the beginning of a new
-one. In the very first iterations, this was done by distinguishing the parsed
+end of a packet, . In the very first iterations, this was done by distinguishing the parsed
 data by finding a known delimiter, such as the ID of the IPv4 packet, or the
 sequence number of the TCP header. Unfortunately, this solution is very
 dependent on the scenario where different delimiters might appear, or not be
