@@ -184,8 +184,7 @@ in the code. Although this is a trivial task, the process itself is prone to
 typos and oversights from the programmer.
 
 
-\subsection{Using the C\# language}\notejan{Skriv om at C\# hjaelper uden for
-selve simulationen}
+\subsection{Using the C\# language}
 In the beginning, it was pleasant to use a familiar language for the
 implementation of the networking stack. Yet, as the code-base grew in size, the
 flaws started to surface.
@@ -194,17 +193,26 @@ The C\# programming language is a very actively developed language with many
 modern features, it is widely used with a very active community, and it has a lot
 of useful packages and frameworks.
 
-Unfortunately, almost none of these features are available with \gls{sme},
-as most of these require dynamic constructs, such as instantiation of new
-classes or use of dynamic collections. Although this restriction is caused
-by the hardware and not \gls{sme} itself, the C\# language started to be
-much less intuitive. Instead of applying best practices and exploring new
-features in a well-known and established language, we had to limit ourselves
-to the viable subset of the working features, and create the design around
-it. While it is understandable why a proven language is used to test out a
-new message passing framework, the C\# language did not always feel right
-for hardware development, and the upcoming \gls{smeil} might prove itself
-to be a welcome addition to the \gls{sme} project.\cite{github_smeil}.
+When writing code for the simulation, all of these utilities and features can
+be used, providing the programmer with endless possibilities for
+simulation-scenarios. For instance, inn this system, the simulation processes use the
+file-system to load pre-recorded packets and feed them into the
+simulation or to create log-files of the simulation\footnote{
+A number of experiments have also been carried out in order to replace the
+native networking stack with the simulation}.
+
+Unfortunately, almost none of these features are available with \gls{sme}
+when writing code for the FPGA, as most of these require dynamic constructs,
+such as instantiation of new classes or use of dynamic collections. Although
+this restriction is caused by the hardware and not \gls{sme} itself,
+the C\# language started to be much less intuitive. Instead of applying
+best practices and exploring new features in a well-known and established
+language, we had to limit ourselves to the viable subset of the working
+features, and create the design around it. While it is understandable why
+a proven language is used to test out a new message passing framework,
+the C\# language did not always feel right for hardware development, and
+the upcoming \gls{smeil} might prove itself to be a welcome addition to
+the \gls{sme} project.\cite{github_smeil}.
 
 
 \subsubsection{Pre-written components and modules}
