@@ -136,7 +136,7 @@ the number of the outgoing packets very rarely resemble the in-going packets.\\
 Furthermore, the general purposeness of the memory makes it very hard to
 structure. Without very complex memory management, the memory can get very
 fragmented and slow.
-\notecarl{Mark: Gør fragmenteret data block ram langsomt?}
+\notejan{Gør fragmenteret data block ram langsomt?}
 
 
 \section{Revised design}
@@ -336,7 +336,7 @@ passing a packet along the network stack.
 \end{figure}
 On the right side of figure \ref{fig:sending_packet_order}, the data is sent
 from the last byte first, indicated by the red arrow from bottom
-up.\noteimprovement{There is no red arrow. Update this description.} Then, the
+up.\notejan{There is no red arrow. Update this description.} Then, the
 transport-, internet-, and lastly, the frame-header is built and sent with it
 in the same order, from the last byte of the header till the first.
 While this method is fairly simple, it has two problems that are hard to work
