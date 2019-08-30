@@ -1,6 +1,20 @@
 \chapter{Future work}
 \label{chap:future_work}
 
+\section{Bugs}
+A few small bugs have been found during the test phase. While these are
+described in the discussion test-chapter, here is a brief list:
+\begin{itemize}
+	\item \textbf{Destionation IP address not set}\\
+	The destination address of the IPv4 header is not set in the outgoing
+	packets. \texttt{Transport} is the source of this bug, as it does not
+	set the appropriate field in the bus to \texttt{Segment Out}.
+
+	\item \textbf{Protocol field not set}\\
+		Just like the IPv4 destination address not being set in
+		\texttt{Transport}, neither is the \texttt{Protocol} set.
+\end{itemize}
+
 \section{Improvements}
 Although the current implementation of the networking stack has enough
 functionality to be useful in certain applications, there are a lot of
