@@ -26,8 +26,11 @@ be to split the calculations over multiple clocks. Since the loop needs to
 traverse the value list multiple times, it would be ideal to split each iteration
 of the initial loop into their own clock. This limits the amount of branching to
 only $n$ per clock. This solution will create latency between the insertions and
-reads of the array values. \\
-\notemark{Finish!}
+reads of the array values. This does not impose a problem to the existing system
+, since the submission of data to the buffer does not need information about the
+order. When sending the data, the order is needed. Since the system already needs
+ to prefetch data from the memory, additional delay fetching the correct memory
+ segment would not be a problem.
 
 \section{Improvements}
 Although the current implementation of the networking stack has enough
