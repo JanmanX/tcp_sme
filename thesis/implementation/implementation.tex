@@ -452,6 +452,8 @@ when the currently receiving segment is done filling. See
 
 
 \subsection{Dictionary} \label{subsec:dictionary}
+\notemark{It it not a sparsly linked list, but an sparse array implemented by
+ a linked list}
 The dictionary is used to keep track of out of order memory segments.
 It works by keeping two tables, one for the keys and one for the actual values.
 In this model, contrary to the memory buffers, the value table actually exists

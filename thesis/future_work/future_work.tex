@@ -14,6 +14,20 @@ described in the discussion test-chapter, here is a brief list:
 		Just like the IPv4 destination address not being set in
 		\texttt{Transport}, neither is the \texttt{Protocol} set.
 \end{itemize}
+However, the dictionary implementation (\autoref{sec:compiling_to_hardware})
+is a show stopping bug, that needs a solution. Luckily, this can be fixed in
+a way so the general flow of the system consists, and only simple changes have
+to be made.
+
+\subsection{Dictionary module solution}  \label{subsec:bug_dictionary_lookup}
+The problem with the dictionary calculations was the exponential growth of
+components needed based on the length of the value list. A solution would
+be to split the calculations over multiple clocks. Since the loop needs to
+traverse the value list multiple times, it would be ideal to split each iteration
+of the initial loop into their own clock. This limits the amount of branching to
+only $n$ per clock. This solution will create latency between the insertions and
+reads of the array values. \\
+\notemark{Finish!}
 
 \section{Improvements}
 Although the current implementation of the networking stack has enough
