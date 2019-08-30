@@ -60,7 +60,7 @@
 \setminted[csharp]{escapeinside={*@}{@*}}
 \newmintinline[csharpextend]{minted-lexers/csharp.py:MDCSharpLexer -x}{breaklines}
 
-% Define colorboxes
+% Define color boxes
 \newcommand\textcolorbox[2][]{\tikz[overlay]\node[inner sep=2pt, anchor=text, rectangle,draw=black,thick , rounded corners=2mm,#1] {#2};\phantom{#2}}
 \newcommand\statecolorbox[1]{\textcolorbox[fill=#1]{\phantom{\boxfillertext}}}
 \newcommand{\boxfillertext}{XXX}
@@ -82,6 +82,7 @@
 
 
 % Define Listings
+% cSpell:disable
 \lstdefinestyle{sme}{
     backgroundcolor=\color{backcolour},
     commentstyle=\color{codegreen},
@@ -181,6 +182,7 @@ Jacobi, Mark Jan\\%
 \pagenumbering{roman}
 \thispagestyle{empty}
 \newpage
+% cSpell:enable
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Abstract
