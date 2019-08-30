@@ -6,6 +6,20 @@ this types of projects. In this chapter, the results from the tests are
 investigated, the viability of the networking stack is discussed, and the usage
 of SME for this project is examined.
 
+\section{Compiling to hardware}\label{sec:compiling_to_hardware}
+Since the \gls{sme} vhdl code generator never converted the project. It is hard
+to comment about the codebase working on hardware.\\
+However, we did notice a problem in \autoref{subsec:dictionary} regarding
+the dictionary implementation. To find a value in the value table, it may have
+to traverse the same table multiple times in random order. This means that the
+value list would be iterated over at most $n$ times. In each iteration there are
+$n$ branches. The total amount of branches for the operation is therefore $n^2$.
+In the current design, this happens in one clock. This would result in a very
+long path with multiple lookups, multiplexers and number operations in one clock.
+This is not ideal, and would possibly be the slowest and biggest
+component in the system.\\
+A possible solution is discussed in \autoref{subsec:bug_dictionary_lookup}
+
 
 \section{Performance}
 In the test chapter \ref{chap:evaluation}, we ran the simulation for
@@ -153,7 +167,7 @@ on real hardware has to be carried out for definitive results, the simulation
 suggests that this connection with networking hardware can indeed work.
 
 
-\section{Using C\# with \gls{sme}}
+\section{Using C\# with SME}
 Not only had the use of C\# with \gls{sme} a great impact on the design, but the
 whole project as a whole.
 
