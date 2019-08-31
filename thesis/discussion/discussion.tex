@@ -7,7 +7,7 @@ investigated, the viability of the networking stack is discussed, and the usage
 of SME for this project is examined.
 
 \section{Compiling to hardware}\label{sec:compiling_to_hardware}
-Since the \gls{sme} vhdl code generator never converted the project. It is hard
+Since the \gls{sme} \gls{vhdl} code generator never converted the project, it is hard
 to comment about the codebase working on hardware.\\
 However, we did notice a problem in \autoref{subsec:dictionary} regarding
 the dictionary implementation. To find a value in the value table, it may have
@@ -16,8 +16,8 @@ value list would be iterated over at most $n$ times. In each iteration there are
 $n$ branches. The total amount of branches for the operation is therefore $n^2$.
 In the current design, this happens in one clock. This would result in a very
 long path with multiple lookups, multiplexers and number operations in one clock.
-This is not ideal, and would possibly be the slowest and biggest
-component in the system.\\
+This is far from ideal, and would possibly prevent the system to be implemented
+on average hardware.\\
 A possible solution is discussed in \autoref{subsec:bug_dictionary_lookup}
 
 
