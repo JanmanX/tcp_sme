@@ -298,7 +298,7 @@ starts filling as soon as a segment is ready.
 See \autoref{subsec:memory_types}.
 
 \subsection{Memory segments} \label{subsec:memory_segments}
-The memory segment structures consists of two types width slightly different
+The memory segment structures consists of two types with slightly different
 implementations. These are called Multi memory segments and Single memory
 segments.
 \\Their differences are explained in the end of this section.\\
@@ -529,7 +529,7 @@ bytes.\cite{RFC0791} If a lot of packets accumulate in the system, or the user
 rarely empties the \texttt{Data In} buffer, we may run out of memory.\\
 An additional solution would be the to use external memory with high latency
 and high capacity. The throughput would have to be equal
-or bigger than the stream from the system itself, to not be an bottle
+or bigger than the stream from the system itself to not be an bottle
 neck. For example, the DDR3 ram on the
 TUL PYNQ\texttrademark-Z2\cite{tul_pynq} FPGA module could be used as external memory.
 This memory have a max bandwidth of 1050Mbps, which would be a bottleneck
@@ -551,7 +551,7 @@ of the memory latency.
 \section{Interface Signal protocols}
 \label{sec:interface_signal_protocol}
 With the introduction of buffers between each parsing processes, a clear pattern
-emerged. The layer-handling processes are responsible for numerous real-time tasks
+emerged. The layer-handling, "computing", processes are responsible for numerous real-time tasks
 (parsing, sending, protocol-specific tasks, etc), while also limited by their
 fixed internal buffers. These processes are not always ready to receive input
 from preceding processes, while they at the same time must be able to write their
@@ -828,7 +828,10 @@ interface InterfaceControlBus : IBus
 The usage of this interface is very basic and primitive. The user sets the
 appropriate values in the \texttt{InterfaceBus}, and raising the \texttt{valid}
 flag. For example, to start listening on port $81$ using the \gls{udp}
-protocol, the user would put these values in the bus:
+protocol, the user would put the values on the bus as shown on figure
+\ref{fig:interface_request}.
+\begin{figure}
+\centering
 \begin{Verbatim}[frame=single,samepage=true]
 InterfaceBus {
   interface_function = CONNECT
@@ -840,9 +843,17 @@ InterfaceBus {
   valid = True
 }
 \end{Verbatim}
+	\caption{A request on the \texttt{InterfaceBus} to connect to ip
+	\texttt{10.0.0.2} using the UDP protocol on port 81.}
+	\label{fig:interface_request}
+\end{figure}
+
+
 If the port is available under the \gls{udp} protocol and sockets are available
 for allocation in the stack, the user should eventually receive a response.
-Here, the user gets an \texttt{OK} response with the \texttt{socket = 2}:
+On figure \ref{fig:interface_response}, the user gets an \texttt{OK} response with the \texttt{socket = 2}:
+\begin{figure}
+	\centering
 \begin{Verbatim}[frame=single,samepage=true]
 InterfaceControlBus {
   valid = True
@@ -858,9 +869,15 @@ InterfaceControlBus {
   }
 }
 \end{Verbatim}
-
+	\caption{A response to the request submitted in figure
+	\ref{fig:interface_request}. Socket "2" is returned.}
+	\label{fig:interface_response}
+\end{figure}
 Once the user has received a valid socket, they can use the it at heart's
-content for sending and receiving. For example, to send a byte:
+content for sending and receiving. Figure \ref{fig:interface_send_byte} shows
+an example of sending the byte "A" to the newly created socket.
+\begin{figure}
+	\centering
 \begin{Verbatim}[frame=single,samepage=true]
 DataOut.WriteBus {
   socket = 2
@@ -871,6 +888,9 @@ DataOut.ComputeProducerBus {
   bytes_left = 0
 }
 \end{Verbatim}
+	\caption{Sending the byte "A" to socket 2.}
+	\label{fig:interface_send_byte}
+\end{figure}
 The user is not required to wait for any response, as the Compute-Producer
 interface signal protocol is used.
 

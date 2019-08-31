@@ -17,7 +17,7 @@ systems, while heavily optimised, suffers from considerable penalties due to
 complexities of a standard computer architecture. For example, heavy network
 traffic utilizes the computers' internal busses, utilizes the memory, and spend
 precious \gls{cpu} clock-cycles with polling and interrupts. This
-prevents the machine from using these resources for actual computing tasks.\\
+prevents the machine from using these resources for other computing tasks.\\
 These issues have been identified and solved by hardware manufacturers by
 adopting dedicated \gls{nic}, which would employ
 various techniques to offload the processing. One such offloading technique is
@@ -98,7 +98,7 @@ With a design able to both send and receive 8 bits per clock cycle, this
 project was able to clock at $122.76 MHz$, limited by the IP transmitter, which
 had the lowest speed. Interestingly, the whole system utilized only $14.19\%$
 of the resources on the modest, and fairly outdated Xilinx Spartan 3E, with the
-chip itself costing about $31.36$ USD\cite{XC3S500E}.
+chip itself costing about $31.36$ USD at the time of writing\cite{XC3S500E}.
 
 
 
