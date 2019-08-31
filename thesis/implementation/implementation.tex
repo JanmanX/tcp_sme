@@ -46,15 +46,13 @@ the 3 processes, it is crucial to understand how these can be modelled in SME.
 
 \subsubsection{SME process execution flow}
 To implement a process in SME, the C\# class has to inherit from
-either the \texttt{Process} abstract class, or the more simple
+either the \texttt{StateProcess} abstract class, or the more simple
 \texttt{SimpleProcess} class.
 The latter class is, as its name states, a simpler version of the former. This
 class implements an \texttt{OnTick()} method, which is invoked once for every
 clock-cycle.\\
-The more advanced, but also more capable \texttt{Process}
-\notecarl{En Process kan ikke oversættes med async. Det i beskriver er dog funktionalitet som StateProcess med OnTickAsync, som godt kan oversættes}
-class provides
-an abstract method \texttt{Run} which is to be overriden and filled
+The more advanced, but also more capable \texttt{StateProcess}
+class provides an abstract method \texttt{Run} which is to be overriden and filled
 with the code desired to be run in the process. The interesting feature
 about this method is that it is asynchronous, meaning that the code can
 execute other tasks while waiting for resources, such as functions,
@@ -208,8 +206,6 @@ current build.
     \caption{Statemachines for \texttt{Internet In} and \texttt{Transport}}
     \label{fig:statemachines_internetin_transport}
 \end{figure*}
-
-\subsection{Internal memory}
 
 
 \section{Buffers}
@@ -598,25 +594,84 @@ as long as the width of the payload is an integer multiple of
 bytes\cite{arm_axi4}.\\
 
 The Buffer-Producer protocol draws heavy inspiration from this model, as it
-provides a simple flow-protocol with only a few flags. In the BP protocol,
-the producer has a \texttt{valid} flag, while the consumer has the
-\texttt{ready} flag. However, without any modifications, the AXI4-Stream protocol sees
-the data exchanged as being a single data-stream.
-In the case of the Buffer-Producer however, we want to differentiate between the
-end of a packet, . In the very first iterations, this was done by distinguishing the parsed
-data by finding a known delimiter, such as the ID of the IPv4 packet, or the
-sequence number of the TCP header. Unfortunately, this solution is very
-dependent on the scenario where different delimiters might appear, or not be
-present at all. To generalize this issue, an additional signal
-\texttt{bytes\_left}\notejan{TUSER kan maaske have bytes left?}
-\notecarl{Kan axi stream ikke også have den her? Må jeg lige få læst op på}
-is added to the control bus of the protocol, which
-indicates the end of a current data-block by setting \texttt{bytes\_left = 0}.
+provides a simple flow-protocol with only a few flags. However, the AXI4-Stream
+protocol does not specify massive stream of data, where consecutive bytes are
+sent on each clock-cycle. The issue is that, without any modifications to the
+bare AXI4-Stream protocol, a producer will get notified of a value being read
+by the consumer after 2 clocks. As shown on table
+\ref{tab:axi4_stream_latency}, the producer has to wait 2 clocks before
+updating the value on the bus, resulting in a clock in between transactions not
+being utilized.
+
+
+\begin{figure*}
+
+  \begin{minipage}[b]{0.4\textwidth}
+
+	\begin{tabular}{p{0.9cm} | p{2.4cm} | p{2.4cm}}
+\toprule
+% \multicolumn{2}{c}{Item} \\
+\cmidrule(r){1-2}
+		\textbf{Clock} & \textbf{Producer} & \textbf{Consumer} \\
+\midrule
+		0 & Puts data on bus and asserts \texttt{TVALID} &
+		\texttt{TVALID} is low. NOP \\ \hline
+		1 & \texttt{TREADY} is not set. Data from previous clock is
+		kept on the bus & Reads data from bus and asserts \texttt{TREADY}\\ \hline
+		2 & Observes that \texttt{TREADY} is asserted and updates the
+		data on bus to next byte & \cellcolor{red!25} Still sees the
+		old data from clock $0$!\\
+\bottomrule
+\end{tabular}
+	\caption{With the 2-clock latency for the \texttt{TVALID}/\texttt{TREADY}
+	signal to propagate, the AXI4-Stream protocol cannot send consecutive
+	bytes every clock.}
+\label{tab:axi4_stream_latency}
+\end{minipage}
+
+
+  \begin{minipage}[b]{0.4\textwidth}
+
+	\begin{tabular}{p{0.9cm} | p{2.4cm} | p{2.4cm}}
+\toprule
+% \multicolumn{2}{c}{Item} \\
+\cmidrule(r){1-2}
+		\textbf{Clock} & \textbf{Producer} & \textbf{Consumer} \\
+\midrule
+		0 & Puts value on bus and asserts \texttt{TVALID} &
+		\texttt{TVALID} is low. NOP \\ \hline
+		1 & NOP & Sees that \texttt{TVALID} is high. Asserts
+		\texttt{TREADY} but does not yet read the data from the bus.\\ \hline
+		2 & Updates value on bus & Reads first byte \\ \hline
+		3 & Updates value on bus & \cellcolor{green!25} Reads next byte \\ \hline
+		n & Updates value on bus & \cellcolor{green!25} Reads n byte from the bus \\
+
+\bottomrule
+\end{tabular}
+	\caption{By indicating a clock before about reading the value from the
+	  bus, the 2-clock latency is avoided and the producer can update the
+	  value on the bus every clock.}
+\label{tab:bp_stream_latency}
+\end{minipage}
+\end{figure*}
+
+This issue is circumvented in the BP protocol by asserting \texttt{TREADY} a
+single clock prior, effectively indicating the intent of reading the value on
+the bus during the next cycle. Table \ref{tab:bp_stream_latency} shows that
+even though it takes an additional clock to start a transaction, we can
+circumvent the 2-clock issue that AXI4-Stream faces.\\
+
+The BP protocol uses the same flags as those in AXI4-Stream, although slightly
+differently. The \texttt{TVALID} flag is called simply \texttt{valid} in the
+BP protocol. Likewise, the \texttt{TREADY} is called \texttt{ready}, however,
+these both of these can be used interchangeably for clarity when comparing
+against other protocols.\\
+
 The final Buffer-Producer protocol can be summed up in these following
-rules\notejan{Vi har genopfundet AXI4-Stream}:
+rules:
 \begin{itemize}
-	\item A data transfer only occurs if both \texttt{valid} and \texttt{ready}
-		are raised at the same clock-cycle.
+	\item A data transfer only occurs a clock after both \texttt{valid} and \texttt{ready}
+		are raised.
 	\item When the producer has data available, it is immediately put in
 		the bus and the \texttt{valid} flag is raised.
 	\item Once the \texttt{valid} flag is raised, it cannot be reset until
