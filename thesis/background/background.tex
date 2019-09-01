@@ -79,7 +79,7 @@ true Ethernet\cite{RFC0894} and RFC 1042 for IEEE 802 networks\cite{RFC1042}.
 
 \subsection{Internet Layer}
 \begin{figure}
-\includegraphics[scale=0.55]{background/ip.eps}
+\includegraphics[width=\linewidth]{background/ip.eps}
 \caption{Layout of the IPv4 packet header}
 \label{fig:ipv4_header}
 \end{figure}
@@ -165,7 +165,7 @@ application layer.
 
 \subsubsection{Transmission Control Protocol}
 \begin{figure}
-\includegraphics[scale=0.55]{background/tcp.eps}
+\includegraphics[width=\linewidth]{background/tcp.eps}
 \caption{Layout of the TCP packet header}
 \label{fig:tcp_header}
 \end{figure}
@@ -184,7 +184,7 @@ properties. For instance, this protocol is essential in key internet application
 
 \subsubsection{User Datagram Protocol}
 \begin{figure}
-\includegraphics[scale=0.55]{background/udp.eps}
+\includegraphics[width=\linewidth]{background/udp.eps}
 \caption{Layout of the UDP packet header}
 \label{fig:udp_header}
 \end{figure}
@@ -381,7 +381,7 @@ they are connected to. Then, the process executes its "compute" stage, and
 the results, if any, are written to the output-port, which will be read
 by the following bus. A visualization of the execution flow can be seen
 on figure \ref{fig:sme_clock}.
-\pic{0.5}{background/sme_clock}{An illustration of a typical SME clock-cycle}{fig:sme_clock}
+\pic{\linewidth}{background/sme_clock}{An illustration of a typical SME clock-cycle}{fig:sme_clock}
 It is important to note that although certain channels might be written earlier
 than others in a process clock, the subsequent processes connected to said bus
 will first see the values change in the beginning of the next clock
