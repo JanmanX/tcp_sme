@@ -612,14 +612,13 @@ updating the value on the bus, resulting in a clock in between transactions not
 being utilized.
 
 
-\begin{figure*}
-
-  \begin{minipage}[b]{0.4\textwidth}
-
-	\begin{tabular}{p{0.9cm} | p{2.4cm} | p{2.4cm}}
+\begin{table*}[h]
+  \begin{minipage}[b]{\dimexpr.5\textwidth-.5\columnsep}
+    \centering
+\begin{tabular}{p{1cm} | p{2.4cm} | p{2.4cm}}
 \toprule
 % \multicolumn{2}{c}{Item} \\
-\cmidrule(r){1-2}
+%\cmidrule(r){1-2}
 		\textbf{Clock} & \textbf{Producer} & \textbf{Consumer} \\
 \midrule
 		0 & Puts data on bus and asserts \texttt{TVALID} &
@@ -631,19 +630,16 @@ being utilized.
 		old data from clock $0$!\\
 \bottomrule
 \end{tabular}
-	\caption{With the 2-clock latency for the \texttt{TVALID}/\texttt{TREADY}
+\caption{With the 2-clock latency for the \texttt{TVALID}/\texttt{TREADY}
 	signal to propagate, the AXI4-Stream protocol cannot send consecutive
 	bytes every clock.}
 \label{tab:axi4_stream_latency}
-\end{minipage}
-
-
-  \begin{minipage}[b]{0.4\textwidth}
-
-	\begin{tabular}{p{0.9cm} | p{2.4cm} | p{2.4cm}}
+\end{minipage}\hfill%
+\begin{minipage}[b]{\dimexpr.5\textwidth-.5\columnsep}
+\begin{tabular}{p{1cm} | p{2.4cm} | p{2.4cm}}
 \toprule
 % \multicolumn{2}{c}{Item} \\
-\cmidrule(r){1-2}
+%\cmidrule(r){1-2}
 		\textbf{Clock} & \textbf{Producer} & \textbf{Consumer} \\
 \midrule
 		0 & Puts value on bus and asserts \texttt{TVALID} &
@@ -653,7 +649,6 @@ being utilized.
 		2 & Updates value on bus & Reads first byte \\ \hline
 		3 & Updates value on bus & \cellcolor{green!25} Reads next byte \\ \hline
 		n & Updates value on bus & \cellcolor{green!25} Reads n byte from the bus \\
-
 \bottomrule
 \end{tabular}
 	\caption{By indicating a clock before about reading the value from the
@@ -661,7 +656,8 @@ being utilized.
 	  value on the bus every clock.}
 \label{tab:bp_stream_latency}
 \end{minipage}
-\end{figure*}
+\hrule
+\end{table*}
 
 This issue is circumvented in the BP protocol by asserting \texttt{TREADY} a
 single clock prior, effectively indicating the intent of reading the value on
