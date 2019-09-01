@@ -127,18 +127,17 @@ protected override void OnTick()
       c();
       state = A;
   }
-
 }
 \end{mintedcsharp}
 %\end{lstlisting}
-	\caption{Example pseudocode of using a "synchronous" \texttt{SimpleProcess}}
+	\caption{Example pseudocode of using a "synchronous" \texttt{SimpleProcess}.}
 	\label{fig:sme_example_process_sync_code}
     \end{subfigure}
 \hfill
  \begin{subfigure}[b]{0.3\textwidth}
         \centering
         \includegraphics[scale=0.45]{implementation/empty_process_fsm.eps}
-        \caption{The statemachine resulting from both code-examples}
+        \caption{The statemachine resulting from both code-examples. \\}
  	\label{fig:sme_example_process_fsm}
 \end{subfigure}
     \caption{A simple state-machine implemented in the asynchronous (left) and
@@ -156,7 +155,7 @@ input and one output, and the state-changes are simple and intuitive.
 
 \begin{figure*}[htpb]
     \centering
-    \begin{subfigure}[b]{0.5\textwidth}
+    \begin{subfigure}[b]{0.45\textwidth}
         \centering
 %\begin{lstlisting}[language={[Sharp]C}]
 \begin{mintedcsharp}
@@ -177,16 +176,17 @@ public override async Task OnTickAsync()
 }
 \end{mintedcsharp}
 %\end{lstlisting}
-        \caption{Pseudo-code for the \texttt{InternetOut} process}
+        \caption{Pseudo-code for the \texttt{InternetOut} process.\\}
 	\label{fig:internet_out_pseudocode}
     \end{subfigure}%
-    \begin{subfigure}[b]{0.50\textwidth}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
         \centering
         \includegraphics[scale=0.45]{implementation/internet_out_fsm.eps}
         \caption{The statemachine for the \texttt{InternetOut} process}
  	\label{fig:internet_out_fsm}
     \end{subfigure}%
-    \caption{The implementation of the \texttt{InternetOut} process}
+    \caption{The implementation of the \texttt{InternetOut} process.}
     \label{fig:internet_out_implementation}
 \end{figure*}
 
@@ -803,10 +803,10 @@ struct InterfaceData
 \end{mintedcsharp}
 %\end{lstlisting}
 
-        \caption{Definitions of the structures used in the interface busses}
+        \caption{Definitions of the structures used in the interface busses.}
 	\label{fig:interfacefunction_code}
-    \end{subfigure}
-\hfill
+    \end{subfigure}%
+\hfill%
     \begin{subfigure}[b]{0.45\textwidth}
 	\centering
 	 %\begin{lstlisting}[language={[Sharp]C}]
@@ -829,7 +829,7 @@ interface InterfaceControlBus : IBus
 }
 \end{mintedcsharp}
 %\end{lstlisting}
-	\caption{The definitions of the interface busses.}
+	\caption{The definitions of the interface busses.\\\hfill}
 	\label{fig:interfacebus_code}
     \end{subfigure}
     \caption{Pseudocode of the definitions used for the interface connection.}
