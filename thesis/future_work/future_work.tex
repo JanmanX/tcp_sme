@@ -5,7 +5,7 @@
 A few small bugs have been found during the test phase. While these are
 described in the discussion test-chapter, here is a brief list:
 \begin{itemize}
-	\item \textbf{Destionation IP address not set}\\
+	\item \textbf{Destination IP address not set}\\
 	The destination address of the IPv4 header is not set in the outgoing
 	packets. \texttt{Transport} is the source of this bug, as it does not
 	set the appropriate field in the bus to \texttt{Segment Out}.
@@ -125,7 +125,7 @@ the firewall is implemented in \gls{sme}, with the intent to be easily
 integrated with networking stacks, such as this one\cite{fpga_firewall}.\\
 The firewall consists of whitelist rules, connection states, "deciding"
 processes, and busses for communication and synchronization\cite{fpga_firewall}.\\
-The processes making the actual decisions are split into 3 state processe:
+The processes making the actual decisions are split into 3 state process:
 \begin{itemize}
 \item \textbf{Incoming IPv4}\\
 The first point where the firewall can do any decisions is when the internet
