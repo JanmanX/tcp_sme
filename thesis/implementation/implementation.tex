@@ -444,22 +444,24 @@ when the currently receiving segment is done filling. See
   \end{center}
   \caption{The memory states of "Single memory segments"} \label{tab:memory_states_single}
 \end{table}
-\noteimprovement{Maybe add stuff like }
+%\noteimprovement{Maybe add stuff like }
 
 
 \subsection{Dictionary} \label{subsec:dictionary}
-\notemark{It it not a sparsly linked list, but an sparse array implemented by
- a linked list}
+%\notemark{It it not a sparsly linked list, but an sparse array implemented by a linked list}
 The dictionary is used to keep track of out of order memory segments.
 It works by keeping two tables, one for the keys and one for the actual values.
 In this model, contrary to the memory buffers, the value table actually exists
 since each value needs additional data. \\
-The list implementation uses a sparse list, where each element consists of an
-offset to the next element, and an pointer to the next element. In the example in
+The list implementation uses a linked list, where each element consists of an
+offset to the next element, and an pointer to the next element. This is used to
+represent a sparse array, where only actually valid elements are saved, and
+anything in between are indicated by the offset.
+ In the example in
 \autoref{fig:memory_dictionary_explained}, The first key "0" consists of indexes
 $(1,3,5,10)$, where their respective values is saved in
 addresses $(0,3,1,4)$. As an example,
-if the code requests index 5 of the sparse list, address 1 is returned. If an
+if the code requests index 5 of the linked list, address 1 is returned. If an
 non existing index is requested, before being inserted , -1 is returned.
 \begin{description}
   \item[\csharpextend{bool New(int key)}]\hfill\\
@@ -489,7 +491,7 @@ non existing index is requested, before being inserted , -1 is returned.
   The insert creates a new entry in the value table. If it already exist, the
   same address is returned. If not, a new is returned. \\
   If a new value entry is returned, a free is found in the value table.
-  The element before and after in the sparse list is found , and the new element
+  The element before and after in the linjed list is found , and the new element
   gets injected between those.
 
   \item[\csharpextend{int Delete(int key, int index)}]\hfill\\

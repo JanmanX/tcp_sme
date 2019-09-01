@@ -293,12 +293,13 @@ macrocells. Macrocells are units prefabricated with higher-level functionality,
 such as \gls{alu}s, registers, and flip-flops. Since these macrocells are
 pre-made by the manufacturer, they can be heavily optimized in regards to both
 performance, but also power efficiency.\cite{xilinx_cpld}\\
-\gls{cpld} devices are re-programmable, but unlike \gls{fpga}s
-\notecarl{Mark:  Side note: man laver også boards med FPGA, hvor deres bitstream er gemt i en ROM, så de heller ikke kan blive reflashet. Eller rettere sagt, en FPGA kan kun blive reflashet, hvis man designer boardet til at kunne det. Men generelt har i ret!}
-, \gls{cpld} are
+\gls{cpld} an \gls{fpga} devices are re-programmable, but unlike \gls{fpga}s
+%\notecarl{Mark: Side note: man laver også boards med FPGA, hvor deres bitstream er gemt i en ROM, så de heller ikke kan blive reflashet. Eller rettere sagt, en FPGA kan kun blive reflashet, hvis man designer boardet til at kunne det. Men generelt har i ret!}
+, \gls{cpld} are always
 non-volatile since their programming is stored on \gls{eeprom}. This means that
 the programming is kept on power down, and the functionality is active as soon
-as the device is turned on\cite{xilinx_cpld}.\\
+as the device is turned on\cite{xilinx_cpld}. However, some \gls{fpga}s also
+have this functionality, but does not depend on it.\\
 Unfortunately, with the introduction of the pre-made functionality in the
 macrocells, a bit of flexibility and extensibility is lost compared to
 \gls{fpga}. For instance, while it is easy to integrate \gls{fpga} with
@@ -321,15 +322,15 @@ started prototyping.\cite{tul_pynq}
 \subsubsection{Programming an FPGA}
 Unlike conventional processors with a very sequential nature, the logic blocks
 in FPGAs are truly parallel in nature. Given the right programming, an FPGA can
-allocate \notecarl{Mark: Pas på her, fordi det er ikke allokering i samme sense som f.eks. med memory allokering. Man kan godt allokere en FPGA runtime, men det er ikke på helt samme måde som man gør ved synthesis. I det tilfælde bliver FPGA'en basically lavet om til en GPU, hvor man bruger meget af FPGA'en til at manage hvad der kører hvor. Ellers kan man også lave partial reconfiguration, men det er uden for jeres scope!}
+burn in
+%\notecarl{Mark: Pas på her, fordi det er ikke allokering i samme sense som f.eks. med memory allokering. Man kan godt allokere en FPGA runtime, men det er ikke på helt samme måde som man gør ved synthesis. I det tilfælde bliver FPGA'en basically lavet om til en GPU, hvor man bruger meget af FPGA'en til at manage hvad der kører hvor. Ellers kan man også lave partial reconfiguration, men det er uden for jeres scope!}
 dedicated sections of the chip for each independent subtask, enabling
 the circuitry to perform numerous independent calculations at once\cite{ni_fpga}.
 Unfortunately, this universality of FPGAs comes at a cost to their performance.
-Whereas conventional processors are heavily optimise based on the predetermined
-circuitry, FPGAs programmers must ensure to utilize the parallel nature of the
-device in order to secure best possible performance.
-\notecarl{Mark: Skal en CPU og GPU dog også}
-Even worse, the FPGA must
+Whereas conventional processors are heavily optimized based on the predetermined
+circuitry,
+%\notecarl{Mark: Skal en CPU og GPU dog også}
+the FPGA must
 be programmed in such a way that all paths in the electrical wiring can be
 in any time-frame.\\
 Due to this parallel nature of FPGAs, conventional programming languages are
