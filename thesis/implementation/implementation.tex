@@ -1,7 +1,7 @@
 \chapter{Implementation}
 \label{chap:implementation}
 In this chapter, the implementation of the network stack using the
-pipelined design from chapter \ref{chap:design} is outlined and described,
+pipelined design from \autoref{chap:design} is outlined and described,
 the application of SME detailed and evaluated, and lastly, the viability
 of the system on an FPGA is discussed.\\
 The network stack is implemented in C\# using the C\# version of SME, which is,
@@ -27,7 +27,7 @@ confused with SME processes, which are used for the implementation of both the
 buffers and processes.}.
 
 The essential processes in the network are represented as light-grey boxes in
-the figure \ref{fig:final_design}. These processes are \texttt{Internet\_In},
+the \autoref{fig:final_design}. These processes are \texttt{Internet\_In},
 \texttt{Internet\_Out}, and \texttt{Transport}.
 
 
@@ -59,17 +59,21 @@ execute other tasks while waiting for resources, such as functions,
 to return. In this case, this asynchronous feature is used to give
 the programmer ability to split the function into multiple segments,
 separated by the clock signal.\\
-Figure \ref{fig:example_fsm} compares these two approaches for the same
+Figure \autoref{fig:example_fsm} compares these two approaches for the same
 finite state-machine with 3 consequtive states.
 
 The "synchronous" approach using a \texttt{SimpleProcess} in subfigure
-\ref{fig:sme_example_process_sync_code} has to implement a
+\ref{fig:sme_example_process_sync_code}
+\notemark{Fix autoref}
+has to implement a
 variable tracking the current state of the process. On each new clock, this
 state has to be analysed and the inteded function to be called based on the
 value. This approach requires a lot of approach and boilerplate code, especialy
 if there are several states.\\
 The asynchronous approach on subfigure
-\ref{fig:sme_example_process_async_code} on the other hand can do with only
+\ref{fig:sme_example_process_async_code}
+\notemark{Fix autoref}
+on the other hand can do with only
 single \texttt{Run()} method split into three parts -- A, B, and C.
 After each code-segment, the process waits for the clock signal, and
 continues with the execution of the next segment.  This functionality
@@ -77,6 +81,7 @@ gives the programmer a very granular control of the way a process
 works, how it is split into multiple steps on the hardware, while
 maintaining simplicity, as seen on the statemachine diagram on subfigure
 \ref{fig:sme_example_process_fsm}.
+\notemark{Fix autoref}
 
 \begin{figure*}
     \begin{subfigure}[b]{0.3\textwidth}
@@ -145,7 +150,7 @@ synchronous (right) approach in SME using C\#}
 \subsubsection{\texttt{Internet Out} state machine}
 This way of modelling a process in SME first the \texttt{Internet Out} process
 very well, as it only has one responsibility, which is reading outgoing segments
-and wrapping them in an Internet header. The figure \ref{fig:internet_out_implementation} shows the pseudo-code and state-machine for the \texttt{Internet Out}
+and wrapping them in an Internet header. The \autoref{fig:internet_out_implementation} shows the pseudo-code and state-machine for the \texttt{Internet Out}
 process. This process was easy to model and implement, because it only has one
 input and one output, and the state-changes are simple and intuitive.
 
@@ -590,7 +595,7 @@ master and slave respectively in the AXI4 specification.}\cite{arm_axi4}.
 The AXI4-Stream protocol uses two signals (also called "flags"), the \texttt{TVALID}
 on master, and \texttt{TREADY} on slave. Every time both \texttt{TVALID} and
 \texttt{TREADY} are asserted during a clock-cycle, a data-exchange happens.
-Figure \ref{fig:axi4_handshake} shows a data exchange, where the information
+\autoref{fig:axi4_handshake} shows a data exchange, where the information
 (the bytes) are placed on the bus and the \texttt{TVALID} is raised. When this
 signal propagates to the slave, it asserts \texttt{TREADY}. When this signal
 propagates back to the master, it knows that the information was read, and that
@@ -606,8 +611,8 @@ provides a simple flow-protocol with only a few flags. However, the AXI4-Stream
 protocol does not specify massive stream of data, where consecutive bytes are
 sent on each clock-cycle. The issue is that, without any modifications to the
 bare AXI4-Stream protocol, a producer will get notified of a value being read
-by the consumer after 2 clocks. As shown on table
-\ref{tab:axi4_stream_latency}, the producer has to wait 2 clocks before
+by the consumer after 2 clocks. As shown on
+\autoref{tab:axi4_stream_latency}, the producer has to wait 2 clocks before
 updating the value on the bus, resulting in a clock in between transactions not
 being utilized.
 
@@ -661,7 +666,7 @@ being utilized.
 
 This issue is circumvented in the BP protocol by asserting \texttt{TREADY} a
 single clock prior, effectively indicating the intent of reading the value on
-the bus during the next cycle. Table \ref{tab:bp_stream_latency} shows that
+the bus during the next cycle. \autoref{tab:bp_stream_latency} shows that
 even though it takes an additional clock to start a transaction, we can
 circumvent the 2-clock issue that AXI4-Stream faces.\\
 
@@ -687,8 +692,8 @@ rules:
 \end{itemize}
 
 The conventional data-exchange using the BP protocol in the network
-stack is perhaps better visualized by a sequence diagram on figure
-\ref{fig:buffer_producer}.
+stack is perhaps better visualized by a sequence diagram on
+\autoref{fig:buffer_producer}.
 
 
 \begin{figure}
@@ -728,7 +733,7 @@ Thus, the rules for the Compute-Producer protocol are as such:
 		(\texttt{ready = false}) the data.
 \end{itemize}
 
-Such a scenario is visualized on figure \ref{fig:compute_producer}, where the
+Such a scenario is visualized on \autoref{fig:compute_producer}, where the
 consumer becomes unavailable during the transaction. The producer has the
 opportunity to drop the transaction, but it might also continue till the end.
 
@@ -746,7 +751,7 @@ opportunity to drop the transaction, but it might also continue till the end.
 \section{Interface Control}
 The \texttt{Interface} is a collection of 3 busses provided to the user. Two of
 the busses are direct connections to the data-buffer, used to transfer the
-actual data to and from the network. As seen on \ref{fig:final_design}, the
+actual data to and from the network. As seen on \autoref{fig:final_design}, the
 connecting going to \texttt{Data In} follows the Compute-Producer interface
 signal protocol, while the connection from \texttt{Data Out} follows the
 Buffer-Producer protocol.\\
@@ -763,10 +768,10 @@ or send the response. However, after submitting the request, the user
 \textit{should} keep the data in the bus until a response is received, because
 the \texttt{Transport} process might be busy at the moment handling in- or
 out-going packets, and not have time to process the request.\\
-Figure \ref{fig:interfacebus_code} shows the definitions of the busses. Note
+\autoref{fig:interfacebus_code} shows the definitions of the busses. Note
 the \texttt{interface\_function} byte containing the type of "function" to
-call, defined in the \texttt{InterfaceFunction enum} on figure
-\ref{fig:interfacefunction_code}.
+call, defined in the \texttt{InterfaceFunction enum} on
+\autoref{fig:interfacefunction_code}.
 
 
 \begin{figure*}[t]
@@ -838,8 +843,8 @@ interface InterfaceControlBus : IBus
 The usage of this interface is very basic and primitive. The user sets the
 appropriate values in the \texttt{InterfaceBus}, and raising the \texttt{valid}
 flag. For example, to start listening on port $81$ using the \gls{udp}
-protocol, the user would put the values on the bus as shown on figure
-\ref{fig:interface_request}.
+protocol, the user would put the values on the bus as shown on
+\autoref{fig:interface_request}.
 \begin{figure}
 \centering
 \begin{Verbatim}[frame=single,samepage=true]
@@ -861,7 +866,7 @@ InterfaceBus {
 
 If the port is available under the \gls{udp} protocol and sockets are available
 for allocation in the stack, the user should eventually receive a response.
-On figure \ref{fig:interface_response}, the user gets an \texttt{OK} response with the \texttt{socket = 2}:
+On \autoref{fig:interface_response}, the user gets an \texttt{OK} response with the \texttt{socket = 2}:
 \begin{figure}
 	\centering
 \begin{Verbatim}[frame=single,samepage=true]
@@ -879,12 +884,12 @@ InterfaceControlBus {
   }
 }
 \end{Verbatim}
-	\caption{A response to the request submitted in figure
-	\ref{fig:interface_request}. Socket "2" is returned.}
+	\caption{A response to the request submitted in
+	\autoref{fig:interface_request}. Socket "2" is returned.}
 	\label{fig:interface_response}
 \end{figure}
 Once the user has received a valid socket, they can use the it at heart's
-content for sending and receiving. Figure \ref{fig:interface_send_byte} shows
+content for sending and receiving. \autoref{fig:interface_send_byte} shows
 an example of sending the byte "A" to the newly created socket.
 \begin{figure}
 	\centering

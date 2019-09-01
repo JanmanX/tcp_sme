@@ -66,7 +66,7 @@ Seeing wide adoption of this standard, it has been formally standardized as by
 the \gls{ieee} under the publication of IEEE 802.3 in
 1983\cite{ieee_8023_release}. Unfortunately, the original specification of
 Ethernet frame format deviate slightly from that of IEEE
-802.3\cite{tcpip_illustrated_vol1}. Figure \ref{fig:ethernet_header} shows the
+802.3\cite{tcpip_illustrated_vol1}. \autoref{fig:ethernet_header} shows the
 layout of a standard Ethernet header. The \texttt{EtherType} field is used to
 indicate the type of the payload type, whereas it is used as \texttt{Length} in
 the IEEE 802.3. Fortunately, none of the valid \texttt{EtherType} values in
@@ -116,8 +116,8 @@ and modify all the existing network devices to support this new protocol,
 extending the life current version 4. In this thesis, only \gls{ipv4} will
 be considered.\\
 \gls{ipv4} provides two basic functions: addressing and fragmentation. By using
-32-bit addresses located as one of the last fields in the header on figure
-\ref{fig:ipv4_header}, the nodes use the destination address to transmit
+32-bit addresses located as one of the last fields in the header on
+\autoref{fig:ipv4_header}, the nodes use the destination address to transmit
 internet datagrams towards their destination. The process of selecting a path
 on the network is called routing\cite{RFC0791}.\\
 Fragmentation on the other hand is used to split large datagrams and transmit
@@ -196,8 +196,8 @@ a different order than they have been sent.
 
 However, by removing all these features, \gls{udp} has a lot less overhead. The
 only thing the protocol needs to have is the source and destination port, the
-length of the data, and the checksum thereof, illustrated on figure
-\ref{fig:udp_header}. This simple nature of the protocol makes it possible to
+length of the data, and the checksum thereof, illustrated on
+\autoref{fig:udp_header}. This simple nature of the protocol makes it possible to
 be very fast and responsive, and it has found its utility in \gls{voip},
 \gls{p2p} file-transfer, as well as online multiplayer games.
 
@@ -381,7 +381,7 @@ the beginning of a clock-cycle, the input-ports are read into the busses
 they are connected to. Then, the process executes its "compute" stage, and
 the results, if any, are written to the output-port, which will be read
 by the following bus. A visualization of the execution flow can be seen
-on figure \ref{fig:sme_clock}.
+on \autoref{fig:sme_clock}.
 \pic{\linewidth}{background/sme_clock}{An illustration of a typical SME clock-cycle}{fig:sme_clock}
 It is important to note that although certain channels might be written earlier
 than others in a process clock, the subsequent processes connected to said bus

@@ -52,7 +52,7 @@ the parsing and the headers, but also the logic in the addressing for storage
 in the buffers, as well as, for instance, the checksum calculation.
 
 \subsection{Add external verification tool}
-The tests performed and described in chapter \ref{chap:evaluation} on the
+The tests performed and described in \autoref{chap:evaluation} on the
 current implementation have shown no major nor breaking bugs or errors for
 the supported subset of protocols in the internet protocol suite.
 Since the existence of undiscovered bugs cannot be ruled out with the
@@ -86,7 +86,7 @@ enable the user to flag which connections need not be parsed.
 
 
 \section{New features}
-As discussed in chapter \ref{chap:design}, the networking stack is designed
+As discussed in \autoref{chap:design}, the networking stack is designed
 with extensibility in mind, with a separation for the link-, the internet-, and
 the transport-layer. Given a protocol following the classic internet protocol
 suite 4-layer model, it should be possible to implement this protocol in the
@@ -153,7 +153,7 @@ Although both projects have been designed to be combined with each other,
 there have not yet been any attempts at uniting them.  That being said, both
 projects can run self-sufficiently, and all the essential information can
 be easily shared across the processes with SME busses.  The proposed design
-for incorporation can be seen on figure \ref{fig:firewall_integration_design},
+for incorporation can be seen on \autoref{fig:firewall_integration_design},
 where the parsing processes send information to the firewall, and the firewall
 in turn shares its decision with the consequent buffer. This way, the parsing
 process has to add all the parsed fields in the bus, and the firewall can mark

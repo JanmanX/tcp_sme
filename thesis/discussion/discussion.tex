@@ -22,7 +22,7 @@ A possible solution is discussed in \autoref{subsec:bug_dictionary_lookup}
 
 
 \section{Performance}
-In the test chapter \ref{chap:evaluation}, we ran the simulation for
+In the test \autoref{chap:evaluation}, we ran the simulation for
 multiple hours. In about 2 million clock cycles, the networking stack was able
 to handle 17283 packets in total, where 1280 of the packets were valid
 connections intended for the user of the stack. During the test, the valid
@@ -82,7 +82,7 @@ the last part of a header, while the next byte is a data-byte. In that case,
 the process has to not only parse the finished header, but also forward the
 second byte down to the next process. Here again will the processes need
 additional logic needs to check how much of the data-bus actually contains
-valid data. Figure \ref{fig:bus_width_boundaries} illustrates the problem of a
+valid data. \autoref{fig:bus_width_boundaries} illustrates the problem of a
 data-segment not aligning with the bus-width.
 
 \begin{figure}
@@ -109,7 +109,7 @@ better performance.
 
 By replicating the networking stack and assign a unique IP address to each, it
 should be possible to create a "Load Distributor", distributing the packets
-across multiple networking stacks. Figure \ref{fig:design_stacked} shows a
+across multiple networking stacks. \autoref{fig:design_stacked} shows a
 prototype design, where the inner part of the networking stack is duplicated on
 the FPGA itself. The \texttt{Load Distributor} conveys the packets to the
 appropriate network-stack.
@@ -125,7 +125,7 @@ assigning a block of sockets to each stack, so that overlap does not happen.
 \section{Usability}
 Perhaps the most important aspects of any software project is its usability,
 versatility, and its application.
-While it is shown in chapter \ref{chap:evaluation} that the networking stack
+While it is shown in \autoref{chap:evaluation} that the networking stack
 performs arguably well in a reasonable simulated scenario, it is to be seen
 whether the project can bring any value to the user.
 
@@ -257,8 +257,8 @@ could be a valuable addition to the \gls{sme} ecosystem.
 
 \subsection{Process state modelling}
 Most processes in the system have multiple states, some containing fairly
-complex state-transitions, as seen on figure \ref{fig:statemachines_internetin_transport}
-in chapter \ref{chap:implementation}.\\
+complex state-transitions, as seen on \autoref{fig:statemachines_internetin_transport}
+in \autoref{chap:implementation}.\\
 Introduced in the implementation chapter, \gls{sme} provides the
 \texttt{StateProcess} class to simplify the creation of processes with
 multiple states. This class proved itself to be immensely helpful in the
@@ -286,7 +286,7 @@ used in combination with an internal variable keeping track of the state.
 This subtle difference lets the programmer have a unified entry-point to the
 code, and branching code can be written to enter the appropriate
 state-functions in the code.
-For instance, figure \ref{fig:fsm_prestates} visualizes that a unified
+For instance, \autoref{fig:fsm_prestates} visualizes that a unified
 pre-checks can be run prior to enter state-specific code. This adds a lot to
 the length of the "code-path", but it avoids a lot of repetition in the code.
 
