@@ -56,10 +56,22 @@
 
 %\usepackage{coffee4} % Comment me out
 % minted styles
-%\newmintinline['mintedinlineitem']{csharp}{breaklines}
-%\setmintedinline{breaklines}
 \setminted[csharp]{escapeinside={*@}{@*}}
-\newmintinline[csharpextend]{minted-lexers/csharp.py:MDCSharpLexer -x}{breaklines}
+\newmintinline[csharpinline]{minted-lexers/csharp.py:MDCSharpLexer -x}{breaklines}
+\newminted[mintedcsharp]{minted-lexers/csharp.py:MDCSharpLexer -x}
+{
+frame=single,
+framesep=2mm,
+baselinestretch=1.0,
+bgcolor=backcolour,
+fontsize=\footnotesize,
+numbersep=0.1mm,
+linenos,
+framerule= 0.1pt,
+breaklines
+}
+
+
 
 % Define color boxes
 \newcommand\textcolorbox[2][]{\tikz[overlay]\node[inner sep=2pt, anchor=text, rectangle,draw=black,thick , rounded corners=2mm,#1] {#2};\phantom{#2}}

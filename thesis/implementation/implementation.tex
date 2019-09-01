@@ -81,7 +81,8 @@ maintaining simplicity, as seen on the statemachine diagram on subfigure
 \begin{figure*}
     \begin{subfigure}[b]{0.3\textwidth}
         \centering
-\begin{lstlisting}[language={[Sharp]C}]
+%\begin{lstlisting}[language={[Sharp]C}]
+\begin{mintedcsharp}
 public class SomeProcess : StateProcess
 {
   private override async Task OnTickAsync()
@@ -94,13 +95,15 @@ public class SomeProcess : StateProcess
     await ClockAsync();
   }
 }
-\end{lstlisting}
+\end{mintedcsharp}
+%\end{lstlisting}
         \caption{Example using inheriting from \texttt{Process}, using the \texttt{Run()} asynchronous method.}
 	\label{fig:sme_example_process_async_code}
     \end{subfigure}
 \hfill
     \begin{subfigure}[b]{0.3\textwidth}
-\begin{lstlisting}[language={[Sharp]C}]
+%\begin{lstlisting}[language={[Sharp]C}]
+\begin{mintedcsharp}
 public class SomeProcess : SimpleProcess
 {
 // Initial state
@@ -121,7 +124,8 @@ protected override void OnTick()
   }
 
 }
-\end{lstlisting}
+\end{mintedcsharp}
+%\end{lstlisting}
 	\caption{Example pseudocode of using a "synchronous" \texttt{SimpleProcess}}
 	\label{fig:sme_example_process_sync_code}
     \end{subfigure}
@@ -149,7 +153,8 @@ input and one output, and the state-changes are simple and intuitive.
     \centering
     \begin{subfigure}[b]{0.5\textwidth}
         \centering
-\begin{lstlisting}[language={[Sharp]C}]
+%\begin{lstlisting}[language={[Sharp]C}]
+\begin{mintedcsharp}
 public partial class InternetOut: StateProcess
 {
 public override async Task OnTickAsync()
@@ -165,7 +170,8 @@ public override async Task OnTickAsync()
   }
 }
 }
-\end{lstlisting}
+\end{mintedcsharp}
+%\end{lstlisting}
         \caption{Pseudo-code for the \texttt{InternetOut} process}
 	\label{fig:internet_out_pseudocode}
     \end{subfigure}%
@@ -345,35 +351,35 @@ are listed, and their operation explained.
 The memory segment interface consists of the following functions:
 
 \begin{description}
-  \item[\csharpextend{int AllocateSegment(int size)}]\hfill\\
+  \item[\csharpinline{int AllocateSegment(int size)}]\hfill\\
   When a segment is allocated, the new data is saved in the segment table
   head by looking at the \texttt{Table Head} pointer.\\
   The start and end pointers are calculated based on the \texttt{Mem Head}
   pointer. If the range between \texttt{Mem Head} and \texttt{Mem Tail} is
-  smaller than \csharpextend{int size}, -1 is returned, indicating
+  smaller than \csharpinline{int size}, -1 is returned, indicating
   error. If not, the segment table id is
-  returned(\csharpextend{int seg_ID}).
+  returned(\csharpinline{int seg_ID}).
 
-  \item[\csharpextend{int FocusSegment()}]\hfill\\
+  \item[\csharpinline{int FocusSegment()}]\hfill\\
   A segment is classified as a focus segment if the data is ready to be sent
   (\texttt{Reading} state). It will automatically find the next segment, by
   incrementing the pointer by one, and if needed wrapping back to 0. The
   \texttt{Table Tail} is also moved by this action, to always point on the first
   instance of an active segment.
 
-  \item[\csharpextend{int SaveData(int seg_ID, int offset)}]\hfill
+  \item[\csharpinline{int SaveData(int seg_ID, int offset)}]\hfill
   Returns the memory address for that specific segment with an offset.
   This is calculated by finding the start address in the segment table, and
   adding the offset. If the segment is not in "Saving" state, an error
   is returned of -1.
 
-  \item[\csharpextend{int LoadData(int seg_ID, int offset)}]\hfill
-  The same as \csharpextend{int SaveData(...)}, with the exception
+  \item[\csharpinline{int LoadData(int seg_ID, int offset)}]\hfill
+  The same as \csharpinline{int SaveData(...)}, with the exception
   that an error is returned if we are not in the loading state.
 
-  \item[\csharpextend{int DelaySegment(int seg_ID)}]\hfill\\
+  \item[\csharpinline{int DelaySegment(int seg_ID)}]\hfill\\
   This function delays a focus segment by copying it to the table head, and
-  freeing the current \csharpextend{int seg_ID}. When this happens, the
+  freeing the current \csharpinline{int seg_ID}. When this happens, the
   chronological order of the segments gets mixed.\\
   It is now impossible to tell if the next segment in the segment table contains
   the actual continuation of the memory. The next segment may be out of order,
@@ -382,23 +388,23 @@ The memory segment interface consists of the following functions:
   memory from the range \texttt{Mem Head} to \texttt{Mem Tail} the memory must
   be consumed in order.
 
-  \item[{\pbox[c][1.7\baselineskip][b]{\linewidth}{{\csharpextend{void SaveMetaData(int seg_ID, MetaData meta)}}}}]\hfill
+  \item[{\pbox[c][1.7\baselineskip][b]{\linewidth}{{\csharpinline{void SaveMetaData(int seg_ID, MetaData meta)}}}}]\hfill
 
-  Saves the \csharpextend{MetaData} into the current segment.
+  Saves the \csharpinline{MetaData} into the current segment.
 
-  \item[\csharpextend{MetaData LoadMetaData(int seg_ID)}]\hfill\\
-  Loads the \csharpextend{MetaData} from the current segment.
+  \item[\csharpinline{MetaData LoadMetaData(int seg_ID)}]\hfill\\
+  Loads the \csharpinline{MetaData} from the current segment.
 
-  \item[\csharpextend{void SegmentFull(int seg_ID)}]\hfill\\
+  \item[\csharpinline{void SegmentFull(int seg_ID)}]\hfill\\
   Returns if the segment is \texttt{Full}.
 
-  \item[\csharpextend{void SegmentDone(int seg_ID)}]\hfill\\
+  \item[\csharpinline{void SegmentDone(int seg_ID)}]\hfill\\
     Returns if the segment is \texttt{Done}
     %\notemark{Mener du "Done" her?}(See \autoref{tab:memory_states_multi}).
 
-  \item[\csharpextend{int AllocateSegment(int size)}]\hfill\\
+  \item[\csharpinline{int AllocateSegment(int size)}]\hfill\\
   Allocates a segment by getting the first available from \texttt{Table Head}.
-  Returns the \csharpextend{int seg_ID} if a space is available.
+  Returns the \csharpinline{int seg_ID} if a space is available.
   If none are available, return -1.
   %\notemark{Retur hvad?}
 \end{description}
@@ -408,7 +414,7 @@ The memory segment interface consists of the following functions:
 
 \subsubsection{Single memory segments}
 The single memory segments are a bit different compared to the multi segments.
-The single segments does not return an \csharpextend{int seg_ID} at any point,
+The single segments does not return an \csharpinline{int seg_ID} at any point,
 because the focused segments are controlled internally. This is done to limit
 the complexity for of the model, and to insure that segments are not accessed
 out of order. Knowing and keeping the order makes it possible to allocate
@@ -464,22 +470,22 @@ addresses $(0,3,1,4)$. As an example,
 if the code requests index 5 of the linked list, address 1 is returned. If an
 non existing index is requested, before being inserted , -1 is returned.
 \begin{description}
-  \item[\csharpextend{bool New(int key)}]\hfill\\
+  \item[\csharpinline{bool New(int key)}]\hfill\\
   When a new key is created, the key table is iterated over until a free element
   is found. If all are already used, false is returned.
 
-  \item[\csharpextend{bool Free(int key)}]\hfill\\
+  \item[\csharpinline{bool Free(int key)}]\hfill\\
   Removes a key and deletes and resets the values in their table. This will
   worst case iterate over all elements in the value table.
 
-  \item[\csharpextend{bool ContainsKey(int key)}]\hfill\\
+  \item[\csharpinline{bool ContainsKey(int key)}]\hfill\\
   Test if the key table have the key.
 
-  \item[\csharpextend{int GetFirstValue(int key)}]\hfill\\
+  \item[\csharpinline{int GetFirstValue(int key)}]\hfill\\
   Returns the first value of a key element. Finding the key in the key table takes
   n tries, but finding the first element takes constant time.
 
-  \item[\csharpextend{int ListLength(int key)}]\hfill\\
+  \item[\csharpinline{int ListLength(int key)}]\hfill\\
   Get the length of the list with the offsets included. For example in
   \autoref{fig:memory_dictionary_explained}, the length of the list in
     key "0" is 10. This is calculated by adding all
@@ -487,27 +493,27 @@ non existing index is requested, before being inserted , -1 is returned.
     value table, with a pointer of -1.
     %\notemark{Markeret af Carl. Jeg kan hellere ikke helt se det fra tabellen...}
 
-  \item[\csharpextend{int Insert(int key, int index)}]\hfill\\
+  \item[\csharpinline{int Insert(int key, int index)}]\hfill\\
   The insert creates a new entry in the value table. If it already exist, the
   same address is returned. If not, a new is returned. \\
   If a new value entry is returned, a free is found in the value table.
   The element before and after in the linjed list is found , and the new element
   gets injected between those.
 
-  \item[\csharpextend{int Delete(int key, int index)}]\hfill\\
+  \item[\csharpinline{int Delete(int key, int index)}]\hfill\\
   Delete finds the element in the list and clears it up. If none are found, -1 is
   returned. The entries in the value table before and after the deleted element
   are merged together by changing the offset and pointer in the before entry.
 
 
-  \item[\csharpextend{int Observe(int key, int index)}]\hfill\\
+  \item[\csharpinline{int Observe(int key, int index)}]\hfill\\
   Observe just returns the address if it exists, or -1 if not.
 
-  \item[{\pbox[c][1.7\baselineskip][b]{\linewidth}{{\csharpextend{void SaveMetaData(int key, MetaData meta_data)}}}}]\hfill
+  \item[{\pbox[c][1.7\baselineskip][b]{\linewidth}{{\csharpinline{void SaveMetaData(int key, MetaData meta_data)}}}}]\hfill
 
   The keys have space for metadata, that can be loaded and saved.
 
-  \item[\csharpextend{MetaData LoadMetaData(int key)}]\hfill\\
+  \item[\csharpinline{MetaData LoadMetaData(int key)}]\hfill\\
   Load the metadata.
 
 \end{description}
@@ -772,11 +778,12 @@ call, defined in the \texttt{InterfaceFunction enum} on figure
 
     \begin{subfigure}[b]{0.45\textwidth}
 	\centering
-	 \begin{lstlisting}[language={[Sharp]C}]
+	 %\begin{lstlisting}[language={[Sharp]C}]
+\begin{mintedcsharp}
 enum InterfaceFunction : byte
 {
     INVALID = 0,
-//    BIND = 1,
+    // BIND = 1,
     LISTEN = 2,
     CONNECT = 3,
     ACCEPT = 4,
@@ -791,7 +798,9 @@ struct InterfaceData
     public uint ip;
     public byte protocol;
     public ushort port;
-}\end{lstlisting}
+}
+\end{mintedcsharp}
+%\end{lstlisting}
 
         \caption{Definitions of the structures used in the interface busses}
 	\label{fig:interfacefunction_code}
@@ -799,7 +808,8 @@ struct InterfaceData
 \hfill
     \begin{subfigure}[b]{0.45\textwidth}
 	\centering
-	 \begin{lstlisting}[language={[Sharp]C}]
+	 %\begin{lstlisting}[language={[Sharp]C}]
+\begin{mintedcsharp}
 interface InterfaceBus : IBus
 {
     bool valid;
@@ -815,7 +825,9 @@ interface InterfaceControlBus : IBus
     byte interface_function;
     InterfaceData request;
     InterfaceData response;
-}\end{lstlisting}
+}
+\end{mintedcsharp}
+%\end{lstlisting}
 	\caption{The definitions of the interface busses.}
 	\label{fig:interfacebus_code}
     \end{subfigure}

@@ -6,7 +6,8 @@ class MDCSharpLexer(CSharpLexer):
     name = 'MDCSharp'
     aliases = ['mdcsharp']
 
-    info = [('MetaData',Name,Keyword.Type)]
+    info = [('MetaData',Name,Keyword.Type),
+            ('InterfaceData',Name,Keyword.Type)]
 
 
     def get_tokens_unprocessed(self, text):
