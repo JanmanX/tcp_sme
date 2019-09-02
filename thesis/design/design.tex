@@ -369,9 +369,7 @@ Between each process, the colored block represents the state of the packet
 being passed along the processes. The red arrow indicated the first stage of
 the connection between processes, where data is passed from a previous layer.
 The blue line indicates the data that the process itself appends to the stream.\\
-The implementation of this out-of-order forwarding will be described in-depth
-in the implementation \autoref{chap:implementation}.
-\notelookup{Did it?}
+How this is achieved is discussed in the implementation \autoref{chap:implementation}.
 
 \begin{figure*}
     \centering
@@ -452,8 +450,8 @@ The first version of the stack should support the following functions:
 \item[\texttt{send(socket, byte, [ip], [port])}]\hfill\\
     Queues a byte for sending through the socket. An optional IP address and
     port can be specified in certain connectionless protocols.
-    Guaranteed to succeed, given that the transport-bus can be written to. More
-    on this discussed later. \notelookup{Did it?}
+    Guaranteed to succeed, given that the transport-bus can be written to.
+
 \item[\texttt{recv(socket)}]\hfill\\
     Reads (or "receives") a single byte from the socket. The appropriate error
     code is set if no byte available on that particular socket.

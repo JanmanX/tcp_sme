@@ -254,11 +254,8 @@ are the following: \notemark{Mention latency stuff}
     In \texttt{Data Out} we do not know how much data the user sends into
     the system. (see: \autoref{subsubsec:interface_control}). In
     \texttt{Segment Out} we do not know some of the packet sizes, since
-    \texttt{Transport} may not know how big the packet is going to be. For
-    example when constructing a packet that depends on information that is
-    unknown at the beginning of the passing state, but known later.
-    \notemark{Ask Jan}
-
+    \texttt{Transport} may not know beforehand how large the packet is going to
+    be.
 
     \item \textbf{Out-of-order submission}\\
     In Some cases the header of an packet can only be created after the data
