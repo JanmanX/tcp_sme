@@ -193,13 +193,29 @@ public override async Task OnTickAsync()
 
 
 \subsubsection{\texttt{Internet In} and \texttt{Transport} state machines}
-Unfortunately,
-The state-machine of \texttt{Internet In} is probably the most simple of all the
-state-machines, as it can effectively only read new packets from the Link-layer,
-and pass it along the pipeline. Although it might be desireable for the Internet
-layer to send control packets out to the network, this is not supported in the
-current build.\noteinfo{Mere angående transport state machine?}
+Both \texttt{Internet In}, and especially \texttt{Transport}, have multiple
+transitions in several states, making them a bit more complex compared to the
+\texttt{Internet Out} state-machine.\\
+The states, visualized on \autoref{fig:statemachines_internetin_transport}, do
+not carry out extraordinarily complex tasks, but the transition is
+quintessential for the correct execution. For example, if a process goes idle
+without de-asserting the \texttt{valid} flag on all buses, the subsequent
+processes might mistake the data for being valid, ensuring chaos in the
+system.\\
+Thus, state-changing "prologue" functions were an immense help to keep the
+environment clean, and maintain all buses in a correct state. The responsibility
+of such functions were:
+\begin{itemize}
+\item Reset all and open the appropriate buses required for the entering state.
+\item Reset and initialize all the global variables required for the correct
+operation of the state.
+\item Maintain the Interface Signal protocols (introduced in \autoref{sec:interface_signal_protocol})
+\item Actually update the variable containing the current state of the process.
+\end{itemize}
 
+The name of these functions usually start with "\texttt{Start...}", such as the
+\texttt{StartIdle()} and \texttt{StartReceive()} in the \texttt{Transport}
+process.
 
 
 \begin{figure*}[t]
