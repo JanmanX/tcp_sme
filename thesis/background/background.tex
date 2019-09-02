@@ -21,7 +21,9 @@ a collection of protocols specifying the communication between multiple
 Internet systems\cite{RFC1122}.  The very early research and development
 on what would later become the Internet Protocol Suite began in the late 1960s
 by the Defense Advanced Research Project Agency (DARPA), and was being
-adopted by DARPA, as well as the public, since 1983\cite{DARPA_internet}.
+adopted by DARPA,
+\noteinfo{Lyder lidt underligt}
+as well as the public, since 1983\cite{DARPA_internet}.
 Although the Internet Protocol Suite predates the newer, arguably more
 refined Open Systems Interconnection (OSI) model, TCP/IP still
 remains the popular choice in modern systems.  As opposed to OSI 7-layer
@@ -57,21 +59,23 @@ serial lines\cite{tia_232}, or perhaps the most well-known link-layer protocol,
 the Ethernet.
 
 \subsubsection{Ethernet (II) and IEEE 802.3}
-The collection of standards known under the term "Ethernet" are were originally
+The collection of standards known under the term "Ethernet" were originally
 developed by Xerox Corp. between year 1973 and 1974\cite{americanhistory_ethernet}
 \cite{tcpip_illustrated_vol1}. Version 2 of the protocol was published in 1982
 under the name Ethernet II, also known as DIX Ethernet, named after 3 companies
 participating in its design: DEC, Intel and Xerox\cite{heywood2001drew}.\\
-Seeing wide adoption of this standard, it has been formally standardized as by
+Seeing wide adoption of this standard, it has been formally standardized by
 the \gls{ieee} under the publication of IEEE 802.3 in
 1983\cite{ieee_8023_release}. Unfortunately, the original specification of
-Ethernet frame format deviate slightly from that of IEEE
+Ethernet frame format deviates slightly from that of IEEE
 802.3\cite{tcpip_illustrated_vol1}. \autoref{fig:ethernet_header} shows the
 layout of a standard Ethernet header. The \texttt{EtherType} field is used to
 indicate the type of the payload type, whereas it is used as \texttt{Length} in
 the IEEE 802.3. Fortunately, none of the valid \texttt{EtherType} values in
 conventional Ethernet are valid as \texttt{Length} in the 802.3 standard, and
-so the headers are easily distinguishable.\\
+so the headers are easily distinguishable.
+\noteinfo{Måske omformuler?}
+\\
 The divergent way of encapsulating IP datagrams is defined in RFC 894 for
 true Ethernet\cite{RFC0894} and RFC 1042 for IEEE 802 networks\cite{RFC1042}.
 
@@ -102,7 +106,7 @@ end-to-end principle, where the application-specific computation is located on
 the end nodes. It is often described as an "unreliable" protocol, as there are
 no guarantees that an IP datagram successfully arrives at the intended
 destination. By being connectionless, \gls{ip} does not maintain any
-information about the current state about the outgoing datagrams.
+information about the current state of the outgoing datagrams.
 As a consequence, \gls{ip} is a best effort service, in which the protocol does
 its best to deliver a packet without additional knowledge of the next steps in
 the network\cite{tcpip_illustrated_vol1}.\\
@@ -113,6 +117,7 @@ total users connecting to \url{www.google.com} using an IPv6 address by Jul
 30, 2019\cite{google_ipv6_adoption}. Despite the improvements that the new
 version provides, it has been proven to be a hard challenge to replace, update,
 and modify all the existing network devices to support this new protocol,
+\noteinfo{omformuler?}
 extending the life current version 4. In this thesis, only \gls{ipv4} will
 be considered.\\
 \gls{ipv4} provides two basic functions: addressing and fragmentation. By using
@@ -133,7 +138,7 @@ the packet header defines the offset of the data in the datagram with the
 		reliability\cite{tcpip_illustrated_vol1}\cite{RFC0791}.
 	\item \textbf{\gls{ttl}}\\
 	\gls{ttl} is an upper limit of how many routers a datagram is allowed
-		to pass. For every node visited, the \gls{ttl} is decremented,
+		to pass through. For every node visited, the \gls{ttl} is decremented,
 		and if the counter reaches $0$, the datagram is destroyed. This
 		ensures a reasonable routing by eliminating datagrams stuck in
 		loops\cite{RFC0791}.
@@ -141,8 +146,8 @@ the packet header defines the offset of the data in the datagram with the
 	Options can be added to the end of the header as a variable-list of
 		optional information. It can specify additional functionality
 		during the transmission, such as timestamping, routing options,
-		security restrictions etc.. However, since it is not required
-		to support Options in the \gls{ipv4} header, these are rarely
+		security restrictions etc. However, since it is not required
+		to support options in the \gls{ipv4} header, these are rarely
 		supported and used\cite{tcpip_illustrated_vol1}.
 	\item \textbf{Header Checksum}\\
 	To ensure the correct routing and handling of the IP datagram, the
@@ -206,7 +211,7 @@ The application layer protocols are used by applications and services to
 exchange information over the network. A few of the well-known application
 layer protocols are the \gls{http}\cite{RFC1945},
 \gls{ftp}\cite{RFC0114}, and \gls{smtp}\cite{RFC0788}.\\
-This layer is usually implemented by the user-space applications themselves, and
+This layer is usually implemented by the user-space applications, and
 therefore are not strictly required to actually run a TCP/IP network.
 
 
@@ -222,6 +227,7 @@ with any additional system, which the user incorporate for networking.\\
 A wide variety of hardware types exist for such independent system, such as
 \gls{asic}, \gls{cpld}, and \gls{fpga}. Some even contain multiple independent systems
 such as a \gls{soc}.
+\noteinfo{Måske også nævn Normale computere? CPU etc.}
 %\notecarl{Mark: SoC referer til et helt system, f.eks. et board, ikke en chip. En SoC har oftest en ASIC eller en FPGA. Senere refererer i til Zynq, som ganske rigtigt kan betragtes som en SoC, fordi den både har en ARM processor, en FPGA osv.}
 Each of these integrated circuits have their advantages and disadvantages; some
 of them are re-programmable, some are cheap and disposable, and some are excellent
@@ -288,7 +294,7 @@ replacements if problems are found after the fact.\cite{fpga_for_dummies}
 
 
 \subsection{Complex Programmable Logic Devices (CPLD)}
-\gls{cpld} are consists of a fully programmable AND/OR gate array and a set of
+\gls{cpld} consists of a fully programmable AND/OR gate array and a set of
 macrocells. Macrocells are units prefabricated with higher-level functionality,
 such as \gls{alu}s, registers, and flip-flops. Since these macrocells are
 pre-made by the manufacturer, they can be heavily optimized in regards to both
@@ -299,7 +305,7 @@ performance, but also power efficiency.\cite{xilinx_cpld}\\
 non-volatile since their programming is stored on \gls{eeprom}. This means that
 the programming is kept on power down, and the functionality is active as soon
 as the device is turned on\cite{xilinx_cpld}. However, some \gls{fpga}s also
-have this functionality, but does not depend on it.\\
+have this functionality.\\
 Unfortunately, with the introduction of the pre-made functionality in the
 macrocells, a bit of flexibility and extensibility is lost compared to
 \gls{fpga}. For instance, while it is easy to integrate \gls{fpga} with
@@ -332,7 +338,9 @@ circuitry,
 %\notecarl{Mark: Skal en CPU og GPU dog også}
 the FPGA must
 be programmed in such a way that all paths in the electrical wiring can be
-in any time-frame.\\
+in any time-frame.
+\noteinfo{Omformuler måske?}
+\\
 Due to this parallel nature of FPGAs, conventional programming languages are
 next to impossible to use. To define the behavior of an FPGA, Hardware
 Description Languages (HDL) are used. These programming languages are not easy
@@ -345,7 +353,7 @@ as Intellectual Property (IP) cores, and can provide the hardware designers
 with pre-made circuitry for a wide variety of functionality. While most IPs
 provide the functionality of processors for testing\cite{intel_ip_core_80186EC}
 on an FPGA, mp3 audio decoding or PCI bus interconnect can be obtained as
-well\cite{fpga_for_dummies}.
+well\cite{fpga_for_dummies} \noteinfo{Omformuler?}.
 
 
 

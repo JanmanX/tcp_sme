@@ -20,7 +20,7 @@ The extensibility of the network stack are to be tested by studying the effects
 of introducing new protocols to the stack. While the network stack should be
 able to be refined with new and custom protocols, it is to be studied which
 implications it has for the system. Mainly, it is to be seen how the addition
-of new protocols affect the performance, scalability, and viability of the
+of new protocols\noteinfo{Vi gjorde jo sådan set ikke det, slet?} affect the performance, scalability, and viability of the
 system.\\
 In the same vein, the design should be as FPGA-agnostic as possible. While this is
 mainly guaranteed by the SME framework used to develop the system, the underlying
@@ -52,6 +52,7 @@ The system must be controlled by an end-user on the FPGA. Such an interface is
 very unique in its own way, compared to standard software interfaces, like the
 ones defined in the POSIX collection of specifications. By supporting such an
 external interface gains insight in the way such a networking stack will be used,
+\noteinfo{Hvilke insights?}
 and which measures must be taken in order to provide the best possible integration
 and performance considerations.
 
@@ -78,7 +79,7 @@ or even another FPGA.
 \end{figure*}
 
 The initial architecture had a very simplistic approach to its design in order
-to aid with early identification of potential issues and problems.
+to aid with early identification of potential issues.
 The basic idea of the initial design is to minimize the number of memory
 operations carried out. Under the assumption that the Ethernet interface used in the network
 stack will likely have limited memory, everything needs to be copied directly to
@@ -97,7 +98,7 @@ fragmentation.
 \subsection{The issues}
 As anticipated, this initial design brought fourth the main issue fairly quickly
 in the implementation phase, where most of these stem from the differences in
-programming hardware as opposed to the software network stack, from which the
+programming hardware, as opposed to the software network stack, from which the
 inspiration was drawn.
 
 \subsubsection{Internal parsing buffer or memory is largely unavoidable}
@@ -128,12 +129,12 @@ to lessen the impact of these limitations, this hardly provides a good basis for
 a scalable design.
 
 \subsubsection{Data fragmentation and memory management}
-Another problem a unified address space in the global memory is how costly
+Another problem an unified address space in the global memory have, is how costly
 basic memory operations, such as moving or copying, become. The initial
 assumption that packets stored in memory could be reused by modifying them
-in-place and send them turned out to be misguided, since the layout, size, and
+in-place, and then send, turned out to be misguided, since the layout, size, and
 the number of the outgoing packets very rarely resemble the in-going packets.\\
-Furthermore, the general purposeness of the memory makes it very hard to
+Furthermore, the general purposeness\noteinfo{Er det et ord?} of the memory makes it very hard to
 structure. Without a very complex memory management, the memory will inevitably
 get fragmented, and keeping track of the packets will become difficult.
 
@@ -155,14 +156,14 @@ the performance.\\
 To avoid the problem with global memory, the data needs to "flow" through the
 components that need the data at that time. Therefore, as opposed to the initial
 design, where the link interface writes to memory directly, in the revised design,
-this connection is completely removed. The idea is to let all the data pass
-pass through each state, letting each stage parse the required information, and
+this connection is completely removed. The idea is to let all the data
+pass through each state, letting each stage\noteinfo{Stage or state?} parse the required information, and
 passing the rest to the next components.\\
 As seen on \autoref{fig:second_design}, the link interface, which
 provides the raw byte-stream from the network, is connected to all of the input
 parsing layers. The layers are connected in the order in which a network frame
 is parsed; link- to internet- to transport-layer. This approach aims to utilize
-the fact that the layers can act immediatelly upon the packets received directly
+the fact that the layers can act immediately upon the packets received directly
 from the source, avoid having to buffer the whole packet in each stage, as well
 as easing the logic required to buffer the data across the layers.\\
 This design starts by the Link Interface sending one byte at a time through its bus.
@@ -201,8 +202,8 @@ step for parsing the packet, and only send the datagram to the stack.
 
 
 \subsubsection{IPv4 fragmentation and out of order TCP packets}
-The chaotic nature of internet routing might cause packets to come out of order,
-or even get fragmented along the way. Since each layer parses the packet immediatelly
+The chaotic nature of internet routing might cause packets to arrive out of order,
+or even get fragmented along the way. Since each layer parses the packet immediately
 as it is written to the bus, it became a challenge for the layers to figure out
 what to do. On IPv4 fragmentation, if the second half of a dataframe arrived
 first, the Transport header would not be available to the Transport layer.
@@ -213,7 +214,7 @@ design is not able to handle the situation well.
 \subsubsection{TCP connection state sharing}
 With a clear separation between the "in" layers and the "out" layers, the
 Transport block had to be split as well. Unfortunately, unlike the other stateless
-layers, the transportl layer actually needs to keep track of the connections and
+layers, the transport layer actually needs to keep track of the connections and
 their states. On every segment received, the appropriate connection needs to be
 updated accordingly.\\
 In the TCP protocol, the connection state changes on both receiving and sending.
@@ -255,7 +256,7 @@ conventional processor pipelines, add a lot of complexity to the system.
 While it would be possible to work around these identified issues with the
 revised design in the code, the
 added complexity would have additional ramifications on the project as a whole.
-Upon further analysis of analysis, it is clear that the source of the issues is
+Upon further analysis, it became clear that the source of the issues was
 the parallel arrangement of the process blocks.
 
 \begin{figure}
@@ -304,6 +305,7 @@ the implementation \autoref{sec:interface_signal_protocol}.
 
 \subsection{Data buffers} \label{sec:data_buffers}
 Illustrated as cylinders on \autoref{fig:final_design}, First-In, First-Out (FIFO)
+\notemark{Not really FIFO, fix}
 buffers are introduced between each parsing process in order to control the data-flow
 between the layers. Apart from maintaining a fairly large memory bank through
 the block-RAM, these buffers also contain logic to store the incoming data
@@ -313,7 +315,7 @@ before leaving the buffer.
 However, introducing a new "type" of a process --- the buffers --- poses a new
 challenge. While the buffers can be read from at any time, the layer-parsing
 processes do not have this luxury, as they do not have any significant internal
-buffer. Here again it becomes obvious that a handshake protocol needs to be used
+buffer. This makes it obvious that a handshake protocol are needed
 in the bus-communication between the buffers and the processes.
 
 \subsubsection{Order of outgoing packets}
@@ -337,7 +339,7 @@ On the right side of \autoref{fig:sending_packet_order}, the data is sent
 from the last byte first, indicated by the left arrow from bottom
 up. Then, the
 transport-, internet-, and lastly, the frame-header is built and sent with it
-in the same order, from the last byte of the header till the first.
+in the same order, from the last byte of the header to the first.
 While this method is fairly simple, it has two problems that are hard to work
 around -- firstly, the user might be in the process of writing outgoing bytes
 to the \texttt{Data Out} buffer, in which case, Transport cannot beforehand
@@ -365,6 +367,7 @@ the connection between processes, where data is passed from a previous layer.
 The blue line indicates the data that the process itself appends to the stream.\\
 The implementation of this out-of-order forwarding will be described in-depth
 in the implementation \autoref{chap:implementation}.
+\notelookup{Did it?}
 
 \begin{figure*}
     \centering
@@ -379,7 +382,7 @@ in the implementation \autoref{chap:implementation}.
 
 \subsection{Interface}
 Lastly, the Interface is designed so that the end users and system can utilize
-and use the network stack.\\
+the network stack.\\
 The networking stack is controlled with 3 connections (consisting of bus-pairs):
 the control-, the read-, and the write-connection. While the last two connections
 are incredible simple and only transfer data from the \texttt{Data} buffers,
@@ -414,22 +417,21 @@ exposes fairly fine-tuned control over the whole network stack.
 
 \item Even with the relatively few functions exposed, the API
 has thrived in the most used systems as of now. It would be an understatement to
-say that the Berkeley Sockets API have stood the test of time, and therefore, it
+say that the Berkeley Sockets API have passed the test of time, and therefore, it
 is a good basis for the interface used in the network stack.
 
 \end{itemize}
-
 The first version of the stack should support the following functions:
 \begin{description}
 \item[\texttt{listen(protocol, port)}]\hfill\\
     Finds and initializes a free socket with the given protocol and port. This
-    socket is immediatelly put into listen mode.
-    Returns error if protocol is not supported, if port taken, or if no free sockets
+    socket is immediately put into listen mode.
+    Returns error if protocol is not supported, if port is taken, or if no free sockets
     are available.
-\item[\texttt{connect(protocol, ip, r\_port , l\_port)}]\hfill\\
+\item[\texttt{connect(protocol, ip, r\_port, l\_port)}]\hfill
     Connects to a remote endpoint on \texttt{ip:remote\_port} using \texttt{protocol}.
     This call is used mainly by connection-based protocols that need to
-    establish a connection before exchangning data, although it can also be used
+    establish a connection before exchanging data, although it can also be used
     by datagram-based protocols as a way of setting the default destination to
     send subsequent data to.
     Returns error if protocol is not supported, if no free sockets are available,
@@ -447,7 +449,7 @@ The first version of the stack should support the following functions:
     Queues a byte for sending through the socket. An optional IP address and
     port can be specified in certain connectionless protocols.
     Guaranteed to succeed, given that the transport-bus can be written to. More
-    on this discussed later.
+    on this discussed later. \notelookup{Did it?}
 \item[\texttt{recv(socket)}]\hfill\\
     Reads (or "receives") a single byte from the socket. The appropriate error
     code is set if no byte available on that particular socket.
@@ -465,9 +467,9 @@ technical and practical reasons.\\
 The function \texttt{socket()} is mainly used to allocate and create new sockets
 in an environment, but given that the hardware network stack has static allocation
 of the sockets, it is not needed.\\
-Additionaly, the \texttt{bind()} function is also missing for the sole reason
+Additionally, the \texttt{bind()} function is also missing for the sole reason
 that in the current implementation of the network stack does not have any valid
-reason not to bind a socket immediatelly.
+reason not to bind a socket immediately.
 
 
 

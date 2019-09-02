@@ -1,7 +1,7 @@
 \chapter{Introduction}
 % 1. general introduction
 This thesis describes the design and implementation of an efficient, high-speed
-TCP/IP network stack intended to run on custom hardware where performance, responsiveness,
+TCP/IP network stack intended to run on custom hardware where performance, responsiveness
 and throughput is crucial.\\
 
 % 2. Explanation of specific problem
@@ -13,7 +13,7 @@ of information, the data needs to be transmitted to numerous other machines for
 further processing, or even simply storage. The most common and the most convenient
 way of linking multiple devices together is using the internet, and its underlying
 protocols. However, the networking stack supplied with most major operating
-systems, while heavily optimised, suffers from considerable penalties due to
+systems, while heavily optimized, suffers from considerable penalties due to
 complexities of a standard computer architecture. For example, heavy network
 traffic utilizes the computers' internal busses, utilizes the memory, and spend
 precious \gls{cpu} clock-cycles with polling and interrupts. This
@@ -35,12 +35,14 @@ Licensed software solutions in the form of IP blocks exist as well
 these blocks are usually distributed as black-boxes of \gls{vhdl}
 code, which is hard to maintain, and even harder to debug and
 extend\cite{opencores_mission}.  Additionally, these IP blocks or
-"cores" are exceptionaly expensive for smaller design teams, making
+"cores" are exceptionally expensive for smaller design teams, making
 it nearly impossible to prototype hardware designs with limited
-funding\cite{opencores_mission}. Multiple networking IP cores exist gratis for
+funding\cite{opencores_mission}. Multiple networking IP cores exist gratis
+\noteinfo{Skal vi stallman'e det?}
+for
 non-commercial use, but use for these is very limited by that nature.
-Buying a licence for such IP cores is not an easy task either, as the
-prices of the licences are rarely listed on the vendor sites, and the
+Buying a license for such IP cores is not an easy task either, as the
+prices of the licenses are rarely listed on the vendor sites, and the
 sales departments have to be contacted for a custom quotation. It is
 also common to either require a lawyer to verify and sign the excessive
 license agreements, or having to sign up for memberships of various
@@ -71,10 +73,10 @@ This network stack has been implemented in C++ using the Vivado High-Level
 Synthesis compiler, generating the underlying \gls{rtl} model, greatly increasing
 the programmer productivity.
 To achieve performance in the \gls{hls} C++ language, special loop pipelining and
-loop unrolling annotiations are used to transform loops from conventional
+loop unrolling annotations are used to transform loops from conventional
 sequentially-executed loops to fully parallel loops\cite{xilinx_loop_unrolling}.
 These annotations are not a part of the core C++ language, and they cannot be
-added generated automatically without the risk of creating race conditions and
+added automatically without the risk of creating race conditions and
 other bugs. Still, the information about the loop unrolling has to be
 written by the programmer, and the performance of the finished product
 relies solely on the ability of the programmer to use the correct parameters

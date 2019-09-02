@@ -4,6 +4,7 @@ In this chapter, the implementation of the network stack using the
 pipelined design from \autoref{chap:design} is outlined and described,
 the application of SME detailed and evaluated, and lastly, the viability
 of the system on an FPGA is discussed.\\
+
 The network stack is implemented in C\# using the C\# version of SME, which is,
 at the moment of writing, more mature and feature-rich. The current version of
 the implementation supports most of the absolutely vital parts of the IPv4
@@ -22,7 +23,7 @@ The processes are arguably the most vital part of the system, as they provide
 the computation and "processing" on the in- and out-going packets.
 It is important to note that although there are many other types of "processes",
 in the network, such as the buffers, we will mainly refer to the modules doing
-actual business-logic as "processes" \footnote{These processes are not to be
+actual business-logic as "processes" \notelookup{Did we?} \footnote{These processes are not to be
 confused with SME processes, which are used for the implementation of both the
 buffers and processes.}.
 
@@ -32,7 +33,7 @@ the \autoref{fig:final_design}. These processes are \texttt{Internet\_In},
 
 
 \subsection{State-machines}
-Network communication can consists of countless different packets, formats,
+Network communication consists of countless different packets, formats,
 protocols, combinations of flags and settings, and even errors and corrupted
 bits. The processes in the network have to take on a manifold of jobs in order
 to handle all these scenarios, which sadly cannot be handled with a simple
@@ -59,7 +60,7 @@ execute other tasks while waiting for resources, such as functions,
 to return. In this case, this asynchronous feature is used to give
 the programmer ability to split the function into multiple segments,
 separated by the clock signal.\\
-Figure \autoref{fig:example_fsm} compares these two approaches for the same
+\autoref{fig:example_fsm} compares these two approaches for the same
 finite state-machine with 3 consequtive states.
 
 The "synchronous" approach using a \texttt{SimpleProcess} in subfigure
@@ -197,7 +198,7 @@ The state-machine of \texttt{Internet In} is probably the most simple of all the
 state-machines, as it can effectively only read new packets from the Link-layer,
 and pass it along the pipeline. Although it might be desireable for the Internet
 layer to send control packets out to the network, this is not supported in the
-current build.
+current build.\noteinfo{Mere angående transport state machine?}
 
 
 
@@ -225,24 +226,26 @@ the memory buffers.\\
 All of the buffers needs to handle input and output of
 memory at the same time. If not, the system would slow down by a factor of two,
 since the input would need to wait for the output to finish submitting, and
-vice versa. This requires the underlying memory to handle read and write at the
-same time. \\
-Each of the memory buffers have slightly different variations. In general, there
-are several problems to solve:
+vice versa. This requires the underlying memory to handle read and write in
+parallel. \\
+Each of the memory buffers have slightly different variations because
+there are different problems to solve in all of them. In general, the problems
+are the following: \notemark{Mention latency stuff}
 
 \begin{itemize}
-    \item \textbf{Fragmentation}\\
+    \item \textbf{Fragmentation/Segmentation}\\
     In \texttt{Segment In} and \texttt{Data In} there are segmentation. In
     \texttt{Segment In} IP fragments may arrive out of order, and is therefore only
     sent through the system when all segments are received. \texttt{Data In} is
     essentially the same, just with other protocols such as TCP.\\
     In both cases we want the order to be concurrent. Packets that are not
-    fragmented is in FIFO order. Fragmented packets in \texttt{Segment In} are
+    segmented is in FIFO order. Segmented packets in \texttt{Segment In} are
     held back, until all segments are received. Then all data segments are sent
     as a single block to \texttt{Transport}. In \texttt{Data In}, the segments are
     handled as a stream, where the last valid segment ID is known. The buffer
-    only sends data when the last valid segment is set. This way, the buffer
-    can contain segments with an higher ID than the valid, and know not to send it.
+    only sends data when the last valid segment is updated. This way, the buffer
+    can contain segments with an higher ID than the valid, and only send the ones
+    that are smaller than the currently valid ID.
 
 
     \item \textbf{Unknown size}\\
@@ -251,19 +254,20 @@ are several problems to solve:
     In \texttt{Data Out} we do not know how much data the user sends into
     the system. (see: \autoref{subsubsec:interface_control}). In
     \texttt{Segment Out} we do not know some of the packet sizes, since
-    \texttt{Transport} may not know how big the packet is going to be, for
-    example when constructing an response packet.
+    \texttt{Transport} may not know how big the packet is going to be. For
+    example when constructing a packet that depends on information that is
+    unknown at the beginning of the passing state, but known later.
+    \notemark{Ask Jan}
 
 
     \item \textbf{Out-of-order submission}\\
     In Some cases the header of an packet can only be created after the data
     has been received. An example of this is the calculation of the checksum.\\
     This feature is required on \texttt{Frame In} and \texttt{Frame Out}.
-    This only applies to buffers where data is sent out and where calculations
-    are done.
+    This only applies to buffers where data is sent out of the network stack.
 
     \item \textbf{Data ready}\\
-    When The buffer indicates that data is ready to be read, the next clock
+    When the buffer indicates that data is ready to be read, the next clock
     should also be ready and contain data. If not, the consumer would request
     data, wait at least 2 clocks for the data, and then request new data,
     slowing down the data transfer process significantly.
@@ -312,9 +316,9 @@ See \autoref{subsec:memory_types}.
 The memory segment structures consists of two types with slightly different
 implementations. These are called Multi memory segments and Single memory
 segments.
-\\Their differences are explained in the end of this section.\\
-Both types consists of an lookup table, where each table entry contains the
-meta data and head and tail pointers. A Illustration of this can be seen in
+\\Their differences are explained at the end of this section.\\
+Both types consists of an lookup table, where each table entry contains
+metadata, head and tail pointers. A Illustration of this can be seen in
 \autoref{fig:memory_segments_explained}\\
 In the implementation, the memory is not actually read, but an address is
 returned. This makes it possible to use any memory type, since the latency issues
