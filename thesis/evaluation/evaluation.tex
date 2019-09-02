@@ -3,12 +3,13 @@
 %\noteinfo[inline]{Remember to describe that we could not get the network stack down on the FPGA}
 \section{Setup}
 In the initial stages of testing, the components had simulation processes between
-block. This made it possible to implement different blocks of the system
+each modules. This made it possible to implement different modules of the system
 independent of each other.\\
+
 These tests were changing a lot because the initial design was not
 reached.
 When the modules were done, they were wired together and a simulator
-was created to handle all input and output of the system.
+was created to handle all input and output of the network stack.
 
 \subsection{Graph file simulator}
 \begin{figure*}%[!ht]
@@ -52,7 +53,7 @@ was created to handle all input and output of the system.
     \caption{The different node types in the simulation graph}
     \label{fig:packet_dot_files}
 \end{figure*}%
-The graph simulator is an abstract structure for easily composition and
+The graph file simulator is an abstract structure for easily composition and
 illustrations of simulations in the system. The system can be boiled down
 to inputs(sources) and output(sinks). The code is deterministic, since the same
 combination of input and output signals would result in the exact same internal
@@ -93,7 +94,7 @@ vertex with outgoing edges to that vertex needs to be \texttt{Done}.\\
         \end{tabular}
     \end{center}
     \caption{The different states of the nodes, and their respective colors
-    used for illustration} \label{tab:graph_node_states}
+    used for illustration.} \label{tab:graph_node_states}
   \end{table}
 }\\
 Each vertex have their own type, defining what input source or output sink to
@@ -107,11 +108,11 @@ There are two sinks getting data from the system
 Data out(\subref{fig:packet_graph_dataout}) and
 Receive(\subref{fig:packet_graph_receive}).
 The node type Wait(\subref{fig:packet_graph_wait}) is special, since
-it does not use a input or a sink. It simply counts down each clock, until it's
+it does not use an input or a sink. It simply counts down each clock, until its
 counter reaches zero.\\
 Since there only exist one of each input source and output sink (except Wait),
 the simulator can only work on one vertex of each type at a time.
-In graphs where there are multiple ready vertexes of same type, the vertex with
+In graphs that consists of multiple ready vertexes of same type, the vertex with
 the lowest ID are focused on first. When a vertex is focused, it is set as
 \texttt{Active}.\\
 When the vertex is finished, it is set to \texttt{Done}.
@@ -156,8 +157,8 @@ Unfortunately, our code does not compile into \gls{vhdl}.
 To test the system we recorded a setup of packets containing both \gls{udp} and
 \gls{tcp} packets, with focus on the \gls{udp} packets. There are three
 \gls{udp} connections, and three \gls{tcp} connections. Two of the \gls{udp}
-connections contain valid ports(6543,6789) and one contains an invalid port (3456).\\
-Each of the valid udp connections where hardcoded into the test, so there where no
+connections contain valid ports (6543,6789) and one contains an invalid port (3456).\\
+Each of the valid \gls{udp} connections where hardcoded into the test, so there where no
 need for command blocks(\autoref{fig:packet_graph_command}).
 In the illustration at \autoref{fig:graph_simulation_running_examples} the
 same test is run, but with only $4*2$ good \gls{udp} packets, $4$ bad, and
@@ -198,7 +199,7 @@ When possible, processes will pass the data straight ahead. For example, the
 the \texttt{Segment Out}, and then send the header. The passing state happens
 while reading from the buffer. This only adds two clock cycles of delay between
 \texttt{Data Out} and \texttt{Segment out}.
-In the following cases, we assume simple system where either only packets are
+In the following cases, we assume a simple system where either only packets are
 being sent, or packets are being received.
 
 \subsubsection{From Recive to Data In}
