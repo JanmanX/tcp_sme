@@ -90,7 +90,7 @@ layer also connects to the subsequent layer in order to flag when the subsequent
 layer should start listening on the data-bus (that is, where the current packet
 header stops and the next header begins).\\
 An advantage that this design provided was the cetralized memory, which is much
-easier to up-scale in terms of capacity and bandwidth. This global memory would
+easier to scale up in terms of capacity and bandwidth. This global memory would
 also be able to modify packets in-place, removing duplicate data, minimizing the
 need to copy data around, and making it easier to keep track of the memory
 fragmentation.
@@ -197,6 +197,7 @@ perform operations such as error check using cyclic redundancy check, de-noising
 timeslot management, etc.
 Likewise, the Pmod NIC100 Ethernet interface has built-in controller with
 internal memory suited for buffering the incoming packets\cite{microchip_enc424j600}.
+This module is mentioned because it is used later in the project. See \autoref{subsec:hardware_integration}.
 This memory, apart from the cyclic redundancy check, can be used as the initial
 step for parsing the packet, and only send the datagram to the stack.
 
@@ -334,6 +335,7 @@ passing a packet along the network stack.
     \includegraphics[width=\linewidth]{design/sending_packet_order.eps}
     \caption{Possible orders of ways of building an outgoing packet}
     \label{fig:sending_packet_order}
+    \notejan[inline]{Synes du forklaringen af denne metode er OK?}
 \end{figure}
 On the right side of \autoref{fig:sending_packet_order}, the data is sent
 from the last byte first, indicated by the left arrow from bottom
@@ -384,7 +386,7 @@ in the implementation \autoref{chap:implementation}.
 Lastly, the Interface is designed so that the end users and system can utilize
 the network stack.\\
 The networking stack is controlled with 3 connections (consisting of bus-pairs):
-the control-, the read-, and the write-connection. While the last two connections
+the write-, the read-, and the control-connection. While the first two connections
 are incredible simple and only transfer data from the \texttt{Data} buffers,
 the last connection controls the whole network-stack.
 
