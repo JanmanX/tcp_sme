@@ -1,3 +1,4 @@
+\pdfminorversion=7
 \documentclass[11pt, twocolumn]{report}
 \usepackage[a4paper, hmargin={2.8cm, 2.8cm}, vmargin={2.5cm, 2.5cm}]{geometry}
 %\usepackage[T1]{fontenc}
@@ -127,15 +128,20 @@ breaklines
 %%% Macros
 % easier figure
 % usage: \pic{width}{image}{caption}{label}
-\newcommand\pic[4]{% these comment signs will prevent the introduction of spurious spaces
-  \begin{figure}[h!]
-  \centering
-  \includegraphics[width=#1]{#2}
-  \caption{#3}
-  \label{#4}
-  \end{figure}
-}
+% \newcommand\pic[4]{% these comment signs will prevent the introduction of spurious spaces
+%   \begin{figure}[h!]
+%   \centering
+%   \includegraphics[width=#1\textwidth]{#2}
+%   \caption{#3}
+%   \label{#4}
+%   \end{figure}
+% }
 
+
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\@combinedblfloats{\box\@outputbox}{\unvbox\@outputbox}{}{\errmessage{\noexpand patch failed}}
+\makeatother
 
 
 
@@ -290,8 +296,9 @@ Jacobi, Mark Jan\\%
 
 \onecolumn
 \newpage
-\bibliography{bib}{}
+
 \bibliographystyle{ieeetr}
+\bibliography{bib}{}
 
 
 \end{document}
