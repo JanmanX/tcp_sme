@@ -308,7 +308,7 @@ the implementation \autoref{sec:interface_signal_protocol}.
 
 \subsection{Data buffers} \label{sec:data_buffers}
 Illustrated as cylinders on \autoref{fig:final_design}, First-In, First-Out (FIFO)
-\notemark{Not really FIFO, fix}
+%\notemark{Not really FIFO, fix}
 buffers are introduced between each parsing process in order to control the data-flow
 between the layers. Apart from maintaining a fairly large memory bank through
 the block-RAM, these buffers also contain logic to store the incoming data
@@ -337,7 +337,7 @@ passing a packet along the network stack.
     \includegraphics[width=\linewidth]{design/sending_packet_order.eps}
     \caption{Possible orders of ways of building an outgoing packet}
     \label{fig:sending_packet_order}
-    \notejan[inline]{Synes du forklaringen af denne metode er OK?}
+    %notejan[inline]{Synes du forklaringen af denne metode er OK?}
 \end{figure}
 On the right side of \autoref{fig:sending_packet_order}, the data is sent
 from the last byte first, indicated by the left arrow from bottom
