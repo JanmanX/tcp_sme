@@ -2,7 +2,7 @@
 \label{chap:discussion}
 The intent of this project was not only to implement an efficient, high-speed,
 and responsive TCP/IP stack, but also to test the viability of \gls{sme} for
-this types of projects. In this chapter, the results from the tests are
+this type of project. In this chapter, the results from the tests are
 investigated, the viability of the networking stack is discussed, and the usage
 of SME for this project is examined.
 
@@ -107,7 +107,7 @@ protocol-specific handshakes and other operations. Finding a way of getting
 around this congestion, it should be possible to parallelize the system for
 better performance.
 
-By replicating the networking stack and assign a unique IP address to each, it
+By replicating the networking stack and assigning a unique IP address to each, it
 should be possible to create a "Load Distributor", distributing the packets
 across multiple networking stacks. \autoref{fig:design_stacked} shows a
 prototype design, where the inner part of the networking stack is duplicated on
@@ -133,8 +133,8 @@ whether the project can bring any value to the user.
 The intended usage of the networking stack is to be integrated with existing
 FPGA hardware in order add networking capability to a system. These systems
 range from simple embedded \gls{iot} devices to large \gls{nic} cards.\\
-Although it is possible to connect an SME project with other VHDL projects, it
-is much more straight-forward to add the networking code directly into an SME
+Although it is possible to connect a SME project with other VHDL projects, it
+is much more straight-forward to add the networking code directly into a SME
 project.\\
 For instance, other SME projects, such as the "High Throughput Image Processing in X-ray
 Imaging" developed by Troels Skjøttgaard Ynddal\cite{troels}, which does
@@ -142,9 +142,9 @@ real-time image processing on x-ray images, could benefit from a network stack
 by sending the processed images to a server for further analysis and backup.
 
 \subsection{Existing solutions}
-Sadly, the developed networking stack could not be brought onto an \gls{fpga},
+Sadly, the developed networking stack could not be brought onto a \gls{fpga},
 making the comparison to existing solutions difficult.
-In theory, if the networking stack worked on an FPGA, it would bring little to
+In theory, if the networking stack worked on a FPGA, it would bring little to
 no runtime advantages over existing FPGA TCP/IP stacks, such as the
 Xilinx 10Gbps TCP/IP Stack\cite{sidler2016lowlatencytcp}.
 However, the networking stack is easily extensible and modular. The design
@@ -276,7 +276,7 @@ the current state.}
 \label{fig:fsm_prestates}
 \end{figure}
 
-The first identified issue was that most processes need to run certain checks on the
+The first identified issue was that most processes need to run certain checks at the
 start of each clock cycle, such as checking the validity of the busses,
 ensuring that there were no errors in the data-stream, maintain a bus signal
 protocol, or make sure that some other limitations are met.
@@ -294,7 +294,7 @@ the length of the "code-path", but it avoids a lot of repetition in the code.
 \subsubsection{Complicated state changes}
 Another common issue with modelling state-machines with \gls{sme} was certain
 state-changes. In situations where a process is executing the last cycle of a
-state that writes to some bus, a state-change is often desired in the end.
+state that writes to a bus, a state-change is often desired in the end.
 However, most state-transitions need to do some cleanup, for instance resetting
 variables or re-initialize busses. If this cleanup happens in the same clock as
 the last byte is written to the bus, this value will never arrive at the other
@@ -306,7 +306,7 @@ While this solution worked fine, the code itself was identical across processes
 with this issue, and re-implementing was cumbersome and error-prone.
 
 \subsection{Bugs and other lesser issues}
-The\gls{sme} framework has been surprisingly stable, albeit with a few minor
+The \gls{sme} framework has been surprisingly stable, albeit with a few minor
 bugs. Although most of these issues are being fixed at the time of writing,
 they were still a noticeable hindrance during development:
 \begin{itemize}

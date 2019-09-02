@@ -193,7 +193,7 @@ There are several factors when calculating the latency of the system.
 \end{description}
 When a packet is propagating through the system, most
 of the latency comes from the buffers. All processes that connects
-to a buffer, does work, and submits to a buffer works on the data in real time.
+to a buffer, does work, and submits to a buffer.
 When possible, processes will pass the data straight ahead. For example, the
 \texttt{Transport} process will first pass the data from \texttt{Data Out} to
 the \texttt{Segment Out}, and then send the header. The passing state happens

@@ -157,13 +157,13 @@ for incorporation can be seen on \autoref{fig:firewall_integration_design},
 where the parsing processes send information to the firewall, and the firewall
 in turn shares its decision with the consequent buffer. This way, the parsing
 process has to add all the parsed fields in the bus, and the firewall can mark
-the current packet in the bus if it needs to be removed.\\
+the current packet in the bus should it need to be removed.\\
 The main tasks to implement firewall into the networking stack are:
 \begin{itemize}
 \item \textbf{The bus connection and protocol}\\
 The first task is to create the busses for the communication, and to agree on
 a signal protocol. Since only one data-transaction with the header info is
-needed for each packet, this should not pose a too big of a challenge.
+needed for each packet, this should not pose too big of a challenge.
 
 \item \textbf{Connection and packet identification}\\
 The networking stack relies on multiple methods of identifying packets.
