@@ -93,11 +93,11 @@ public class SomeProcess : StateProcess
 {
   private override async Task OnTickAsync()
   {
-    // A
+    a();
     await ClockAsync();
-    // B
+    b();
     await ClockAsync();
-    // C
+    c();
     await ClockAsync();
   }
 }
@@ -193,7 +193,7 @@ public override async Task OnTickAsync()
 
 
 \subsubsection{\texttt{Internet In} and \texttt{Transport} state machines}
-Unfortunately,
+Unfortunately\notelookup{Hvorfor "Unfortunately"},
 The state-machine of \texttt{Internet In} is probably the most simple of all the
 state-machines, as it can effectively only read new packets from the Link-layer,
 and pass it along the pipeline. Although it might be desireable for the Internet
