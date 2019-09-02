@@ -49,6 +49,7 @@
 
 %Footnote setup
 %\counterwithout*{footnote}{chapter}
+\interfootnotelinepenalty=10000
 
 %Hyperref setup
 \pdfstringdefDisableCommands{%
@@ -179,10 +180,10 @@ citebordercolor=lightgreen,
 
 % XXX: This is voodo magic to make it work on "some" computers
 % https://github.com/ho-tex/hyperref/issues/19
-\usepackage{etoolbox}
-\makeatletter
-\patchcmd\@combinedblfloats{\box\@outputbox}{\unvbox\@outputbox}{}{\errmessage{\noexpand patch failed}}
-\makeatother
+% \usepackage{etoolbox}
+% \makeatletter
+% \patchcmd\@combinedblfloats{\box\@outputbox}{\unvbox\@outputbox}{}{\errmessage{\noexpand patch failed}}
+% \makeatother
 
 
 
@@ -283,7 +284,7 @@ Jacobi, Mark Jan\\%
 \newpage
 
 % Notes, uncomment in release report
-\input{notes.tex}
+%\input{notes.tex}
 
 
 \twocolumn
