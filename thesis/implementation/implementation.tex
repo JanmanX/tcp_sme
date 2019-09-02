@@ -245,24 +245,27 @@ since the input would need to wait for the output to finish submitting, and
 vice versa. This requires the underlying memory to handle read and write in
 parallel. \\
 Each of the memory buffers have slightly different variations because
-there are different problems to solve in all of them. In general, the problems
-are the following: \notemark{Mention latency stuff}
+there are different issues to solve in all of them. In general, the issues
+are as follows: \notemark{Mention latency stuff}
 
 \begin{itemize}
-    \item \textbf{Fragmentation/Segmentation}\\
-    In \texttt{Segment In} and \texttt{Data In} there are segmentation. In
-    \texttt{Segment In} IP fragments may arrive out of order, and is therefore only
-    sent through the system when all segments are received. \texttt{Data In} is
-    essentially the same, just with other protocols such as TCP.\\
-    In both cases we want the order to be concurrent. Packets that are not
-    segmented is in FIFO order. Segmented packets in \texttt{Segment In} are
-    held back, until all segments are received. Then all data segments are sent
-    as a single block to \texttt{Transport}. In \texttt{Data In}, the segments are
-    handled as a stream, where the last valid segment ID is known. The buffer
-    only sends data when the last valid segment is updated. This way, the buffer
-    can contain segments with an higher ID than the valid, and only send the ones
-    that are smaller than the currently valid ID.
+\item \textbf{Fragmentation}\\
+    An incoming IPv4 datagram might arrive in multiple
+fragments. All fragments need to arrive intact before the buffer can pass the
+combined datagram along for further processing. Luckily, there can only be a
+limited number of fragments in an IPv4 datagram, adding up to a total of 65,535
+bytes.
 
+\item \textbf{Segmentation}\\
+Segments can arrive out-of-order. Certain protocols, such as the \gls{tcp},
+require the segments to be ordered prior to presenting the stream to the
+Application layer.
+In this case, the buffer needs to keep track of the current location in the
+data-stream, and only pass data along when the next byte is available in the
+stream. Unlike with IPv4 fragmentation, the buffer does not have to wait for a
+certain number of segments to arrive.\\
+Fortunately, this issue can be solved using the same methods as fragmentation,
+and will be referred as simply "fragmentation" in this chapter.
 
     \item \textbf{Unknown size}\\
     Some of the buffers do not get information about how much data has to be
@@ -274,7 +277,7 @@ are the following: \notemark{Mention latency stuff}
     be.
 
     \item \textbf{Out-of-order submission}\\
-    In Some cases the header of an packet can only be created after the data
+    In some cases the header of an packet can only be created after the data
     has been received. An example of this is the calculation of the checksum.\\
     This feature is required on \texttt{Frame In} and \texttt{Frame Out}.
     This only applies to buffers where data is sent out of the network stack.
@@ -286,7 +289,7 @@ are the following: \notemark{Mention latency stuff}
     slowing down the data transfer process significantly.
 
 \end{itemize}
-An oversight of this can be seen in \autoref{tab:buffer_requirements}.\\
+An overview of this can be seen in \autoref{tab:buffer_requirements}.\\
 \begin{table}[htpb]
   \begin{center}
       \begin{tabular}{l|c|c|c|c|}
