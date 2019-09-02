@@ -20,7 +20,7 @@ The extensibility of the network stack are to be tested by studying the effects
 of introducing new protocols to the stack. While the network stack should be
 able to be refined with new and custom protocols, it is to be studied which
 implications it has for the system. Mainly, it is to be seen how the addition
-of new protocols\noteinfo{Vi gjorde jo sådan set ikke det, slet?} affect the performance, scalability, and viability of the
+of new protocols affect the performance, scalability, and viability of the
 system.\\
 In the same vein, the design should be as FPGA-agnostic as possible. While this is
 mainly guaranteed by the SME framework used to develop the system, the underlying
@@ -50,11 +50,13 @@ they must not deviate from the standard specifications.
 \item \textbf{Support an interface for the end-user}\\
 The system must be controlled by an end-user on the FPGA. Such an interface is
 very unique in its own way, compared to standard software interfaces, like the
-ones defined in the POSIX collection of specifications. By supporting such an
-external interface gains insight in the way such a networking stack will be used,
-\noteinfo{Hvilke insights?}
-and which measures must be taken in order to provide the best possible integration
-and performance considerations.
+ones defined in the POSIX collection of specifications.
+By implementing such an external interface can paint a better picture of the
+usage patterns of the system, the usability of the stack, and possible
+integrations with other systems.\\
+Furthermore, this interface itself might impose certain restrictions on the
+system, be it throughput or latency. As such, it is an important factor to
+consider during development.
 
 \item \textbf{Independent of underlying physical hardware}\\
 By using SME, the underlying hardware description language code can be abstracted
@@ -134,7 +136,7 @@ basic memory operations, such as moving or copying, become. The initial
 assumption that packets stored in memory could be reused by modifying them
 in-place, and then send, turned out to be misguided, since the layout, size, and
 the number of the outgoing packets very rarely resemble the in-going packets.\\
-Furthermore, the general purposeness\noteinfo{Er det et ord?} of the memory makes it very hard to
+Furthermore, the universality of the memory makes it very hard to
 structure. Without a very complex memory management, the memory will inevitably
 get fragmented, and keeping track of the packets will become difficult.
 
@@ -157,7 +159,7 @@ To avoid the problem with global memory, the data needs to "flow" through the
 components that need the data at that time. Therefore, as opposed to the initial
 design, where the link interface writes to memory directly, in the revised design,
 this connection is completely removed. The idea is to let all the data
-pass through each state, letting each stage\noteinfo{Stage or state?} parse the required information, and
+pass through each state, enabling each to parse the required information, and
 passing the rest to the next components.\\
 As seen on \autoref{fig:second_design}, the link interface, which
 provides the raw byte-stream from the network, is connected to all of the input

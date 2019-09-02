@@ -73,8 +73,7 @@ layout of a standard Ethernet header. The \texttt{EtherType} field is used to
 indicate the type of the payload type, whereas it is used as \texttt{Length} in
 the IEEE 802.3. Fortunately, none of the valid \texttt{EtherType} values in
 conventional Ethernet are valid as \texttt{Length} in the 802.3 standard, and
-so the headers are easily distinguishable.
-\noteinfo{Måske omformuler?}
+so, the headers are easily distinguishable.
 \\
 The divergent way of encapsulating IP datagrams is defined in RFC 894 for
 true Ethernet\cite{RFC0894} and RFC 1042 for IEEE 802 networks\cite{RFC1042}.
@@ -116,10 +115,10 @@ being replaced by the newer \gls{ipv6}, with an adoption rate of over $29\%$
 total users connecting to \url{www.google.com} using an IPv6 address by Jul
 30, 2019\cite{google_ipv6_adoption}. Despite the improvements that the new
 version provides, it has been proven to be a hard challenge to replace, update,
-and modify all the existing network devices to support this new protocol,
-\noteinfo{omformuler?}
-extending the life current version 4. In this thesis, only \gls{ipv4} will
-be considered.\\
+and modify all the existing network devices to support this new version of the
+protocol. As such, the current version 4 will still be used in the foreseeable
+future, and in this thesis, only \gls{ipv4} will be considered.\\
+
 \gls{ipv4} provides two basic functions: addressing and fragmentation. By using
 32-bit addresses located as one of the last fields in the header on
 \autoref{fig:ipv4_header}, the nodes use the destination address to transmit
@@ -227,7 +226,7 @@ with any additional system, which the user incorporate for networking.\\
 A wide variety of hardware types exist for such independent system, such as
 \gls{asic}, \gls{cpld}, and \gls{fpga}. Some even contain multiple independent systems
 such as a \gls{soc}.
-\noteinfo{Måske også nævn Normale computere? CPU etc.}
+% \noteinfo{Måske også nævn Normale computere? CPU etc.}
 %\notecarl{Mark: SoC referer til et helt system, f.eks. et board, ikke en chip. En SoC har oftest en ASIC eller en FPGA. Senere refererer i til Zynq, som ganske rigtigt kan betragtes som en SoC, fordi den både har en ARM processor, en FPGA osv.}
 Each of these integrated circuits have their advantages and disadvantages; some
 of them are re-programmable, some are cheap and disposable, and some are excellent
@@ -351,10 +350,10 @@ can be hard to understand for average developers.\\
 To simplify the development process, most manufacturers offer predefined
 circuits along their FPGAs. These predefined circuits are more commonly known
 as Intellectual Property (IP) cores, and can provide the hardware designers
-with pre-made circuitry for a wide variety of functionality. While most IPs
-provide the functionality of processors for testing\cite{intel_ip_core_80186EC}
-on an FPGA, mp3 audio decoding or PCI bus interconnect can be obtained as
-well\cite{fpga_for_dummies} \noteinfo{Omformuler?}.
+with pre-made circuitry for a wide variety of functionality. While some IP
+cores provide the functionality of \gls{cpu}s for
+testing\cite{intel_ip_core_80186EC}, mp3 audio decoding and PCI bus
+interconnect can be obtained as well\cite{fpga_for_dummies}.
 
 
 

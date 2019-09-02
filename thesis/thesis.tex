@@ -138,6 +138,8 @@ breaklines
 % }
 
 
+% XXX: This is voodo magic to make it work on "some" computers
+% https://github.com/ho-tex/hyperref/issues/19
 \usepackage{etoolbox}
 \makeatletter
 \patchcmd\@combinedblfloats{\box\@outputbox}{\unvbox\@outputbox}{}{\errmessage{\noexpand patch failed}}
