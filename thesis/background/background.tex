@@ -22,7 +22,7 @@ Internet systems\cite{RFC1122}.  The very early research and development
 on what would later become the Internet Protocol Suite began in the late 1960s
 by the Defense Advanced Research Project Agency (DARPA), and was being
 adopted by DARPA,
-\noteinfo{Lyder lidt underligt}
+% \noteinfo{Lyder lidt underligt}
 as well as the public, since 1983\cite{DARPA_internet}.
 Although the Internet Protocol Suite predates the newer, arguably more
 refined Open Systems Interconnection (OSI) model, TCP/IP still
@@ -35,7 +35,7 @@ finally, the Application layer.
 \subsection{Link Layer}
 \begin{figure*}
 \centering
-\includegraphics[width=\linewidth]{background/ethernet.eps}
+\includegraphics[scale=0.75]{background/ethernet.eps}
 \caption{Layout of the Ethernet II header. The \texttt{EtherType} field is used
 as \texttt{Length} in the IEEE 802.3 specification.}
 \label{fig:ethernet_header}
@@ -391,7 +391,14 @@ they are connected to. Then, the process executes its "compute" stage, and
 the results, if any, are written to the output-port, which will be read
 by the following bus. A visualization of the execution flow can be seen
 on \autoref{fig:sme_clock}.
-\pic{\linewidth}{background/sme_clock}{An illustration of a typical SME clock-cycle}{fig:sme_clock}
+\begin{figure}[h!]
+\centering
+\includegraphics[scale=0.5]{background/sme_clock.eps}
+\caption{An illustration of a typical SME clock-cycle}
+\label{fig:sme_clock}
+\end{figure}
+
+% \pic{\linewidth}{background/sme_clock.eps}{An illustration of a typical SME clock-cycle}{fig:sme_clock}
 It is important to note that although certain channels might be written earlier
 than others in a process clock, the subsequent processes connected to said bus
 will first see the values change in the beginning of the next clock
