@@ -23,7 +23,7 @@ The processes are arguably the most vital part of the system, as they provide
 the computation and "processing" on the in- and out-going packets.
 It is important to note that although there are many other types of "processes",
 in the network, such as the buffers, we will mainly refer to the modules doing
-actual business-logic as "processes" \notelookup{Did we?} \footnote{These processes are not to be
+actual business-logic as "processes" \footnote{These processes are not to be
 confused with SME processes, which are used for the implementation of both the
 buffers and processes.}.
 
@@ -63,26 +63,26 @@ separated by the clock signal.\\
 \autoref{fig:example_fsm} compares these two approaches for the same
 finite state-machine with 3 consequtive states.
 
-The "synchronous" approach using a \texttt{SimpleProcess} in subfigure
-\ref{fig:sme_example_process_sync_code}
-\notemark{Fix autoref}
+The "synchronous" approach using a \texttt{SimpleProcess} in
+\autoref{fig:sme_example_process_sync_code}
+%\notemark{Fix autoref}
 has to implement a
 variable tracking the current state of the process. On each new clock, this
 state has to be analysed and the inteded function to be called based on the
 value. This approach requires a lot of approach and boilerplate code, especialy
 if there are several states.\\
-The asynchronous approach on subfigure
-\ref{fig:sme_example_process_async_code}
-\notemark{Fix autoref}
+The asynchronous approach on
+\autoref{fig:sme_example_process_async_code}
+%\notemark{Fix autoref}
 on the other hand can do with only
 single \texttt{Run()} method split into three parts -- A, B, and C.
 After each code-segment, the process waits for the clock signal, and
 continues with the execution of the next segment.  This functionality
 gives the programmer a very granular control of the way a process
 works, how it is split into multiple steps on the hardware, while
-maintaining simplicity, as seen on the statemachine diagram on subfigure
-\ref{fig:sme_example_process_fsm}.
-\notemark{Fix autoref}
+maintaining simplicity, as seen on the statemachine diagram on
+\autoref{fig:sme_example_process_fsm}.
+%\notemark{Fix autoref}
 
 \begin{figure*}
     \begin{subfigure}[b]{0.3\textwidth}
@@ -246,7 +246,7 @@ vice versa. This requires the underlying memory to handle read and write in
 parallel. \\
 Each of the memory buffers have slightly different variations because
 there are different issues to solve in all of them. In general, the issues
-are as follows: \notemark{Mention latency stuff}
+are as follows: %\notemark{Mention latency stuff}
 
 \begin{itemize}
 \item \textbf{Fragmentation}\\
@@ -930,6 +930,7 @@ DataOut.ComputeProducerBus {
 The user is not required to wait for any response, as the Compute-Producer
 interface signal protocol is used.
 
+\newpage
 
 \subsection{Limitations}
 As briefly mentioned, a big limitation of the interface control is that only
