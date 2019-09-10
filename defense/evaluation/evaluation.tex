@@ -1,0 +1,69 @@
+\newcommand{\EvaluationTitle}{Evaluation}
+\begin{frame}
+    \frametitle{\EvaluationTitle}
+    \centering
+    \begin{minipage}{1\textwidth}
+        \begin{itemize}%[<+->]
+            \item Setup
+            \begin{itemize}
+                \item Graph file simulator
+            \end{itemize}
+            \item Test
+            \item Validation
+            \begin{itemize}
+                \item Latency
+                \item Outgoing packet validation
+                \item Internet Protocol Suite
+                compliancy as per RFC
+                1122
+            \end{itemize}
+        \end{itemize}
+    \end{minipage}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{\EvaluationTitle}
+    \framesubtitle{Setup}
+    Graph simulation node types
+    \begin{figure}
+        \centering
+        \begin{minipage}{0.16\textwidth}
+            \centering
+            \includegraphics[scale=0.45]{evaluation/dot_files/datain.eps}
+            Data In
+            \label{fig:packet_graph_datain}
+        \end{minipage}%
+        \begin{minipage}{0.16\textwidth}
+            \centering
+            \includegraphics[scale=0.45]{evaluation/dot_files/send.eps}
+            Send
+            \label{fig:packet_graph_send}
+        \end{minipage}%
+        \begin{minipage}{0.16\textwidth}
+            \centering
+            \includegraphics[scale=0.45]{evaluation/dot_files/command.eps}
+            Command
+            \label{fig:packet_graph_command}
+        \end{minipage}%
+        \begin{minipage}{0.16\textwidth}
+            \centering
+            \includegraphics[scale=0.45]{evaluation/dot_files/dataout.eps}
+            Data Out
+            \label{fig:packet_graph_dataout}
+        \end{minipage}%
+        \begin{minipage}{0.16\textwidth}
+            \centering
+            \includegraphics[scale=0.45]{evaluation/dot_files/receive.eps}
+            Receive
+            \label{fig:packet_graph_receive}
+        \end{minipage}%
+        \begin{minipage}{0.16\textwidth}
+            \centering
+            \includegraphics[scale=0.45]{evaluation/dot_files/wait.eps}
+            Wait
+            \label{fig:packet_graph_wait}
+        \end{minipage}%
+        %\caption{The different node types in the simulation graph}
+        %\label{fig:packet_dot_files}
+    \end{figure}%
+\end{frame}
