@@ -1,3 +1,4 @@
+\section{Evaluation}
 \newcommand{\EvaluationTitle}{Evaluation}
 \begin{frame}
     \frametitle{\EvaluationTitle}
@@ -109,23 +110,100 @@
     \end{columns}
 \end{frame}
 
-\begin{frame}[fragile]
-    %\frametitle{\EvaluationTitle}
-    %\framesubtitle{Test}
-    \begin{columns}
+\begin{frame}[fragile]%
+    \frametitle{\EvaluationTitle}
+    \framesubtitle{Setup}
+    \begin{columns}%
         \begin{column}{0.50\textwidth}
             \begin{figure}
             \centering
-                \includegraphics[scale=0.20]{evaluation/dot_files/example_graph_initial.eps}
+                \includegraphics[scale=0.21]{evaluation/dot_files/example_graph_initial_compact.eps}
                 \caption{The initial state of a simulation}
             \end{figure}
-        \end{column}
+        \end{column}%
         \begin{column}{0.50\textwidth}
             \begin{figure}
                 \centering
-                \includegraphics[scale=0.20]{evaluation/dot_files/example_graph_running.eps}
+                \includegraphics[scale=0.21]{evaluation/dot_files/example_graph_running_compact.eps}
                 \caption{The state after 1005 clocks}
             \end{figure}
         \end{column}
     \end{columns}
+\end{frame}
+
+\begin{frame}%
+    \frametitle{\EvaluationTitle}
+    \framesubtitle{Test}
+    Senario
+    \begin{itemize}%[<+->]
+        \item Real life scenario
+        \item Test at high workloads
+        \item Remove garbage
+        \item Respond to packet
+        \item Differ between concurrent connections
+    \end{itemize}
+\end{frame}
+
+\begin{frame}%
+    \frametitle{\EvaluationTitle}
+    \framesubtitle{Test}
+    The test
+    \begin{itemize}%[<+->]
+        \item 17283 packets in total
+        \item Two "sessions"
+        \item 640*2 UDP packets that needs a response
+        \item 640 well formed UDP packets with no session (discard)
+        \item Rest of data is "background noise" (TCP packets with state, data, etc)
+        \item Total data sent through: 1832958 bytes
+        \item ~1.83 Million clocks used
+    \end{itemize}
+\end{frame}
+
+\begin{frame}%
+    \frametitle{\EvaluationTitle}
+    \framesubtitle{Validation}
+    Latency calculations:
+    \begin{columns}
+        \begin{column}{0.60\textwidth}
+            \begin{description}[$n_{\mathtt{T}}$]
+                \item[$n_{\mathtt{D}}$]:
+                The number of bytes in the data part of the protocol. This excludes both
+                headers from transport and internet.
+                \item[$n_{\mathtt{I}}$]:
+                The internet header size.
+                \item[$n_{\mathtt{T}}$]:
+                The transport header size.
+                \item[$n$]:\quad
+                The total packet size.
+            \end{description}
+        \end{column}
+        \begin{column}{0.40\textwidth}
+            From packet to user
+            \begin{equation*}
+                6 + n_{\mathtt{I}} + 2n_{\mathtt{T}} + 3n_{\mathtt{D}}
+           \end{equation*}\\
+           \noindent\rule{8cm}{0.4pt}
+           From user to packet
+           \begin{equation*}
+            8 + 2n_{\mathtt{I}} + 3n_{\mathtt{T}} + 4n_{\mathtt{D}}
+            \end{equation*}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}%
+    \frametitle{\EvaluationTitle}
+    \framesubtitle{Validation}
+    Outgoing packet validation:
+    \begin{figure}
+        \centering
+        \includegraphics[scale=0.33]{evaluation/hexdump.pdf}
+    \end{figure}
+
+\end{frame}
+
+\begin{frame}%
+    \frametitle{\EvaluationTitle}
+    \framesubtitle{Validation}
+    Internet Protocol Suite compliancy as per RFC 1122
 \end{frame}

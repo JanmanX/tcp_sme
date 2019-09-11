@@ -78,7 +78,13 @@ autogobble
 \begin{document}
 
 \frame{\titlepage}
-
+\AtBeginSection[]
+{
+  \begin{frame}
+    \frametitle{Table of Contents}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
 
 \input{background/background.tex}
 \input{design/design.tex}
