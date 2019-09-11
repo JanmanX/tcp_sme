@@ -8,6 +8,7 @@
 \usepackage{verbatim}
 \usepackage{amsmath}
 \usepackage{multirow}
+\usepackage{makecell}
 \usepackage{tabularx}
 \usepackage{tikz}
 \usepackage[linewidth=1pt]{mdframed}
@@ -52,6 +53,11 @@ autogobble
 \definecolor{graph_done}{HTML}{76ee00}
 \definecolor{graph_waiting}{HTML}{ffffff}
 
+% Define color boxes
+\newcommand\textcolorbox[2][]{\tikz[overlay]\node[inner sep=2pt, anchor=text, rectangle,draw=black,thick , rounded corners=2mm,#1] {#2};\phantom{#2}}
+\newcommand\statecolorbox[1]{\textcolorbox[fill=#1]{\phantom{\boxfillertext}}}
+\newcommand\statecolorboxtext[2]{\textcolorbox[fill=#1]{\phantom{Xj}#2\phantom{Xj}}}
+\newcommand{\boxfillertext}{XXX}
 
 \usetheme{Madrid}
 % \usefonttheme{structuresmallcapsserif}
