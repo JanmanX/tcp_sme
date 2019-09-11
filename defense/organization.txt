@@ -3,7 +3,8 @@
 > Jan: Implementation (AXI Bus)
 > Mark: Evaluation
 > Jan: Discussion, Conclusion
-> Mark: + Jan: Future Work
+> Mark: Future Work - Firewall
+> Jan: Future Work - TCP
 
 
 ( > Mark: Demo )
