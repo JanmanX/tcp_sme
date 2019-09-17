@@ -168,26 +168,26 @@ namespace TCPIP
                         DataOut buf_data_out = (DataOut)sys.Value;
                         var buf_data_out_write = buf_data_out.dataInComputeProducerControlBusIn.valid ? "Write": "";
                         var buf_data_out_read = buf_data_out.dataOutBufferConsumerControlBusIn.ready ? "Read": "";
-                        ret += $"{buf_data_out_write,5}|{buf_data_out_read,4}\",";
+                        ret += $"{buf_data_out_write,5}|{buf_data_out_read,5}\",";
                         break;
                     case SystemName.SEGMENT_IN:
                         PacketIn buf_segment_in = (PacketIn)sys.Value;
                         var buf_segment_in_write = buf_segment_in.packetInComputeProducerControlBusIn.valid ? "Write": "";
                         var buf_segment_in_read = buf_segment_in.packetOutBufferConsumerControlBusIn.ready ? "Read": "";
-                        ret += $"{buf_segment_in_write,5}|{buf_segment_in_read,4}\",";
+                        ret += $"{buf_segment_in_write,5}|{buf_segment_in_read,5}\",";
                         break;
                     case SystemName.SEGMENT_OUT:
                         PacketOut buf_segment_out = (PacketOut)sys.Value;
                         var buf_segment_out_write = buf_segment_out.packetInComputeProducerControlBusIn.valid ? "Write": "";
                         var buf_segment_out_read = buf_segment_out.packetOutBufferConsumerControlBusIn.ready ? "Read": "";
-                        ret += $"{buf_segment_out_write,5}|{buf_segment_out_read,4}\",";
+                        ret += $"{buf_segment_out_write,5}|{buf_segment_out_read,5}\",";
                         break;
 
                     case SystemName.FRAME_OUT:
                         FrameOut buf_frame_out = (FrameOut)sys.Value;
                         var buf_frame_out_write = buf_frame_out.packetInComputeProducerControlBusIn.valid ? "Write": "";
                         var buf_frame_out_read = buf_frame_out.datagramBusOutBufferConsumerControlBusIn.ready ? "Read": "";
-                        ret += $"{buf_frame_out_write,5}|{buf_frame_out_read,4}\",";
+                        ret += $"{buf_frame_out_write,5}|{buf_frame_out_read,5}\",";
                         break;
                     default:
                         ret += $" \",";
