@@ -48,15 +48,17 @@ namespace TCPIP
         private const string DUMP_STATE_FOLDER = "DumpState";
         private const string DUMP_DATA_IN_FOLDER = "DumpDataIn";
         private const string DUMP_RECEIVE_FOLDER = "DumpReceive";
+        private const string DUMP_SYSTEM_STATE_FOLDER = "DumpSystemState";
 
-        private const int CLOCK_PRINT = 100;
+        private const int CLOCK_PRINT = 1;
 
         // Simulation fields
         private readonly String dir;
-
         private readonly int max_clocks;
         private readonly bool debug;
         private PacketGraph packetGraph;
+        private SystemGraph systemGraph;
+
 
 
         public GraphFileSimulator(String dir, int max_clocks, bool debug = false)
@@ -65,18 +67,20 @@ namespace TCPIP
             this.max_clocks = max_clocks;
             this.debug = debug;
             this.packetGraph = new PacketGraph(this.dir,this.debug);
+            this.systemGraph = new SystemGraph(this.debug);
             if(this.debug){
                 this.packetGraph.Info();
             }
-
         }
+
 
         public override async Task Run()
         {
             Logging.log.Warn("Running");
             if(debug){
                 //Console.WriteLine(this.packetGraph.GraphwizState());
-                //this.DumpStateInFile(DUMP_STATE_FOLDER);
+                this.DumpStateInFile(DUMP_STATE_FOLDER);
+                this.DumpSystemStateInFile(DUMP_SYSTEM_STATE_FOLDER);
                 //return;
             }
             //return;
@@ -88,7 +92,7 @@ namespace TCPIP
                 //Warning! this will fill up your disk fast!
                 if(i % CLOCK_PRINT == 0)
                 {
-                Logging.log.Warn($"---------------------------------------------vvvvv-CLOCK {packetGraph.GetClock()}-vvvvv---------------------------------------");
+                    Logging.log.Warn($"---------------------------------------------vvvvv-CLOCK {packetGraph.GetClock()}-vvvvv---------------------------------------");
                 }
                 PacketSend();
                 PacketReceive();
@@ -96,8 +100,10 @@ namespace TCPIP
                 PacketDataOut();
                 PacketWait();
                 PacketCommand();
+                systemGraph.Test();
                 if(debug && i % CLOCK_PRINT == 0){
-                    //this.DumpStateInFile(DUMP_STATE_FOLDER);
+                    this.DumpStateInFile(DUMP_STATE_FOLDER);
+                    this.DumpSystemStateInFile(DUMP_SYSTEM_STATE_FOLDER);
                 }
                 //Logging.log.Warn($"---------------------------------------------^^^^^-CLOCK {packetGraph.GetClock()}-^^^^^---------------------------------------");
                 packetGraph.NextClock();
@@ -109,6 +115,7 @@ namespace TCPIP
             }
             if(debug){
                 this.DumpStateInFile(DUMP_STATE_FOLDER);
+                this.DumpSystemStateInFile(DUMP_SYSTEM_STATE_FOLDER);
             }
             Logging.log.Warn($"---------------------------------------------vvvvv-CLOCK {packetGraph.GetClock()}-vvvvv---------------------------------------");
             Logging.log.Warn($"End of simulation with {frame_number_send} packets sent");
@@ -170,7 +177,7 @@ namespace TCPIP
                 {
                     if(!packetGraph.GatherReceive(datagramBusOut.data,(int)datagramBusOutBufferProducerControlBusIn.bytes_left))
                     {
-                        Logging.log.Error("Wrong data, see log");
+                        Logging.log.Info("Recived Wrong data, see log");
                         //throw new Exception("Wrong data, see log");
                     }
                     receiveWaitNextClock = true;
@@ -288,7 +295,19 @@ namespace TCPIP
                 packetGraph.StepWait();
             }
         }
-        public void DumpStateInFile(string dir_inside_current_dir)
+
+        // System Graph calls
+        public void AddSystem(SystemGraph.SystemName info ,Process process)
+        {
+            systemGraph.AddSystem(info,process);
+        }
+        public void AddConnection(SystemGraph.SystemName sender, SystemGraph.SystemName receiver, SystemGraph.ConnectionType type, IBus pipe)
+        {
+            systemGraph.AddConnection(sender, receiver, type, pipe);
+        }
+
+        ////////////////// Dump to file functions
+        private void DumpStateInFile(string dir_inside_current_dir)
         {
             // Get the path and create the folder if needed
             string path = System.IO.Path.Combine(this.dir, dir_inside_current_dir);
@@ -296,12 +315,12 @@ namespace TCPIP
 
             string fullfilepath = System.IO.Path.Combine(path, $"{packetGraph.GetClock():D9}"  +  ".dot");
 
-            using (StreamWriter writer = new StreamWriter(fullfilepath, true))
+            using (StreamWriter writer = new StreamWriter(fullfilepath, false))
             {
                 writer.Write(packetGraph.GraphwizState());
-    }
-}
-        public void DumpPacketInFile(string dir_inside_current_dir,string packetID, byte data)
+            }
+        }
+        private void DumpPacketInFile(string dir_inside_current_dir,string packetID, byte data)
         {
             // Get the path and create the folder if needed
             string path = System.IO.Path.Combine(this.dir, dir_inside_current_dir);
@@ -313,6 +332,19 @@ namespace TCPIP
             {
                 byte[] bytes = new byte[] {data};
                 writer.BaseStream.Write(bytes, 0, bytes.Length);
+            }
+        }
+        private void DumpSystemStateInFile(string dir_inside_current_dir)
+        {
+            // Get the path and create the folder if needed
+            string path = System.IO.Path.Combine(this.dir, dir_inside_current_dir);
+            System.IO.Directory.CreateDirectory(path);
+
+            string fullfilepath = System.IO.Path.Combine(path, $"{packetGraph.GetClock():D9}"  +  ".dot");
+
+            using (StreamWriter writer = new StreamWriter(fullfilepath, false))
+            {
+                writer.Write(systemGraph.GraphwizState());
             }
         }
     }

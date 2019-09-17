@@ -50,7 +50,7 @@ namespace TCPIP
         public readonly Interface.InterfaceControlBus interfaceControlBus = Scope.CreateBus<Interface.InterfaceControlBus>();
 
         // Local variables
-        private enum TransportProcessState
+        public enum TransportProcessState
         {
             Receive,  // Reading an incoming packet
             Pass,    // Passing data of an incoming packet to a buffer (Data_in)
@@ -59,7 +59,7 @@ namespace TCPIP
             Finish,     // Intermediate transition state to idle (we do not want to reset busses in _this_ cycle)
             Idle,     // Nothing to do
         }
-        private TransportProcessState state = TransportProcessState.Idle;
+        public TransportProcessState state = TransportProcessState.Idle;
 
         private const uint NUM_SOCKETS = 10;
         private PCB[] pcbs = new PCB[NUM_SOCKETS];
