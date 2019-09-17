@@ -290,9 +290,9 @@ namespace TCPIP
                 }
                 else
                 {
-                    // Logging.log.Error($"Wrong comparison of input data from receive. " +
-                    //                   $"correct: 0x{excact:X2} index: {receive.Current.bytes_left} " +
-                    //                   $"observed: 0x{compare:X2} index: {byte_number}");
+                    Logging.log.Warn($"Wrong comparison of input data from receive. " +
+                                      $"correct: 0x{excact:X2} index: {receive.Current.bytes_left} " +
+                                      $"observed: 0x{compare:X2} index: {byte_number}");
                     return false;
                 }
 
@@ -593,7 +593,14 @@ namespace TCPIP
                         ret += $"\\nDone";
                     }
                     else{
-                        ret += $"\\nWaiting";
+                        if((x.Value.info & PacketInfo.Active) == 0 && isReady(x.Key))
+                        {
+                            ret += $"\\nReady";
+                        }
+                        else
+                        {
+                            ret += $"\\nWaiting";
+                        }
                     }
                 }
                 if((x.Value.info & PacketInfo.Receive) > 0)
@@ -608,7 +615,14 @@ namespace TCPIP
                         ret += $"\\nDone";
                     }
                     else{
-                        ret += $"\\nWaiting";
+                        if((x.Value.info & PacketInfo.Active) == 0 && isReady(x.Key))
+                        {
+                            ret += $"\\nReady";
+                        }
+                        else
+                        {
+                            ret += $"\\nWaiting";
+                        }
                     }
                 }
                 if((x.Value.info & PacketInfo.Wait) > 0)
@@ -635,7 +649,14 @@ namespace TCPIP
                         ret += $"\\nDone";
                     }
                     else{
-                        ret += $"\\nWaiting";
+                        if((x.Value.info & PacketInfo.Active) == 0 && isReady(x.Key))
+                        {
+                            ret += $"\\nReady";
+                        }
+                        else
+                        {
+                            ret += $"\\nWaiting";
+                        }
                     }
                 }
                 if((x.Value.info & PacketInfo.DataOut) > 0)
@@ -650,7 +671,14 @@ namespace TCPIP
                         ret += $"\\nDone";
                     }
                     else{
-                        ret += $"\\nWaiting";
+                        if((x.Value.info & PacketInfo.Active) == 0 && isReady(x.Key))
+                        {
+                            ret += $"\\nReady";
+                        }
+                        else
+                        {
+                            ret += $"\\nWaiting";
+                        }
                     }
                 }
 
