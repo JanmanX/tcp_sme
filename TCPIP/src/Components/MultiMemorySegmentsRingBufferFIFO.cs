@@ -280,7 +280,7 @@ namespace TCPIP
 
             // Increment the next segment id
             next_head_segment_id = (next_head_segment_id + 1) % num_segments;
-            Logging.log.Fatal($"Delaying segment {segment_ID} to {retSegment}");
+            Logging.log.Warn($"Delaying segment {segment_ID} to {retSegment}");
             return retSegment;
         }
 
