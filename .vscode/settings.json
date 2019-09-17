@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
         "asic",
+        "blazingly",
         "circuitries",
         "connectionless",
         "cpld",
@@ -14,6 +15,7 @@
         "fpga",
         "fpgas",
         "gbps",
+        "ghdl",
         "hardcoded",
         "icmp",
         "macrocells",
@@ -31,6 +33,7 @@
         "texttrademark",
         "timestamping",
         "vhdl",
+        "wireshark",
         "xilinx",
         "ynddal",
         "zynq"
