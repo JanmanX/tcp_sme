@@ -2,6 +2,7 @@
 *.dot
 *.dot.png
 *.mp4
+*.avi
 */DumpState/*
 */DumpDataIn/*
 */DumpReceive/*
