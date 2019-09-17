@@ -39,4 +39,5 @@ ffmpeg \
        -c:v libx264 \
        -crf 18 \
        "output.mp4"
+ffmpeg -i output.mp4 -vcodec copy -acodec copy output.avi
 popd
