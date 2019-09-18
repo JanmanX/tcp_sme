@@ -5,24 +5,10 @@
 FPGAs are making their way into data centers to boost the computing power
 	and the overall power efficiency.
 
-% \begin{itemize}
-%       \item Only basic programmability
-%       \item Incompatible APIs
-%       \item Licensed VHDL code blobs
-%       \item Seldom swap-able
-%       \item \textbf{Price!}
-%     \end{itemize}
-
-
 
 \begin{columns}
 \begin{column}{0.8\textwidth}
-% \begin{figure}
-% 	\centering
-%
 \includegraphics[scale=0.5]{./background/server_configuration.eps}
-%
-% \end{figure}
 \end{column}
 
 \begin{column}{0.2\textwidth}
@@ -31,6 +17,60 @@ FPGAs are making their way into data centers to boost the computing power
 \end{columns}
 
 \end{frame}
+
+
+
+
+\note{Applikationer og Big-Data udregninger flytter til Cloud, drevet af store
+data centre.\\
+
+Disse data-centre kraever rigtigt meget plads, store maengder af stroem og er i stigende grad svaere
+at vedligeholde og udvide.\\
+
+De fleste data-centre er derfor begyndt at aflaste beregningerne til FPGAer,
+som fjerner meget af overhead til beregningerne\\
+
+kan bruges til at få en computer til at køre hurtigere hvis de mest brugte
+instruktioner, skrives direkte ned i hardwaren\\
+
+PROBLEMET er at der kun kan vaere en begreanset antal af FPGAer i konventionele
+servere
+
+}
+
+
+
+% Talking points:
+
+
+% > In the current era of big data, computationally heavy applications are
+% moving to the cloud. ... Consuming wast amount of energy and are increasingly
+% complex to maintain and improve
+
+% > To combat this, DC servers offload the computation onto FPGAs
+
+% <SHOW GRAPH HERE>
+
+% > However, this is not scalable in the conventional DC architecture, as the
+% FPGAs are directly connected to CPUs using a PCI bus.
+
+% <SHOW CONVENTIONAL DC>
+
+% > Disaggregated DC architecture proposes FPGA be turned into a
+% self-contained standalone appliance capable of managing itself. Then, it is
+% connected to the rest of the Data-Center by a local network. This enables the
+% DC to pack even more computing capacity into the same physical volume at the
+% same, or even lower, energy consumption.
+
+% <SHOW DISAGGREGATED DC>
+
+% > This can increase the density of the servers by sharing resources
+% such as power supplies, cooling, fans, networking uplinks, and other management
+% infrastructures.
+
+% > In this thesis, we want to make a self-contained TCP/IP stack on an FPGA
+% using SME.
+
 
 
 \begin{frame}
@@ -46,13 +86,15 @@ A conventional data center architecture
 
 
 \begin{frame}
-Proposed, disaggregated data center architecture
+	Proposed disaggregated data center architecture (\cite{7830659})
 \begin{figure}
 	\centering
 \includegraphics[scale=0.5]{./background/dc_architectures_disaggregated.eps}
 \end{figure}
 \end{frame}
 
+\note{Hvis man splitter resourcerne op, kan man takket været FPGA få bedre
+ydeevne på det samme areal, samt nemmere håndtering af servere og deres komponenter. }
 
 \begin{frame}
 FPGA usage
@@ -68,7 +110,7 @@ The Internet
 
 \begin{figure}
 	\centering
-\includegraphics[scale=0.20]{./background/internet_map_30p.png}
+\includegraphics[scale=0.15]{./background/internet_map.jpg}
 \label{fig: Internet map}
 \caption{Map of the 30\% of accessible the endpoints on the Internet}
 \end{figure}
@@ -80,7 +122,7 @@ The Internet
 The Internet Protocol Suite -- A scenario
 \begin{figure}
 	\centering
-\includegraphics[scale=0.30]{./background/internet_scenario.eps}
+\includegraphics[scale=0.28]{./background/internet_scenario.pdf}
 \end{figure}
 
 
@@ -102,14 +144,6 @@ Design with the 4 layers in mind
 % - Network Stack Specialization for Performance\\
 % - Disaggregated FPGAs\\
 % - A Cloud-Scale Acceleration Architecture
-
-% "Intel FPGAs burst open these bottlenecks with a combination of
-% microarchitectural flexibility, massive parallelism, huge data bandwidth,
-% and rapid reconfigurability. As workloads and traffic pattern shift, Intel
-% FPGAs can anticipate needs and bring optimized hardware acceleration to
-% bear on the critical points."
-
-
 
 % Talking points:
 % 1. In the current era of big data, computationally heavy applications are
