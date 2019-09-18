@@ -152,8 +152,8 @@ State machines\\
 \note{
 
     \begin{itemize}
-        \item Go over the state diagrams
-        \item Talk about reasoning behind the different types between the state diagrams
+        \item Gå igennem state diagrammer
+        \item Snak om grundlaget for de forskellige typer brug
     \end{itemize}
 }
 
@@ -199,6 +199,8 @@ State machines\\
 }
 
 \begin{frame}[t]
+    \note<1->{Snak om input
+}
     \begin{textblock*}{\displayThumbnail}(\paperwidth-\displayThumbnail-0.2cm,0cm) % {block width} (coords)
         \colorbox{white}{\includegraphics[width=\textwidth]{implementation/design_2_memory_dictionary.eps}}
     \end{textblock*}
@@ -216,6 +218,7 @@ State machines\\
                 \end{overlayarea}
             \end{figure}
         \end{column}
+
         \begin{column}{0.3\linewidth}
             \\
             \only<1>{
@@ -243,17 +246,18 @@ State machines\\
         \begin{column}{0.2\linewidth}
         \end{column}
     \end{columns}
-
-
 \end{frame}
 
-\note{Statisk tabel?\\
-Animationer?
-Billede af splitup af pakker?
-Hold det uden protocol specifik info.
-}
+
 
 \begin{frame}[fragile]
+    \note<1->{Overflow!\\
+    kan læses ved:
+    \begin{itemize}
+        \item Kør løkken en gang per clock
+        \item Brug en anden model end en linked list, måske et fast offset?
+    \end{itemize}
+    }
     \begin{textblock*}{\displayThumbnail}(\paperwidth-\displayThumbnail-0.2cm,0cm) % {block width} (coords)
         \colorbox{white}{\includegraphics[width=\textwidth]{implementation/design_2_memory.eps}}
     \end{textblock*}
