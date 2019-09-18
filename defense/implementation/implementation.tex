@@ -20,11 +20,6 @@
                 \item Buffer-Producer
                 \item Compute-Producer
             \end{itemize}
-            \item Interface control
-            \begin{itemize}
-                \item Usage
-                \item Limitations
-            \end{itemize}
         \end{itemize}
     \end{minipage}
 \end{frame}
@@ -36,15 +31,19 @@
         \item Higher abstraction
         \item Handling of clocks
         \item Easy testing
+        \item Not fully feature complete with C\#(No threads, no allocation)
     \end{itemize}
 \end{frame}
 \note{
     \begin{itemize}
-        \item a
+        \item What is a bus and a process
+        \item No VHDL code
+        \item Clocks abstracted away behind the management of processes and busses
+        \item Testing straight in the simulator, but also in afterwards in the GHDL
+              compiler, via an clock lookup table
     \end{itemize}
 }
 \begin{frame}[fragile]
-    %\Put(280,0){\colorbox{white}{\includegraphics[width=0.2\textwidth]{implementation/design_2_state.eps}}}
     \frametitle{\ImplementationTitle}
     \framesubtitle{Processes}
     State machines\\\\
@@ -97,6 +96,8 @@
                 \includegraphics[scale=0.45]{implementation/empty_process_fsm.eps}
         \end{figure}
     \end{minipage}
+    %\Put(-50,0){\colorbox{white}{\includegraphics[width=0.2\textwidth]{implementation/design_2_state.eps}}}
+
 \end{frame}
 
 \note{
@@ -134,6 +135,16 @@ State machines\\
     \end{minipage}
 \end{frame}
 \note{Labels!}
+
+\begin{frame}[fragile]
+    \frametitle{\ImplementationTitle}
+    \framesubtitle{Buffers}
+    \begin{itemize}
+        \item why buffes?
+    \end{itemize}
+\end{frame}
+\note{Hvorfor bruer vi buffers?}
+
 
 \begin{frame}[fragile]
     \frametitle{\ImplementationTitle}
