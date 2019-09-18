@@ -21,7 +21,7 @@
 \usepackage{multimedia}
 \usepackage{eso-pic}
 \usepackage{pgfpages}
-\setbeameroption{show notes on second screen=bottom} %
+%\setbeameroption{show notes on second screen=bottom} %
 
 % minted styles
 \setminted[csharp]{escapeinside={*@}{@*}}
@@ -87,16 +87,21 @@ autogobble
 
 
 \begin{document}
-
 \frame{\titlepage}
+\note{\textbf{Mark} siger introduktion og 2-3 saetninger "abstrakt" }
+
+
+\begin{frame}
+    \frametitle{Table of Contents}
+    \tableofcontents[hideallsubsections]
+\end{frame}
 \AtBeginSection[]
 {
   \begin{frame}
     \frametitle{Table of Contents}
-    \tableofcontents[currentsection]
+    \tableofcontents[subsectionstyle=shaded/show/hide,sectionstyle=show/shaded]
   \end{frame}
 }
-\note{\textbf{Mark} siger introduktion og 2-3 saetninger "abstrakt" }
 
 \input{background/background.tex}
 \input{design/design.tex}
