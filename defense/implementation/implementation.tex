@@ -201,63 +201,63 @@ Identifying the scenarios
 
 
 
-\begin{frame}[fragile]
-    \frametitle{\ImplementationTitle}
-    \framesubtitle{Interface protocol}
-    The interface structures\\
-    \begin{minipage}[t]{0.4\textwidth}
-        \begin{mintedcsharp}
-            enum InterfaceFunction : byte
-            {
-                INVALID = 0,
-                // BIND = 1,
-                LISTEN = 2,
-                CONNECT = 3,
-                ACCEPT = 4,
-                CLOSE = 7,
-                // ...
-                OPEN = 255,
-            }
-
-            struct InterfaceData
-            {
-                public int socket;
-                public uint ip;
-                public byte protocol;
-                public ushort port;
-            }
-        \end{mintedcsharp}
-    \end{minipage}%
-    \hfill%
-    \begin{minipage}[t]{0.4\textwidth}
-        \begin{mintedcsharp}
-            interface InterfaceBus : IBus
-            {
-                bool valid;
-                byte interface_function;
-                InterfaceData request;
-            }
-
-            interface InterfaceControlBus : IBus
-            {
-                bool valid;
-
-                byte exit_status;
-                byte interface_function;
-                InterfaceData request;
-                InterfaceData response;
-            }
-        \end{mintedcsharp}
-    \end{minipage}
-\end{frame}
-
-
-\begin{frame}%[fragile]
-    \frametitle{\ImplementationTitle}
-    \framesubtitle{Interface protocol}
-    Limitations
-    \begin{itemize}
-        \item One request at a time.
-        \item Arbitrary delay between request and response.
-    \end{itemize}
-\end{frame}
+% \begin{frame}[fragile]
+%     \frametitle{\ImplementationTitle}
+%     \framesubtitle{Interface protocol}
+%     The interface structures\\
+%     \begin{minipage}[t]{0.4\textwidth}
+%         \begin{mintedcsharp}
+%             enum InterfaceFunction : byte
+%             {
+%                 INVALID = 0,
+%                 // BIND = 1,
+%                 LISTEN = 2,
+%                 CONNECT = 3,
+%                 ACCEPT = 4,
+%                 CLOSE = 7,
+%                 // ...
+%                 OPEN = 255,
+%             }
+%
+%             struct InterfaceData
+%             {
+%                 public int socket;
+%                 public uint ip;
+%                 public byte protocol;
+%                 public ushort port;
+%             }
+%         \end{mintedcsharp}
+%     \end{minipage}%
+%     \hfill%
+%     \begin{minipage}[t]{0.4\textwidth}
+%         \begin{mintedcsharp}
+%             interface InterfaceBus : IBus
+%             {
+%                 bool valid;
+%                 byte interface_function;
+%                 InterfaceData request;
+%             }
+%
+%             interface InterfaceControlBus : IBus
+%             {
+%                 bool valid;
+%
+%                 byte exit_status;
+%                 byte interface_function;
+%                 InterfaceData request;
+%                 InterfaceData response;
+%             }
+%         \end{mintedcsharp}
+%     \end{minipage}
+% \end{frame}
+%
+%
+% \begin{frame}%[fragile]
+%     \frametitle{\ImplementationTitle}
+%     \framesubtitle{Interface protocol}
+%     Limitations
+%     \begin{itemize}
+%         \item One request at a time.
+%         \item Arbitrary delay between request and response.
+%     \end{itemize}
+% \end{frame}

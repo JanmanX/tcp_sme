@@ -3,6 +3,7 @@
 \usepackage{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage{colortbl}
+\usepackage{natbib}
 \usepackage{listings}
 \usepackage{adjustbox}
 \usepackage{verbatim}
@@ -18,7 +19,7 @@
 \usepackage{minted}
 \usepackage{multimedia}
 \usepackage{pgfpages}
-%\setbeameroption{show notes on second screen=bottom} %
+\setbeameroption{show notes on second screen=bottom} %
 
 % minted styles
 \setminted[csharp]{escapeinside={*@}{@*}}
@@ -86,6 +87,7 @@ autogobble
     \tableofcontents[currentsection]
   \end{frame}
 }
+\note{\textbf{Mark} siger introduktion og 2-3 saetninger "abstrakt" }
 
 \input{background/background.tex}
 \input{design/design.tex}
@@ -113,7 +115,9 @@ autogobble
 
 \begin{frame}{Bibliography}
 \bibliographystyle{plainnat}
+\setcitestyle{numbers}
 \bibliography{bib}
+
 \end{frame}
 
 
