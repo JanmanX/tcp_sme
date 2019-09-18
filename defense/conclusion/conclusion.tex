@@ -60,11 +60,16 @@ Concurrency
   \frametitle{Conclusion}
 
 \begin{itemize}
-\item Lot of trial and error to find the optimal design in the beginning
-\item In 10 mio. simulated clock cycles, 17283 packets were handled,  1280 of
-which were correctly received by the Application layer, and then sent out
-again
-\item Even with a few flaws, SME is a great framework for hardware modelling
+\item The design underwent many alternations, but the final layered design
+has proven to work great
+\item In 1.83 mio. simulated clock cycles, all of 17283 packets were handled
+correctly
+
+\item Errors in the outgoing packets, but they should be easily fixable
+
+\item SME was of great help for the implementation, albeit with a few errors and
+bugs
+
 \end{itemize}
 
 \end{frame}
