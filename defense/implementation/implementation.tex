@@ -44,10 +44,10 @@
     \end{itemize}
 }
 \begin{frame}[fragile]
+    %\Put(280,0){\colorbox{white}{\includegraphics[width=0.2\textwidth]{implementation/design_2_state.eps}}}
     \frametitle{\ImplementationTitle}
     \framesubtitle{Processes}
-    \Put(0,0){\includegraphics[width=0.7\textwidth]{implementation/empty_process_fsm.eps}}
-    State machines\\
+    State machines\\\\
     %\begin{onlyenv}<2>
     \begin{minipage}[t]{0.3\textwidth}
         \begin{mintedcsharp}
@@ -113,20 +113,23 @@ State machines\\
 }
 
 \begin{frame}[fragile]
+    %\AtPageUpperLeft{\colorbox{white}{\includegraphics[width=0.2\textwidth]{implementation/design_2_state.eps}}}
     \frametitle{\ImplementationTitle}
     \framesubtitle{Processes}
     Examples\\
     \begin{minipage}[t]{0.5\textwidth}
         \begin{figure}
-                \centering
-                \includegraphics[scale=0.35]{implementation/internet_in_fsm.eps}
+            \centering
+            \includegraphics[scale=0.35]{implementation/internet_in_fsm.eps}
+            The internet process state machine
         \end{figure}
     \end{minipage}%
     \hfill%
     \begin{minipage}[t]{0.5\textwidth}
         \begin{figure}
-                \centering
-                \includegraphics[scale=0.35]{implementation/transport_fsm.eps}
+            \centering
+            \includegraphics[scale=0.35]{implementation/transport_fsm.eps}
+            The transport process state machine
         \end{figure}
     \end{minipage}
 \end{frame}
@@ -197,7 +200,7 @@ Identifying the scenarios
         \centering
         \includegraphics[scale=0.35]{implementation/compute_producer.eps}
 \end{figure}
- 
+
 \end{frame}
 
 

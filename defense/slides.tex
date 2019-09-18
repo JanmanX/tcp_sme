@@ -18,6 +18,7 @@
 \usepackage{color}
 \usepackage{minted}
 \usepackage{multimedia}
+\usepackage{eso-pic}
 \usepackage{pgfpages}
 \setbeameroption{show notes on second screen=bottom} %
 
@@ -62,7 +63,9 @@ autogobble
 \newcommand{\boxfillertext}{XXX}
 
 % Define images over each other
-\def\Put(#1,#2)#3{\leavevmode\makebox(0,0){\put(#1,#2){#3}}}
+%\def\Put(#1,#2)#3{\leavevmode\makebox(0,0){\put(#1,#2){#3}}}
+%\newcommand\AtPagemyUpperLeft[1]{\AtPageLowerLeft{%
+%\put(\LenToUnit{0.9\paperwidth},\LenToUnit{0.9\paperheight}){#1}}}
 
 \usetheme{Madrid}
 % \usefonttheme{structuresmallcapsserif}
