@@ -64,7 +64,9 @@ autogobble
 \newcommand{\boxfillertext}{XXX}
 
 % Define images over each other
-\def\Put(#1,#2)#3{\leavevmode\makebox(0,0){\put(#1,#2){#3}}}
+\newlength{\displayThumbnail}
+\setlength{\displayThumbnail}{2cm}
+%\def\Put(#1,#2)#3{\leavevmode\makebox(0,0){\put(#1,#2){#3}}}
 %\newcommand\AtPagemyUpperLeft[1]{\AtPageLowerLeft{%
 %\put(\LenToUnit{0.9\paperwidth},\LenToUnit{0.9\paperheight}){#1}}}
 
