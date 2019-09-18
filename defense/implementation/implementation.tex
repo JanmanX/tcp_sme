@@ -5,6 +5,7 @@
     \centering
     \begin{minipage}{1\textwidth}
         \begin{itemize}%[<+->]
+            \item SME introduction
             \item Processes
             \begin{itemize}
                 \item State machines
@@ -28,10 +29,24 @@
     \end{minipage}
 \end{frame}
 
-
+\begin{frame}
+    SME(Synchronous Message Exchange) introduction
+    \begin{itemize}
+        \item Processes and Busses
+        \item Higher abstraction
+        \item Handling of clocks
+        \item Easy testing
+    \end{itemize}
+\end{frame}
+\note{
+    \begin{itemize}
+        \item a
+    \end{itemize}
+}
 \begin{frame}[fragile]
     \frametitle{\ImplementationTitle}
     \framesubtitle{Processes}
+    \Put(0,0){\includegraphics[width=0.7\textwidth]{implementation/empty_process_fsm.eps}}
     State machines\\
     %\begin{onlyenv}<2>
     \begin{minipage}[t]{0.3\textwidth}
@@ -84,7 +99,18 @@
     \end{minipage}
 \end{frame}
 
+\note{
+State machines\\
+\begin{itemize}
+    \item \texttt{StateProcess}\\
+          Eksekvering kan stoppes når som helst(i bidder)
+    \item \texttt{SimpleProcess}\\
+          Run er en clock altid, state machine håndteres
+          med en switchcase. Algoritme kan splittes op i flere bidder,
+          men kræver en state per bid
 
+\end{itemize}
+}
 
 \begin{frame}[fragile]
     \frametitle{\ImplementationTitle}
@@ -104,7 +130,7 @@
         \end{figure}
     \end{minipage}
 \end{frame}
-
+\note{Labels!}
 
 \begin{frame}[fragile]
     \frametitle{\ImplementationTitle}
@@ -117,6 +143,7 @@
         \end{figure}
     \end{minipage}
 \end{frame}
+\note{Thumbnail?}
 
 \begin{frame}[fragile]
     \frametitle{\ImplementationTitle}
@@ -129,6 +156,11 @@
         \end{figure}
     \end{minipage}
 \end{frame}
+\note{Statisk tabel?\\
+Animationer?
+Billede af splitup af pakker?
+Hold det uden protocol specifik info.
+}
 
 \begin{frame}[fragile]
     \frametitle{\ImplementationTitle}

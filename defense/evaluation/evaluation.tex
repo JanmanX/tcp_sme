@@ -32,6 +32,7 @@
         \item Simplifies test cases
     \end{itemize}
 \end{frame}
+\note{Definer send og receive bedre}
 
 
 \begin{frame}[fragile]
@@ -190,6 +191,9 @@
         \end{column}
     \end{columns}
 \end{frame}
+\note{Hav billede af ssytem ved siden af\\
+system graf med selve latency\\ bufferen kan ikke videresende data dirrekte, da den skal
+gemme segmentet først}
 
 \begin{frame}%
     \frametitle{\EvaluationTitle}
@@ -199,11 +203,13 @@
         \centering
         \includegraphics[scale=0.33]{evaluation/hexdump.pdf}
     \end{figure}
-
 \end{frame}
+\note{Protocol ikke sat korrekt, destination ip ikke sat korrekt}
+
 
 \begin{frame}%
     \frametitle{\EvaluationTitle}
     \framesubtitle{Validation}
     Internet Protocol Suite compliancy as per RFC 1122
 \end{frame}
+\note{Ikke testet helt igennem, mem felterne er generelt sat}

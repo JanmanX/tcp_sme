@@ -18,7 +18,7 @@
 \usepackage{minted}
 \usepackage{multimedia}
 \usepackage{pgfpages}
-%\setbeameroption{show notes on second screen=bottom} %
+\setbeameroption{show notes on second screen=bottom} %
 
 % minted styles
 \setminted[csharp]{escapeinside={*@}{@*}}
@@ -59,6 +59,9 @@ autogobble
 \newcommand\statecolorbox[1]{\textcolorbox[fill=#1]{\phantom{\boxfillertext}}}
 \newcommand\statecolorboxtext[2]{\textcolorbox[fill=#1]{\phantom{Xj}#2\phantom{Xj}}}
 \newcommand{\boxfillertext}{XXX}
+
+% Define images over each other
+\def\Put(#1,#2)#3{\leavevmode\makebox(0,0){\put(#1,#2){#3}}}
 
 \usetheme{Madrid}
 % \usefonttheme{structuresmallcapsserif}
