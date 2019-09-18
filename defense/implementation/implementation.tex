@@ -193,6 +193,17 @@ Identifying the scenarios
 
 \end{frame}
 
+\note{Data skal overføres hurtigst muligt, og det må ikke gå tabt\\
+
+2 scenarier: fra "compute" til buffer, og omvendt \\
+
+- CP kan ikke vente\\
+- BP har stor buffer, og consumer starter transaktion
+
+
+}
+
+
 \begin{frame}[fragile]
 \frametitle{\ImplementationTitle}
 \framesubtitle{Interface signal protocol}
@@ -210,17 +221,10 @@ Identifying the scenarios
     \frametitle{\ImplementationTitle}
     \framesubtitle{Interface signal protocol}
     \textbf{Buffer-Producer:} Inspired by AXI4\\
-    \begin{columns}
-        \begin{column}{0.4\textwidth}
-           \begin{itemize}
-               \item Single clock offset when sending data.
-               \item Indicate end of stream with \texttt{bytes\_left}.
-           \end{itemize}
-        \end{column}
-        \begin{column}{0.5\textwidth}  %%<--- here
-            \includegraphics[scale=0.7]{implementation/axi4_handshake.eps}
-        \end{column}
-    \end{columns}
+    \begin{figure}
+                \includegraphics[scale=0.7]{implementation/axi4_handshake.eps}
+
+        \end{figure}
 \end{frame}
 
 
@@ -232,7 +236,6 @@ Identifying the scenarios
                 \includegraphics[scale=0.35]{implementation/buffer_producer.eps}
        \end{figure}
 \end{frame}
-
 
 
 
