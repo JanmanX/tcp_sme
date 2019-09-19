@@ -9,12 +9,16 @@ FPGAs are making their way into data centers to boost the computing power
 \begin{columns}
 
 \begin{column}{0.2\textwidth}
-\includegraphics[scale=0.2]{./background/intel_fpga_nic.jpg}
+	\begin{figure}
+\includegraphics[scale=0.15]{./background/intel_fpga_nic.jpg}
+		\caption{Intel FPGA}
+	\end{figure}
 \end{column}
 
 \begin{column}{0.8\textwidth}
 \includegraphics[scale=0.5]{./background/server_configuration.eps}
 \end{column}
+
 
 
 \end{columns}
@@ -27,18 +31,22 @@ FPGAs are making their way into data centers to boost the computing power
 \note{Applikationer og Big-Data udregninger flytter til Cloud, drevet af store
 data centre.\\
 
-Disse data-centre kraever rigtigt meget plads, store maengder af stroem og er i stigende grad svaere
+data-centre kraever meget plads, store maengder af stroem og er svaere
 at vedligeholde og udvide.\\
 
-De fleste data-centre er derfor begyndt at aflaste beregningerne til FPGAer,
-som fjerner meget af overhead til beregningerne\\
+DC optimerer servere for at få mest værdi muligt\\
 
-FPGA bruges til at få en computer til at køre hurtigere hvis de mest brugte
-instruktioner, skrives direkte ned i hardwaren\\
+Tendens til aflaste beregninger til FPGAer, fjerne overhead\\
+
+FPGA er hardware kan udføre beregninger hurtigt pga. dens parallele programmerbare natur.
+Den er hurtigt fordi instruktioner skrives direkte ned i hardwaren\\
+
+
+--- GRAF HER ---
+
 
 PROBLEMET er at der kun kan vaere en begreanset antal af FPGAer i konventionele
 servere
-
 }
 
 
@@ -122,15 +130,21 @@ The Internet
 
 
 \begin{frame}
-The Internet Protocol Suite -- A scenario
+The Internet Protocol Suite (TCP/IP)
 \begin{figure}
 	\centering
 \includegraphics[scale=0.28]{./background/internet_scenario.pdf}
 \end{figure}
-
-
-
 \end{frame}
+
+\note{
+TCP/IP er samling af standarder og protokoller\\
+
+Link: Overførsel på det fysiske medium\\
+Internet: bestemmer data-veje, addressering, fejl-kontrol\\
+Transport: pålidelighed, forbindelser, kontrol flow\\
+Application: Defineret af selve applikationen
+}
 
 
 \begin{frame}
