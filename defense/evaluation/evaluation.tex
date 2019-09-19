@@ -4,12 +4,14 @@
     \frametitle{\EvaluationTitle}
     \subsection{Setup}
     \framesubtitle{Setup}
-    Graph file simulation\\
-    \begin{itemize}%[<+->]
-        \item Full input - output
-        \item Does not take latency between packets into account
-        \item Simplifies test cases
-    \end{itemize}
+    \begin{block}{Graph file simulation}
+        \begin{itemize}%[<+->]
+            \item Full input - output
+            \item Does not take latency between packets into account
+            \item Simplifies test cases
+        \end{itemize}
+    \end{block}
+
 \end{frame}
 \note{Definer send og receive bedre}
 
@@ -116,30 +118,32 @@
     \frametitle{\EvaluationTitle}
     \subsection{Test}
     \framesubtitle{Test}
-    Senario
-    \begin{itemize}%[<+->]
-        \item Real life scenario
-        \item Test at high workloads
-        \item Remove garbage
-        \item Respond to packet
-        \item Differ between concurrent connections
-    \end{itemize}
+    \begin{block}{Senario}
+        \begin{itemize}%[<+->]
+            \item Real life scenario
+            \item Test at high workloads
+            \item Remove garbage
+            \item Respond to packet
+            \item Differ between concurrent connections
+        \end{itemize}
+    \end{block}
 \end{frame}
 \note{Fortæl kun om hvad vi vil have, ikke hvad vi har lavet af test}
 
 \begin{frame}%
     \frametitle{\EvaluationTitle}
     \framesubtitle{Test}
-    The test
-    \begin{itemize}%[<+->]
-        \item 17283 packets in total
-        \item Two "sessions"
-        \item 640*2 UDP packets that needs a response
-        \item 640 well formed UDP packets with no session (discard)
-        \item Rest of data is "background noise" (TCP packets with state, data, etc)
-        \item Total data sent through: 1832958 bytes
-        \item ~1.83 Million clocks used
-    \end{itemize}
+    \begin{block}{The test}
+        \begin{itemize}%[<+->]
+            \item 17283 packets in total
+            \item Two "sessions"
+            \item 640*2 UDP packets that needs a response
+            \item 640 well formed UDP packets with no session (discard)
+            \item Rest of data is "background noise" (TCP packets with state, data, etc)
+            \item Total data sent through: 1832958 bytes
+            \item ~1.83 Million clocks used
+        \end{itemize}
+    \end{block}
 \end{frame}
 
 \begin{frame}[t]
