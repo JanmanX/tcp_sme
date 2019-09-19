@@ -1,29 +1,8 @@
 \section{Evaluation}
 \newcommand{\EvaluationTitle}{Evaluation}
-\begin{frame}
-    \frametitle{\EvaluationTitle}
-    \centering
-    \begin{minipage}{1\textwidth}
-        \begin{itemize}%[<+->]
-            \item Setup
-            \begin{itemize}
-                \item Graph file simulator
-            \end{itemize}
-            \item Test
-            \item Validation
-            \begin{itemize}
-                \item Latency
-                \item Outgoing packet validation
-                \item Internet Protocol Suite
-                compliancy as per RFC
-                1122
-            \end{itemize}
-        \end{itemize}
-    \end{minipage}
-\end{frame}
-
 \begin{frame}[fragile]
     \frametitle{\EvaluationTitle}
+    \subsection{Setup}
     \framesubtitle{Setup}
     Graph file simulation\\
     \begin{itemize}%[<+->]
@@ -110,6 +89,7 @@
         \end{column}
     \end{columns}
 \end{frame}
+\note{Hop til illustrationen på næste slide nå du snakker om det!}
 
 \begin{frame}[fragile]%
     \frametitle{\EvaluationTitle}
@@ -134,6 +114,7 @@
 
 \begin{frame}%
     \frametitle{\EvaluationTitle}
+    \subsection{Test}
     \framesubtitle{Test}
     Senario
     \begin{itemize}%[<+->]
@@ -144,6 +125,7 @@
         \item Differ between concurrent connections
     \end{itemize}
 \end{frame}
+\note{Fortæl kun om hvad vi vil have, ikke hvad vi har lavet af test}
 
 \begin{frame}%
     \frametitle{\EvaluationTitle}
@@ -160,8 +142,9 @@
     \end{itemize}
 \end{frame}
 
-\begin{frame}%
+\begin{frame}[t]
     \frametitle{\EvaluationTitle}
+    \subsection{Validation}
     \framesubtitle{Validation}
     Latency calculations:
     \begin{columns}
@@ -190,9 +173,12 @@
             \end{equation*}
         \end{column}
     \end{columns}
+    \begin{figure}
+        \centering
+        \includegraphics[angle=90,origin=c,scale=0.24]{./background/design_2.eps}
+    \end{figure}
 \end{frame}
-\note{Hav billede af sytem ved siden af\\
-system graf med selve latency\\ bufferen kan ikke videresende data dirrekte, da den skal
+\note{Bufferen kan ikke videresende data dirrekte, da den skal
 gemme segmentet først}
 
 \begin{frame}%

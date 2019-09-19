@@ -1,30 +1,37 @@
 \section{Implementation}
 \newcommand{\ImplementationTitle}{Implementation}
-\begin{frame}
-    \frametitle{\ImplementationTitle}
-    \centering
-    \begin{minipage}{1\textwidth}
-        \begin{itemize}%[<+->]
-            \item SME introduction
-            \item Processes
-            \begin{itemize}
-                \item State machines
-            \end{itemize}
-            \item Buffers
-            \begin{itemize}
-                \item Memory segments
-                \item Dictionary
-            \end{itemize}
-            \item Interface signal control
-            \begin{itemize}
-                \item Buffer-Producer
-                \item Compute-Producer
-            \end{itemize}
-        \end{itemize}
-    \end{minipage}
-\end{frame}
+% \begin{frame}
+%     \frametitle{\ImplementationTitle}
+%     \centering
+%     \begin{minipage}{1\textwidth}
+%         \begin{itemize}%[<+->]
+%             \item SME introduction
+%             \item Processes
+%             \begin{itemize}
+%                 \item State machines
+%             \end{itemize}
+%             \item Buffers
+%             \begin{itemize}
+%                 \item Memory segments
+%                 \item Dictionary
+%             \end{itemize}
+%             \item Interface signal control
+%             \begin{itemize}
+%                 \item Buffer-Producer
+%                 \item Compute-Producer
+%             \end{itemize}
+%         \end{itemize}
+%     \end{minipage}
+% \end{frame}
 
 \begin{frame}
+    \begin{textblock*}{\displayThumbnail}(\paperwidth-\displayThumbnail-0.2cm,0cm) % {block width} (coords)
+        \colorbox{white}{\includegraphics[width=\textwidth]{implementation/design_2_sme.eps}}
+    \end{textblock*}
+    \frametitle{\ImplementationTitle}
+    \subsection{SME introduction}
+    \framesubtitle{SME introduction}
+
     SME(Synchronous Message Exchange) introduction
     \begin{itemize}
         \item Processes and Busses
@@ -41,10 +48,16 @@
         \item Clocks abstracted away behind the management of processes and busses
         \item Testing straight in the simulator, but also in afterwards in the GHDL
               compiler, via an clock lookup table
+        \item Since not feature complete, only simple structures can be used. We choose
+              state diagrams since they are possible to make, and easy to understand
     \end{itemize}
 }
 \begin{frame}[fragile]
+    \begin{textblock*}{\displayThumbnail}(\paperwidth-\displayThumbnail-0.2cm,0cm) % {block width} (coords)
+        \colorbox{white}{\includegraphics[width=\textwidth]{implementation/design_2_state.eps}}
+    \end{textblock*}
     \frametitle{\ImplementationTitle}
+    \subsection{Processes}
     \framesubtitle{Processes}
     State machines\\\\
     %\begin{onlyenv}<2>
@@ -114,7 +127,9 @@ State machines\\
 }
 
 \begin{frame}[fragile]
-    %\AtPageUpperLeft{\colorbox{white}{\includegraphics[width=0.2\textwidth]{implementation/design_2_state.eps}}}
+    \begin{textblock*}{\displayThumbnail}(\paperwidth-\displayThumbnail-0.2cm,0cm) % {block width} (coords)
+        \colorbox{white}{\includegraphics[width=\textwidth]{implementation/design_2_state_specific.eps}}
+    \end{textblock*}
     \frametitle{\ImplementationTitle}
     \framesubtitle{Processes}
     Examples\\
@@ -122,7 +137,7 @@ State machines\\
         \begin{figure}
             \centering
             \includegraphics[scale=0.35]{implementation/internet_in_fsm.eps}
-            The internet process state machine
+            Internet in process state machine
         \end{figure}
     \end{minipage}%
     \hfill%
@@ -130,23 +145,38 @@ State machines\\
         \begin{figure}
             \centering
             \includegraphics[scale=0.35]{implementation/transport_fsm.eps}
-            The transport process state machine
+            Transport process state machine
         \end{figure}
     \end{minipage}
 \end{frame}
-\note{Labels!}
+\note{
+
+    \begin{itemize}
+        \item Gå igennem state diagrammer
+        \item Snak om grundlaget for de forskellige typer brug
+    \end{itemize}
+}
 
 \begin{frame}[fragile]
+    \begin{textblock*}{\displayThumbnail}(\paperwidth-\displayThumbnail-0.2cm,0cm) % {block width} (coords)
+        \colorbox{white}{\includegraphics[width=\textwidth]{implementation/design_2_memory.eps}}
+    \end{textblock*}
     \frametitle{\ImplementationTitle}
+    \subsection{Buffers}
     \framesubtitle{Buffers}
+    Why buffers?
     \begin{itemize}
-        \item why buffes?
+        \item Fixes segmentation
+        \item Processes can get data at their leisure
     \end{itemize}
 \end{frame}
 \note{Hvorfor bruer vi buffers?}
 
 
 \begin{frame}[fragile]
+    \begin{textblock*}{\displayThumbnail}(\paperwidth-\displayThumbnail-0.2cm,0cm) % {block width} (coords)
+        \colorbox{white}{\includegraphics[width=\textwidth]{implementation/design_2_memory.eps}}
+    \end{textblock*}
     \frametitle{\ImplementationTitle}
     \framesubtitle{Buffers}
     Memory segments\\
@@ -157,30 +187,84 @@ State machines\\
         \end{figure}
     \end{minipage}
 \end{frame}
-\note{Thumbnail?}
+\note{
+    \begin{itemize}
+        \item Reason behind?
+        \begin{itemize}
+            \item Segment handling
+            \item References to other segment to concatting of segments later
+        \end{itemize}
+    \end{itemize}
 
-\begin{frame}[fragile]
-    \frametitle{\ImplementationTitle}
-    \framesubtitle{Buffers}
-    Memory dictionary\\
-    \begin{minipage}[t]{1\textwidth}
-        \begin{figure}
-                \centering
-                \includegraphics[scale=0.60]{implementation/memory_dictionary.eps}
-        \end{figure}
-    \end{minipage}
-\end{frame}
-\note{Statisk tabel?\\
-Animationer?
-Billede af splitup af pakker?
-Hold det uden protocol specifik info.
 }
 
+\begin{frame}[t]
+    \note<1->{Snak om input
+}
+    \begin{textblock*}{\displayThumbnail}(\paperwidth-\displayThumbnail-0.2cm,0cm) % {block width} (coords)
+        \colorbox{white}{\includegraphics[width=\textwidth]{implementation/design_2_memory_dictionary.eps}}
+    \end{textblock*}
+    \frametitle{\ImplementationTitle}
+    \framesubtitle{Buffers}
+    Memory dictionary
+    \begin{columns}[t]
+        \begin{column}{0.5\linewidth}
+            \begin{figure}
+                \centering
+                \begin{overlayarea}{\textwidth}{\textheight}
+                    \only<1>{\includegraphics[width=\textwidth]{./implementation/memory_dictionary/memory_dictionary_multi_0.eps}}
+                    \only<2>{\includegraphics[width=\textwidth]{./implementation/memory_dictionary/memory_dictionary_multi_1.eps}}%
+                    \only<3>{\includegraphics[width=\textwidth]{./implementation/memory_dictionary/memory_dictionary_multi_2.eps}}%
+                \end{overlayarea}
+            \end{figure}
+        \end{column}
+
+        \begin{column}{0.3\linewidth}
+            \\
+            \only<1>{
+                Initial state.\\
+                Key \texttt{5} have 2 elements:\\
+                $$[4,18]$$
+                at index:
+                $$[2,7]$$
+            }
+            \only<2>{
+                Insert element 8:
+                Key \texttt{5} have 3 elements:\\
+                $$[4,8,18]$$
+                at index:
+                $$[2,6,7]$$
+            }
+            \only<3>{
+                Insert element 2:
+                Key \texttt{5} have 4 elements:\\
+                $$[2,4,8,18]$$
+                at index:
+                $$[5,2,6,7]$$
+            }
+        \end{column}
+        \begin{column}{0.2\linewidth}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+
+
 \begin{frame}[fragile]
+    \note<1->{Overflow!\\
+    kan læses ved:
+    \begin{itemize}
+        \item Kør løkken en gang per clock
+        \item Brug en anden model end en linked list, måske et fast offset?
+    \end{itemize}
+    }
+    \begin{textblock*}{\displayThumbnail}(\paperwidth-\displayThumbnail-0.2cm,0cm) % {block width} (coords)
+        \colorbox{white}{\includegraphics[width=\textwidth]{implementation/design_2_memory.eps}}
+    \end{textblock*}
     \frametitle{\ImplementationTitle}
     \framesubtitle{Buffers}
     Some problems with the memory dictionaries!
-    \begin{figure}[ht]
+    \begin{figure}
         \centering
         \begin{overlayarea}{0.76\textwidth}{\textheight}
             \only<1>{\includegraphics[width=\textwidth]{./implementation/memory_overrun/memory_overrun_0.eps}}
@@ -195,7 +279,11 @@ Hold det uden protocol specifik info.
 
 
 \begin{frame}[fragile]
+    \begin{textblock*}{\displayThumbnail}(\paperwidth-\displayThumbnail-0.2cm,0cm) % {block width} (coords)
+        \colorbox{white}{\includegraphics[width=\textwidth]{implementation/design_2_busses.eps}}
+    \end{textblock*}
     \frametitle{\ImplementationTitle}
+    \subsection{Interface signal protocol}
     \framesubtitle{Interface signal protocol}
 Identifying the scenarios
 
@@ -216,6 +304,9 @@ Identifying the scenarios
 
 
 \begin{frame}[fragile]
+    \begin{textblock*}{\displayThumbnail}(\paperwidth-\displayThumbnail-0.2cm,0cm) % {block width} (coords)
+        \colorbox{white}{\includegraphics[width=\textwidth]{implementation/design_2_busses.eps}}
+    \end{textblock*}
 \frametitle{\ImplementationTitle}
 \framesubtitle{Interface signal protocol}
 \begin{figure}
@@ -229,6 +320,9 @@ Identifying the scenarios
 
 
 \begin{frame}[fragile]
+    \begin{textblock*}{\displayThumbnail}(\paperwidth-\displayThumbnail-0.2cm,0cm) % {block width} (coords)
+        \colorbox{white}{\includegraphics[width=\textwidth]{implementation/design_2_busses.eps}}
+    \end{textblock*}
     \frametitle{\ImplementationTitle}
     \framesubtitle{Interface signal protocol}
     \textbf{Buffer-Producer:} Inspired by AXI4\\
@@ -240,6 +334,9 @@ Identifying the scenarios
 
 
 \begin{frame}[fragile]
+    \begin{textblock*}{\displayThumbnail}(\paperwidth-\displayThumbnail-0.2cm,0cm) % {block width} (coords)
+        \colorbox{white}{\includegraphics[width=\textwidth]{implementation/design_2_busses.eps}}
+    \end{textblock*}
     \frametitle{\ImplementationTitle}
     \framesubtitle{Interface signal protocol}
         \begin{figure}

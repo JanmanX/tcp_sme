@@ -64,7 +64,9 @@ autogobble
 \newcommand{\boxfillertext}{XXX}
 
 % Define images over each other
-\def\Put(#1,#2)#3{\leavevmode\makebox(0,0){\put(#1,#2){#3}}}
+\newlength{\displayThumbnail}
+\setlength{\displayThumbnail}{2cm}
+%\def\Put(#1,#2)#3{\leavevmode\makebox(0,0){\put(#1,#2){#3}}}
 %\newcommand\AtPagemyUpperLeft[1]{\AtPageLowerLeft{%
 %\put(\LenToUnit{0.9\paperwidth},\LenToUnit{0.9\paperheight}){#1}}}
 
@@ -85,16 +87,35 @@ autogobble
 
 
 \begin{document}
-
 \frame{\titlepage}
+\note{\textbf{Mark} siger introduktion og 2-3 saetninger "abstrakt" }
+
+
+\begin{frame}
+    \frametitle{Table of Contents}
+    \begin{columns}
+        \begin{column}{0.4\textwidth}
+          \tableofcontents[sections=<1-4>,hideallsubsections]
+        \end{column}
+        \begin{column}{0.4\textwidth}
+          \tableofcontents[sections=<5->,hideallsubsections]
+        \end{column}
+    \end{columns}
+\end{frame}
 \AtBeginSection[]
 {
   \begin{frame}
     \frametitle{Table of Contents}
-    \tableofcontents[currentsection]
-  \end{frame}
+    \begin{columns}
+      \begin{column}{0.4\textwidth}
+        \tableofcontents[sections=<1-4>,subsectionstyle=shaded/show/hide,sectionstyle=show/shaded]
+      \end{column}
+      \begin{column}{0.4\textwidth}
+        \tableofcontents[sections=<5->,subsectionstyle=shaded/show/hide,sectionstyle=show/shaded]
+      \end{column}
+  \end{columns}
+    \end{frame}
 }
-\note{\textbf{Mark} siger introduktion og 2-3 saetninger "abstrakt" }
 
 \input{background/background.tex}
 \input{design/design.tex}
