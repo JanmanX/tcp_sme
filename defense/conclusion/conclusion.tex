@@ -1,10 +1,11 @@
 \section{Discussion}
 
-\begin{frame}
+\begin{frame}[t]
+
   \frametitle{Discussion}
 
 
-\begin{columns}
+	\begin{columns}[t]
 \begin{column}{0.5\textwidth}
 
 Estimated performance:
@@ -19,8 +20,10 @@ Improving the performance:
 \begin{figure}
 \centering
 
+\includegraphics<1>[scale=0.3]{../thesis/discussion/bus_width_boundaries.eps}
 
-\includegraphics[scale=0.25]{../thesis/discussion/design_stacked.eps}
+\includegraphics<2>[scale=0.25]{../thesis/discussion/design_stacked.eps}
+
 \end{figure}
 \end{column}
 \end{columns}
@@ -32,21 +35,21 @@ Improving the performance:
 % \begin{columns}
 % \begin{column}{0.5\textwidth}
 % Usability
-% 
+%
 % \end{column}
-% 
+%
 % \begin{column}{0.5\textwidth}
 % SOMETHING
 % \end{column}
 % \end{columns}
 % \end{frame}
-% 
+%
 % \begin{frame}
 % \begin{columns}
 % \begin{column}{0.5\textwidth}
 % Using C\#
 % \end{column}
-% 
+%
 % \begin{column}{0.5\textwidth}
 % State modelling\\
 % Simulation\\
@@ -59,17 +62,24 @@ Improving the performance:
 \begin{frame}
   \frametitle{Conclusion}
 
+
+\begin{block}{Conclusion}
 \begin{itemize}
-\item The design underwent many alternations, but the final layered design
-has proven to work great
-\item In 1.83 mio. simulated clock cycles, all of 17283 packets were handled
-correctly
-
-\item Errors in the outgoing packets, but they should be easily fixable
-
-\item SME was of great help for the implementation, albeit with a few errors and
-bugs
+	\item Many design alterations, \textbf{layered} design worked best
+\item All 17283 ingoing packets parsed correctly
+\item Few easily fixable errors in outgoing packets
+\item SME was great for implementation, albeit with a few small errors and bugs
 
 \end{itemize}
 
+\end{block}
 \end{frame}
+
+\note{
+	Design: Distribueret hukommelse er effektiv og giver funktionalitet\\
+
+	SME: C\# nemt og hurtigt\\
+	     Simulationen gjorde udviklingen hurtigere\\
+	     Manglende features (structs), manglende library
+
+}
